@@ -1168,6 +1168,7 @@ const SLuaVariables simLuaVariables[]=
     {"sim.syscb_threadmain",sim_syscb_threadmain,true},
     {"sim.syscb_userconfig",sim_syscb_userconfig,true},
     {"sim.syscb_br",sim_syscb_br,true},
+    {"sim.syscb_xr",sim_syscb_xr,true},
     // script attributes:
     {"sim.customizationscriptattribute_activeduringsimulation",sim_customizationscriptattribute_activeduringsimulation,true},
     {"sim.scriptattribute_executionorder",sim_scriptattribute_executionorder,true},
@@ -1325,6 +1326,9 @@ const SLuaVariables simLuaVariables[]=
     {"sim.boolparam_br_partrepository",sim_boolparam_xr_partrepository,true},
     {"sim.boolparam_br_palletrepository",sim_boolparam_xr_palletrepository,true},
     {"sim.boolparam_br_jobfunc",sim_boolparam_xr_jobfunc,true},
+    {"sim.boolparam_xr_partrepository",sim_boolparam_xr_partrepository,true},
+    {"sim.boolparam_xr_palletrepository",sim_boolparam_xr_palletrepository,true},
+    {"sim.boolparam_xr_jobfunc",sim_boolparam_xr_jobfunc,true},
     {"sim.boolparam_scene_closing",sim_boolparam_scene_closing,true},
     {"sim.boolparam_use_glfinish_cmd",sim_boolparam_use_glfinish_cmd,true},
     {"sim.boolparam_force_show_wireless_emission",sim_boolparam_force_show_wireless_emission,true},
