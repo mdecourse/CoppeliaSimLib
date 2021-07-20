@@ -1,9 +1,8 @@
-
 #include "pathRendering.h"
 
 #ifdef SIM_WITH_OPENGL
 
-void displayPath(CPath* path,CViewableBase* renderingObject,int displayAttrib)
+void displayPath(CPath_old* path,CViewableBase* renderingObject,int displayAttrib)
 {
     // At the beginning of every 3DObject display routine:
     _commonStart(path,renderingObject,displayAttrib);
@@ -12,16 +11,16 @@ void displayPath(CPath* path,CViewableBase* renderingObject,int displayAttrib)
     if (displayAttrib&sim_displayattribute_renderpass)
         _displayBoundingBox(path,displayAttrib,true,path->pathContainer->getSquareSize()*2.0f);
 
-    C3Vector normalVectorForLinesAndPoints(path->getCumulativeTransformation().Q.getInverse()*C3Vector::unitZVector);
+    C3Vector normalVectorForLinesAndPoints(path->getFullCumulativeTransformation().Q.getInverse()*C3Vector::unitZVector);
 
     // Object display:
 #ifdef SIM_WITH_GUI
-    if ( path->getShouldObjectBeDisplayed(renderingObject->getObjectHandle(),displayAttrib)||( (App::mainWindow!=nullptr)&&(App::mainWindow->editModeContainer->getEditModePath()==path) ) )
+    if ( path->getShouldObjectBeDisplayed(renderingObject->getObjectHandle(),displayAttrib)||( (App::mainWindow!=nullptr)&&(App::mainWindow->editModeContainer->getEditModePath_old()==path) ) )
 #else
-    if (path->getShouldObjectBeDisplayed(renderingObject->getID(),displayAttrib))
+    if (path->getShouldObjectBeDisplayed(renderingObject->getObjectHandle(),displayAttrib))
 #endif
     {
-        if ((App::getEditModeType()&SHAPE_OR_PATH_EDIT_MODE)==0)
+        if ((App::getEditModeType()&SHAPE_OR_PATH_EDIT_MODE_OLD)==0)
         {
             if (path->getLocalObjectProperty()&sim_objectproperty_selectmodelbaseinstead)
                 glLoadName(path->getModelSelectionHandle());
@@ -35,8 +34,8 @@ void displayPath(CPath* path,CViewableBase* renderingObject,int displayAttrib)
             glPolygonMode (GL_FRONT_AND_BACK,GL_LINE);
 
 #ifdef SIM_WITH_GUI
-        if ( (App::mainWindow!=nullptr)&&(App::mainWindow->editModeContainer->getEditModePath()==path) )
-            App::mainWindow->editModeContainer->getEditModePathContainer()->render(true,0,false,path->getObjectHandle());
+        if ( (App::mainWindow!=nullptr)&&(App::mainWindow->editModeContainer->getEditModePath_old()==path) )
+            App::mainWindow->editModeContainer->getEditModePathContainer_old()->render(true,0,false,path->getObjectHandle());
         else
 #endif
         {
@@ -74,7 +73,7 @@ void displayPath(CPath* path,CViewableBase* renderingObject,int displayAttrib)
 
 #else
 
-void displayPath(CPath* path,CViewableBase* renderingObject,int displayAttrib)
+void displayPath(CPath_old* path,CViewableBase* renderingObject,int displayAttrib)
 {
 
 }

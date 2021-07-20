@@ -2,13 +2,13 @@
 #include "ui_qdlgmultishapeedition.h"
 #include "tt.h"
 #include "gV.h"
-#include "geometric.h"
+#include "mesh.h"
 #include "qdlgtextures.h"
 #include "app.h"
 #include "simStrings.h"
 #include "qdlgmaterial.h"
 
-CGeometric* theGeom=nullptr;
+CMesh* theGeom=nullptr;
 
 CQDlgMultishapeEdition::CQDlgMultishapeEdition(QWidget *parent) :
     CDlgEx(parent),
@@ -41,11 +41,13 @@ void CQDlgMultishapeEdition::refresh()
     ui->qqShadingAngle->setEnabled(theGeom!=nullptr);
     ui->qqEdgesAngle->setEnabled(theGeom!=nullptr);
     ui->qqBackfaceCulling->setEnabled(theGeom!=nullptr);
-    ui->qqWireframe->setEnabled(theGeom!=nullptr);
     ui->qqShowEdges->setEnabled(theGeom!=nullptr);
-    ui->qqHiddenBorder->setEnabled(theGeom!=nullptr);
     ui->qqAdjustColor->setEnabled(theGeom!=nullptr);
     ui->qqTexture->setEnabled(theGeom!=nullptr);
+    ui->qqHiddenBorder->setVisible(App::userSettings->showOldDlgs);
+    ui->qqWireframe->setVisible(App::userSettings->showOldDlgs);
+    ui->qqHiddenBorder->setEnabled(theGeom!=nullptr);
+    ui->qqWireframe->setEnabled(theGeom!=nullptr);
 
     if (theGeom!=nullptr)
     {

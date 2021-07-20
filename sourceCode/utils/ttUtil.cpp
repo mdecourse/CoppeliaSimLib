@@ -4,6 +4,7 @@
 #include <boost/format.hpp>
 #include "base64.h"
 #include "vDateTime.h"
+#include <regex>
 
 void CTTUtil::lightBinaryEncode(char* data,int length)
 { // Very simple!
@@ -109,41 +110,7 @@ bool CTTUtil::extractLine(std::string& multiline,std::string& line)
     return(line.length()!=0);
 }
 
-std::string CTTUtil::intToString(int intVal)
-{
-    return(boost::lexical_cast<std::string>(intVal));
-}
-
-std::string CTTUtil::dwordToString(unsigned int dwordVal)
-{
-    return(boost::lexical_cast<std::string>(dwordVal));
-}
-
-std::string CTTUtil::dataToString(char* data,int startPos,int length)
-{
-    std::string retVal("");
-    for (int i=0;i<length;i++)
-        retVal+=data[startPos+i];
-    return(retVal);
-}
-
-void CTTUtil::stringToData(const std::string& str,char* data,int startPos)
-{
-    for (int i=0;i<int(str.length());i++)
-        data[startPos+i]=str[i];
-}
-
-std::string CTTUtil::getAdjustedString(const std::string& str,int length)
-{
-    std::string retString(str);
-    while (int(retString.length())<length)
-        retString+=' ';
-    while (int(retString.length())>length)
-        retString.erase(retString.end()-1);
-    return(retString);
-}
-
-std::string CTTUtil::getLightEncodedString(const std::string& ss)
+std::string CTTUtil::getLightEncodedString(const char* ss)
 { // ss can contain any char, also 0!
     std::string txt(ss);
     std::string s;
@@ -165,7 +132,7 @@ std::string CTTUtil::getLightEncodedString(const std::string& ss)
     return(s);
 }
 
-std::string CTTUtil::getLightDecodedString(const std::string& ss)
+std::string CTTUtil::getLightDecodedString(const char* ss)
 { // return string can contain any char, also 0!
     std::string txt(ss);
     std::string s;
@@ -228,45 +195,6 @@ std::string CTTUtil::getFormattedString(const char* a,const char* b,const char* 
         return(retVal);
     retVal+=h;
     return(retVal);
-}
-
-int CTTUtil::replaceWordInLine(std::string& line,const std::string& oldText,const std::string& newText)
-{
-    int retVal=0;
-    size_t p=0;
-    p=line.find(oldText,p);
-    while (p!=std::string::npos)
-    {
-        line.erase(line.begin()+p,line.begin()+p+oldText.length());
-        line.insert(line.begin()+p,newText.begin(),newText.end());
-        p=line.find(oldText,p+1);
-        retVal++;
-    }
-    return(retVal);
-}
-
-std::string CTTUtil::formatString(const std::string fmt, ...)
-{ // taken from http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
-    // Courtesy of Erik Aronesty
-    int size = 512;
-    std::string str;
-    va_list ap;
-    while (1)
-    {
-        str.resize(size);
-        va_start(ap, fmt);
-        int n = vsnprintf((char *)str.c_str(), size, fmt.c_str(), ap);
-        va_end(ap);
-        if (n > -1 && n < size) {
-            str.resize(n);
-            return str;
-        }
-        if (n > -1)
-            size = n + 1;
-        else
-            size *= 2;
-    }
-    return str;
 }
 
 std::string CTTUtil::getLowerCaseString(const char* str)
@@ -355,4 +283,71 @@ std::string CTTUtil::generateUniqueReadableString()
     }
     std::transform(str.begin(),str.end(),str.begin(),::toupper);
     return(str);
+}
+
+void CTTUtil::replaceSubstring(std::string& str,const char* subStr,const char* replacementSubStr)
+{
+    size_t index=0;
+    size_t str1L=strlen(subStr);
+    size_t str2L=strlen(replacementSubStr);
+    while (true)
+    {
+        index=str.find(subStr,index);
+        if (index==std::string::npos)
+            break;
+        str.replace(index,str1L,replacementSubStr);
+        index+=str2L;
+    }
+}
+
+void CTTUtil::regexReplace(std::string& str,const char* regexStr,const char* regexReplacementSubStr)
+{
+    str=std::regex_replace(str,std::regex(regexStr),regexReplacementSubStr);
+}
+
+void CTTUtil::pushFloatToBuffer(float d,std::vector<char>& data)
+{
+    for (size_t i=0;i<sizeof(float);i++)
+        data.push_back(((char*)&d)[i]);
+}
+
+float CTTUtil::popFloatFromBuffer(std::vector<char>& data)
+{
+    float d;
+    for (size_t i=0;i<sizeof(float);i++)
+    {
+        ((char*)&d)[sizeof(float)-1-i]=data[data.size()-1];
+        data.pop_back();
+    }
+    return(d);
+}
+
+void CTTUtil::pushIntToBuffer(int d,std::vector<char>& data)
+{
+    for (size_t i=0;i<sizeof(int);i++)
+        data.push_back(((char*)&d)[i]);
+}
+
+int CTTUtil::popIntFromBuffer(std::vector<char>& data)
+{
+    int d;
+    for (size_t i=0;i<sizeof(int);i++)
+    {
+        ((char*)&d)[sizeof(int)-1-i]=data[data.size()-1];
+        data.pop_back();
+    }
+    return(d);
+}
+
+bool CTTUtil::doStringMatch_wildcard(const char* wildcardStr,const char* otherStr)
+{
+    if ( (wildcardStr[0]=='\0')&&(otherStr[0]=='\0') )
+        return(true);
+    if ( (wildcardStr[0]=='*')&&((wildcardStr+1)[0]!='\0')&&(otherStr[0]=='\0') )
+        return(false);
+    if ( (wildcardStr[0]=='?')||(wildcardStr[0]==otherStr[0]) )
+        return(doStringMatch_wildcard(wildcardStr+1,otherStr+1));
+    if (wildcardStr[0]=='*')
+        return(doStringMatch_wildcard(wildcardStr+1,otherStr)||doStringMatch_wildcard(wildcardStr,otherStr+1));
+    return(false);
 }

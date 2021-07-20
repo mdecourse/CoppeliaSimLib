@@ -1,7 +1,6 @@
 #pragma once
 
-#include "mainCont.h"
-#include "visualParam.h"
+#include "colorObject.h"
 
 class CUserSettings
 {
@@ -35,7 +34,11 @@ public:
 
     bool getSupportOldApiNotation();
 
-    CVisualParam groupSelectionColor;
+    std::string _overrideConsoleVerbosity;
+    std::string _overrideStatusbarVerbosity;
+    std::string _consoleLogFilter;
+    std::string _overrideDialogVerbosity;
+    bool undecoratedStatusbarMessages;
     bool displayWorldReference;
     bool useGlFinish;
     bool useGlFinish_visionSensors;
@@ -55,8 +58,6 @@ public:
     bool test1;
     bool orderHierarchyAlphabetically;
     int macChildDialogType;
-    bool useExternalLuaLibrary;
-    bool raiseErrorWithApiScriptFunctions;
 
     int undoRedoLevelCount;
     int undoRedoMaxBufferSize;
@@ -69,24 +70,29 @@ public:
     int autoSaveDelay;
     int bulletSerializationBuffer;
     int timeInMsForUndoRedoTooLongWarning;
+    int bugFix1;
+    bool compatibilityFix1;
 
     bool middleMouseButtonSwitchesModes;
     bool navigationBackwardCompatibility;
     float colorAdjust_backCompatibility;
     bool specificGpuTweak;
-    bool enableOldCalcModuleGuis;
     bool useAlternateSerialPortRoutines;
-    bool enableOpenGlBasedCustomUiEditor;
-    bool enableOldMillObjects;
+    bool disableOpenGlBasedCustomUi;
+    bool showOldDlgs;
+    bool enableOldRenderableBehaviour;
+    bool keepOldThreadedScripts;
     bool enableOldMirrorObjects;
+    int allowOldEduRelease;
+    int threadedScriptsStoppingGraceTime;
     bool displayBoundingBoxeWhenObjectSelected;
     bool antiAliasing;
     float dynamicActivityRange;
     int freeServerPortStart;
     int freeServerPortRange;
+    bool darkMode;
     int renderingSurfaceVShift;
     int renderingSurfaceVResize;
-    int threadedRenderingDuringSimulation;
     int offscreenContextType;
     int fboType;
     bool forceFboViaExt;
@@ -98,23 +104,19 @@ public:
     int visionSensorsUseGuiThread_headless;
     int fileDialogs;
     float mouseWheelZoomFactor;
-    int changeScriptCodeForNewApiNotation;
 
     bool doNotWritePersistentData;
     bool doNotShowCrashRecoveryMessage;
     bool doNotShowUpdateCheckMessage;
-    bool doNotShowSceneSelectionThumbnails;
     bool doNotShowProgressBars;
     bool doNotShowAcknowledgmentMessages;
     bool doNotShowVideoCompressionLibraryLoadError;
-    bool redirectStatusbarMsgToConsoleInHeadlessMode;
     bool suppressStartupDialogs;
     bool suppressXmlOverwriteMsg;
 
     std::string scriptEditorFont;
+    bool scriptEditorBoldFont;
     int scriptEditorFontSize;
-    std::string auxConsoleFont;
-    int auxConsoleFontSize;
 
     std::string additionalLuaPath;
 
@@ -126,8 +128,6 @@ public:
     std::string defaultDirectoryForModels;
     std::string defaultDirectoryForCadFiles;
     std::string defaultDirectoryForMiscFiles;
-    std::string defaultDirectoryForExternalScriptEditor;
-    std::string defaultDirectoryForRemoteApiFiles;
 
     int threadedChildScriptColor_background[3];
     int threadedChildScriptColor_selection[3];

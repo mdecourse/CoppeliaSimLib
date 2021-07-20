@@ -107,9 +107,6 @@ CGlobalGuiTextureContainer::CGlobalGuiTextureContainer()
     dat=CImageLoaderSaver::loadQTgaImageData(":/targaFiles/mscript.tga",xres,yres,rgba,nullptr);
     addObject(MAIN_SCRIPT_PICTURE,xres,yres,rgba,false,true,dat);
     delete[] dat;
-    dat=CImageLoaderSaver::loadQTgaImageData(":/targaFiles/mcscript.tga",xres,yres,rgba,nullptr);
-    addObject(MAIN_SCRIPT_CUSTOMIZED_PICTURE,xres,yres,rgba,false,true,dat);
-    delete[] dat;
     dat=CImageLoaderSaver::loadQTgaImageData(":/targaFiles/script.tga",xres,yres,rgba,nullptr);
     addObject(SCRIPT_PICTURE,xres,yres,rgba,false,true,dat);
     delete[] dat;
@@ -137,9 +134,6 @@ CGlobalGuiTextureContainer::CGlobalGuiTextureContainer()
     dat=CImageLoaderSaver::loadQTgaImageData(":/targaFiles/edge.tga",xres,yres,rgba,nullptr);
     addObject(EDGE_PICTURE,xres,yres,rgba,false,true,dat);
     delete[] dat;
-    dat=CImageLoaderSaver::loadQTgaImageData(":/targaFiles/2delement.tga",xres,yres,rgba,nullptr);
-    addObject(BUTTON_BLOCK_PICTURE,xres,yres,rgba,false,true,dat);
-    delete[] dat;
     dat=CImageLoaderSaver::loadQTgaImageData(":/targaFiles/mill.tga",xres,yres,rgba,nullptr);
     addObject(MILL_TREE_PICTURE,xres,yres,rgba,false,true,dat);
     delete[] dat;
@@ -161,12 +155,6 @@ CGlobalGuiTextureContainer::CGlobalGuiTextureContainer()
     dat=CImageLoaderSaver::loadQTgaImageData(":/targaFiles/customizationScriptDisabled.tga",xres,yres,rgba,nullptr);
     addObject(CUSTOMIZATIONSCRIPTDISABLED_PICTURE,xres,yres,rgba,false,true,dat);
     delete[] dat;
-
-
-    dat=CImageLoaderSaver::loadQTgaImageData(":/targaFiles/checkedbgd.tga",xres,yres,rgba,nullptr);
-    addObject(CHECKED_BACKGROUND_PICTURE,xres,yres,rgba,false,true,dat);
-    delete[] dat;
-    
 
     // Cursors:
     dat=CImageLoaderSaver::loadQTgaImageData(":/targaFiles/cur_arrow.tga",xres,yres,rgba,nullptr);

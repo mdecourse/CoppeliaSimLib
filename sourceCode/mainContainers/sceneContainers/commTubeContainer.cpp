@@ -10,7 +10,7 @@ CCommTubeContainer::CCommTubeContainer()
 }
 
 CCommTubeContainer::~CCommTubeContainer()
-{
+{ // beware, the current world could be nullptr
     removeAllTubes();
 }
 
@@ -20,15 +20,6 @@ void CCommTubeContainer::removeAllTubes()
         delete _allTubes[i];
 }
 
-
-void CCommTubeContainer::emptySceneProcedure()
-{ // don't do anything here! (plugin or add-on might be using that functionality too) 
-}
-
-void CCommTubeContainer::simulationAboutToStart()
-{
-
-}
 
 void CCommTubeContainer::simulationEnded()
 { // Remove handles that were created from a script:
@@ -43,12 +34,7 @@ void CCommTubeContainer::simulationEnded()
     }
 }
 
-void CCommTubeContainer::renderYour3DStuff(CViewableBase* renderingObject,int displayAttrib)
-{
-
-}
-
-int CCommTubeContainer::openTube(int header,const std::string& identifier,bool killAtSimulationEnd,int readBufferSize)
+int CCommTubeContainer::openTube(int header,const char* identifier,bool killAtSimulationEnd,int readBufferSize)
 { // return value is the tube handle for this partner
     // 1. Check if a related tube exists:
     int tubeIndex=-1;

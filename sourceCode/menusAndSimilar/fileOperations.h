@@ -14,7 +14,7 @@ public:
     static bool processCommand(int commandID);
     static bool processCommand(const SSimulationThreadCommand& cmd);
     static bool loadScene(const char* pathAndFilename,bool displayMessages,bool displayDialogs,bool setCurrentDir);
-    static bool loadModel(const char* pathAndFilename,bool displayMessages,bool displayDialogs,bool setCurrentDir,std::string* acknowledgmentPointerInReturn,bool doUndoThingInHere,std::vector<char>* loadBuffer,bool onlyThumbnail,bool forceModelAsCopy);
+    static bool loadModel(const char* pathAndFilename,bool displayMessages,bool displayDialogs,bool setCurrentDir,bool doUndoThingInHere,std::vector<char>* loadBuffer,bool onlyThumbnail,bool forceModelAsCopy);
     static bool saveScene(const char* pathAndFilename,bool displayMessages,bool displayDialogs,bool setCurrentDir,bool changeSceneUniqueId);
     static bool saveModel(int modelBaseDummyID,const char* pathAndFilename,bool displayMessages,bool displayDialogs,bool setCurrentDir,std::vector<char>* saveBuffer=nullptr);
 
@@ -26,9 +26,7 @@ public:
 
 private:
     static void _removeFromRecentlyOpenedScenes(std::string filenameAndPath);
-    static bool _pathImportRoutine(const std::string& pathName,bool displayDialogs);
-    static bool _pathExportPoints(const std::string& pathName,int pathID,bool bezierPoints,bool displayDialogs);
-    static bool heightfieldImportRoutine(const std::string& pathName);
+    static bool heightfieldImportRoutine(const char* pathName);
     static std::string _getStringOfVersionAndLicenseThatTheFileWasWrittenWith(unsigned short coppeliaSimVer,int licenseType,char revision);
 
 #ifdef SIM_WITH_GUI

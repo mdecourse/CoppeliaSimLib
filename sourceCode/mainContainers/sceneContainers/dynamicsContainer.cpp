@@ -1,4 +1,3 @@
-
 #include "simInternal.h"
 #include "dynamicsContainer.h"
 #include "pluginContainer.h"
@@ -9,58 +8,57 @@
 #ifdef SIM_WITH_GUI
 #include "vMessageBox.h"
 #endif
-// index0=very precise, index1=precise (default), index2=fast, index3=very fast
-const float DYNAMIC_BULLET_DEFAULT_STEP_SIZE[4]={0.005f,0.005f,0.005f,0.005f};
-const int DYNAMIC_BULLET_DEFAULT_CONSTRAINT_SOLVING_ITERATIONS[4]={200,100,50,20};
-const bool DYNAMIC_BULLET_DEFAULT_FULL_INTERNAL_SCALING[4]={true,true,true,true};
-const float DYNAMIC_BULLET_DEFAULT_INTERNAL_SCALING_FACTOR[4]={10.0f,10.0f,10.0f,10.0f};
-const float DYNAMIC_BULLET_DEFAULT_COLLISION_MARGIN_FACTOR[4]={0.1f,0.1f,0.1f,0.1f};
 
-const float DYNAMIC_ODE_DEFAULT_STEP_SIZE[4]={0.005f,0.005f,0.005f,0.005f};
-const int DYNAMIC_ODE_DEFAULT_CONSTRAINT_SOLVING_ITERATIONS[4]={200,100,50,20};
-const bool DYNAMIC_ODE_DEFAULT_FULL_INTERNAL_SCALING[4]={true,true,true,true};
-const float DYNAMIC_ODE_DEFAULT_INTERNAL_SCALING_FACTOR[4]={1.0f,1.0f,1.0f,1.0f};
-const bool DYNAMIC_ODE_USE_QUICKSTEP[4]={true,true,true,true};
-const float DYNAMIC_ODE_GLOBAL_CFM[4]={0.00001f,0.00001f,0.00001f,0.00001f};
-const float DYNAMIC_ODE_GLOBAL_ERP[4]={0.6f,0.6f,0.6f,0.6f};
+const float DYNAMIC_BULLET_DEFAULT_STEP_SIZE[5]={0.005f,0.005f,0.005f,0.005f,0.005f};
+const int DYNAMIC_BULLET_DEFAULT_CONSTRAINT_SOLVING_ITERATIONS[5]={500,200,100,50,20};
+const bool DYNAMIC_BULLET_DEFAULT_FULL_INTERNAL_SCALING[5]={true,true,true,true,true};
+const float DYNAMIC_BULLET_DEFAULT_INTERNAL_SCALING_FACTOR[5]={10.0f,10.0f,10.0f,10.0f,10.0f};
+const float DYNAMIC_BULLET_DEFAULT_COLLISION_MARGIN_FACTOR[5]={0.1f,0.1f,0.1f,0.1f,0.1f};
 
-const float DYNAMIC_VORTEX_DEFAULT_STEP_SIZE[4]={0.0025f,0.005f,0.01f,0.025f};
-const bool DYNAMIC_VORTEX_DEFAULT_AUTO_SLEEP[4]={true,true,true,true};
-const float DYNAMIC_VORTEX_DEFAULT_INTERNAL_SCALING_FACTOR[4]={1.0f,1.0f,1.0f,1.0f};
-const float DYNAMIC_VORTEX_DEFAULT_CONTACT_TOLERANCE[4]={0.001f,0.001f,0.001f,0.001f};
-const bool DYNAMIC_VORTEX_DEFAULT_MULTITHREADING[4]={false,false,false,false}; // false since 8/3/2017: false is faster (for CoppeliaSim scenes) and more stable
-// const bool DYNAMIC_VORTEX_DEFAULT_MULTITHREADING[4]={true,true,true,true};
-const float DYNAMIC_VORTEX_DEFAULT_CONSTRAINT_LIN_COMPLIANCE[4]={1.0e-7f,1.0e-7f,1.0e-7f,1.0e-7f};
-const float DYNAMIC_VORTEX_DEFAULT_CONSTRAINT_LIN_DAMPING[4]={8.0e+6,8.0e+6,8.0e+6,8.0e+6};
-const float DYNAMIC_VORTEX_DEFAULT_CONSTRAINT_LIN_KIN_LOSS[4]={6.0e-5f,6.0e-5f,6.0e-5f,6.0e-5f};
-const float DYNAMIC_VORTEX_DEFAULT_CONSTRAINT_ANG_COMPLIANCE[4]={1.0e-9f,1.0e-9f,1.0e-9f,1.0e-9f};
-const float DYNAMIC_VORTEX_DEFAULT_CONSTRAINT_ANG_DAMPING[4]={8.0e+8,8.0e+8,8.0e+8,8.0e+8};
-const float DYNAMIC_VORTEX_DEFAULT_CONSTRAINT_ANG_KIN_LOSS[4]={6.0e-7f,6.0e-7f,6.0e-7f,6.0e-7f};
+const float DYNAMIC_ODE_DEFAULT_STEP_SIZE[5]={0.005f,0.005f,0.005f,0.005f,0.005f};
+const int DYNAMIC_ODE_DEFAULT_CONSTRAINT_SOLVING_ITERATIONS[5]={500,200,100,50,20};
+const bool DYNAMIC_ODE_DEFAULT_FULL_INTERNAL_SCALING[5]={true,true,true,true,true};
+const float DYNAMIC_ODE_DEFAULT_INTERNAL_SCALING_FACTOR[5]={1.0f,1.0f,1.0f,1.0f,1.0f};
+const bool DYNAMIC_ODE_USE_QUICKSTEP[5]={true,true,true,true,true};
+const float DYNAMIC_ODE_GLOBAL_CFM[5]={0.00001f,0.00001f,0.00001f,0.00001f,0.00001f};
+const float DYNAMIC_ODE_GLOBAL_ERP[5]={0.6f,0.6f,0.6f,0.6f,0.6f};
 
-const float DYNAMIC_NEWTON_DEFAULT_STEP_SIZE[4]={0.005f,0.005f,0.005f,0.005f};
-const int DYNAMIC_NEWTON_DEFAULT_CONSTRAINT_SOLVING_ITERATIONS[4]={16,8,6,4};
-const bool DYNAMIC_NEWTON_DEFAULT_MULTITHREADED[4]={true,true,true,true};
-const bool DYNAMIC_NEWTON_DEFAULT_EXACT_SOLVER[4]={true,true,true,true};
-const bool DYNAMIC_NEWTON_DEFAULT_HIGH_JOINT_ACCURACY[4]={true,true,true,true};
-const float DYNAMIC_NEWTON_DEFAULT_CONTACT_MERGE_TOLERANCE[4]={0.01f,0.01f,0.01f,0.01f};
+const float DYNAMIC_VORTEX_DEFAULT_STEP_SIZE[5]={0.001f,0.0025f,0.005f,0.01f,0.025f};
+const bool DYNAMIC_VORTEX_DEFAULT_AUTO_SLEEP[5]={true,true,true,true,true};
+const float DYNAMIC_VORTEX_DEFAULT_INTERNAL_SCALING_FACTOR[5]={1.0f,1.0f,1.0f,1.0f,1.0f};
+const float DYNAMIC_VORTEX_DEFAULT_CONTACT_TOLERANCE[5]={0.001f,0.001f,0.001f,0.001f,0.001f};
+const bool DYNAMIC_VORTEX_DEFAULT_MULTITHREADING[5]={false,false,false,false,false}; // false since 8/3/2017: false is faster (for CoppeliaSim scenes) and more stable
+const float DYNAMIC_VORTEX_DEFAULT_CONSTRAINT_LIN_COMPLIANCE[5]={1.0e-7f,1.0e-7f,1.0e-7f,1.0e-7f,1.0e-7f};
+const float DYNAMIC_VORTEX_DEFAULT_CONSTRAINT_LIN_DAMPING[5]={8.0e+6,8.0e+6,8.0e+6,8.0e+6,8.0e+6};
+const float DYNAMIC_VORTEX_DEFAULT_CONSTRAINT_LIN_KIN_LOSS[5]={6.0e-5f,6.0e-5f,6.0e-5f,6.0e-5f,6.0e-5f};
+const float DYNAMIC_VORTEX_DEFAULT_CONSTRAINT_ANG_COMPLIANCE[5]={1.0e-9f,1.0e-9f,1.0e-9f,1.0e-9f,1.0e-9f};
+const float DYNAMIC_VORTEX_DEFAULT_CONSTRAINT_ANG_DAMPING[5]={8.0e+8,8.0e+8,8.0e+8,8.0e+8,8.0e+8};
+const float DYNAMIC_VORTEX_DEFAULT_CONSTRAINT_ANG_KIN_LOSS[5]={6.0e-7f,6.0e-7f,6.0e-7f,6.0e-7f,6.0e-7f};
+
+const float DYNAMIC_NEWTON_DEFAULT_STEP_SIZE[5]={0.005f,0.005f,0.005f,0.005f,0.005f};
+const int DYNAMIC_NEWTON_DEFAULT_CONSTRAINT_SOLVING_ITERATIONS[5]={24,16,8,6,4};
+const bool DYNAMIC_NEWTON_DEFAULT_MULTITHREADED[5]={true,true,true,true,true};
+const bool DYNAMIC_NEWTON_DEFAULT_EXACT_SOLVER[5]={true,true,true,true,true};
+const bool DYNAMIC_NEWTON_DEFAULT_HIGH_JOINT_ACCURACY[5]={true,true,true,true,true};
+const float DYNAMIC_NEWTON_DEFAULT_CONTACT_MERGE_TOLERANCE[5]={0.01f,0.01f,0.01f,0.01f,0.01f};
 
 
 CDynamicsContainer::CDynamicsContainer()
 {
     _dynamicsEnabled=true;
-    _dynamicDefaultTypeCalculationParameters=1; // means precise
+    _dynamicsSettingsMode=dynset_precise;
 
-    getBulletDefaultFloatParams(_bulletFloatParams,_dynamicDefaultTypeCalculationParameters);
-    getBulletDefaultIntParams(_bulletIntParams,_dynamicDefaultTypeCalculationParameters);
+    getBulletDefaultFloatParams(_bulletFloatParams,_dynamicsSettingsMode);
+    getBulletDefaultIntParams(_bulletIntParams,_dynamicsSettingsMode);
 
-    getOdeDefaultFloatParams(_odeFloatParams,_dynamicDefaultTypeCalculationParameters);
-    getOdeDefaultIntParams(_odeIntParams,_dynamicDefaultTypeCalculationParameters);
+    getOdeDefaultFloatParams(_odeFloatParams,_dynamicsSettingsMode);
+    getOdeDefaultIntParams(_odeIntParams,_dynamicsSettingsMode);
 
-    getVortexDefaultFloatParams(_vortexFloatParams,_dynamicDefaultTypeCalculationParameters);
-    getVortexDefaultIntParams(_vortexIntParams,_dynamicDefaultTypeCalculationParameters);
+    getVortexDefaultFloatParams(_vortexFloatParams,_dynamicsSettingsMode);
+    getVortexDefaultIntParams(_vortexIntParams,_dynamicsSettingsMode);
 
-    getNewtonDefaultFloatParams(_newtonFloatParams,_dynamicDefaultTypeCalculationParameters);
-    getNewtonDefaultIntParams(_newtonIntParams,_dynamicDefaultTypeCalculationParameters);
+    getNewtonDefaultFloatParams(_newtonFloatParams,_dynamicsSettingsMode);
+    getNewtonDefaultIntParams(_newtonIntParams,_dynamicsSettingsMode);
 
     _dynamicEngineToUse=sim_physics_bullet; // Bullet is default
     _dynamicEngineVersionToUse=0; // this is Bullet 2.78
@@ -77,7 +75,7 @@ CDynamicsContainer::CDynamicsContainer()
 }
 
 CDynamicsContainer::~CDynamicsContainer()
-{
+{ // beware, the current world could be nullptr
 }
 
 void CDynamicsContainer::simulationAboutToStart()
@@ -88,9 +86,9 @@ void CDynamicsContainer::simulationAboutToStart()
     removeWorld(); // not really needed
 
     // Following is just in case:
-    for (int i=0;i<int(App::ct->objCont->objectList.size());i++)
+    for (size_t i=0;i<App::currentWorld->sceneObjects->getObjectCount();i++)
     {
-        C3DObject* it=App::ct->objCont->getObjectFromHandle(App::ct->objCont->objectList[i]);
+        CSceneObject* it=App::currentWorld->sceneObjects->getObjectFromIndex(i);
         it->disableDynamicTreeForManipulation(false);
     }
 
@@ -104,9 +102,9 @@ void CDynamicsContainer::simulationEnded()
     removeWorld();
 
     // Following is because some shapes might have been disabled because below z=-1000 meters:
-    for (int i=0;i<int(App::ct->objCont->objectList.size());i++)
+    for (size_t i=0;i<App::currentWorld->sceneObjects->getObjectCount();i++)
     {
-        C3DObject* it=App::ct->objCont->getObjectFromHandle(App::ct->objCont->objectList[i]);
+        CSceneObject* it=App::currentWorld->sceneObjects->getObjectFromIndex(i);
         it->disableDynamicTreeForManipulation(false);
     }
     
@@ -144,11 +142,11 @@ bool CDynamicsContainer::getCurrentlyInDynamicsCalculations()
 
 void CDynamicsContainer::handleDynamics(float dt)
 {
-    App::ct->calcInfo->dynamicsStart();
+    App::worldContainer->calcInfo->dynamicsStart();
 
-    for (size_t i=0;i<App::ct->objCont->objectList.size();i++)
+    for (size_t i=0;i<App::currentWorld->sceneObjects->getObjectCount();i++)
     {
-        C3DObject* it=App::ct->objCont->getObjectFromHandle(App::ct->objCont->objectList[i]);
+        CSceneObject* it=App::currentWorld->sceneObjects->getObjectFromIndex(i);
         if (it!=nullptr)
             it->setDynamicObjectFlag_forVisualization(0);
     }
@@ -157,17 +155,17 @@ void CDynamicsContainer::handleDynamics(float dt)
     if (getDynamicsEnabled())
     {
         _currentlyInDynamicsCalculations=true;
-        CPluginContainer::dyn_step(dt,float(App::ct->simulation->getSimulationTime_ns())/1000000.0f);
+        CPluginContainer::dyn_step(dt,float(App::currentWorld->simulation->getSimulationTime_us())/1000000.0f);
         _currentlyInDynamicsCalculations=false;
     }
 
     if (CPluginContainer::dyn_isDynamicContentAvailable())
-        App::ct->calcInfo->dynamicsEnd(CPluginContainer::dyn_getDynamicStepDivider(),true);
+        App::worldContainer->calcInfo->dynamicsEnd(CPluginContainer::dyn_getDynamicStepDivider(),true);
     else
-        App::ct->calcInfo->dynamicsEnd(0,false);
+        App::worldContainer->calcInfo->dynamicsEnd(0,false);
 }
 
-bool CDynamicsContainer::getContactForce(int dynamicPass,int objectHandle,int index,int objectHandles[2],float contactInfo[6])
+bool CDynamicsContainer::getContactForce(int dynamicPass,int objectHandle,int index,int objectHandles[2],float* contactInfo)
 {
     if (getDynamicsEnabled())
         return(CPluginContainer::dyn_getContactForce(dynamicPass,objectHandle,index,objectHandles,contactInfo)!=0);
@@ -198,9 +196,9 @@ void CDynamicsContainer::addWorldIfNotThere()
         floatParams[floatIndex++]=getGravityScalingFactorDyn();
         floatParams[floatIndex++]=App::userSettings->dynamicActivityRange;
 
-        intParams[intIndex++]=SIM_IDEND_3DOBJECT+1;
-        intParams[intIndex++]=SIM_IDSTART_3DOBJECT;
-        intParams[intIndex++]=SIM_IDEND_3DOBJECT;
+        intParams[intIndex++]=SIM_IDEND_SCENEOBJECT+1;
+        intParams[intIndex++]=SIM_IDSTART_SCENEOBJECT;
+        intParams[intIndex++]=SIM_IDEND_SCENEOBJECT;
 
         CPluginContainer::dyn_startSimulation(_dynamicEngineToUse,_dynamicEngineVersionToUse,floatParams,intParams);
     }
@@ -297,7 +295,7 @@ bool CDynamicsContainer::displayStaticShapeOnDynamicConstructionWarningRequired(
 
 bool CDynamicsContainer::displayNonDefaultParameterWarningRequired()
 {
-    if (getUseDynamicDefaultCalculationParameters()!=1)
+    if (_dynamicsSettingsMode!=dynset_default)
     {
         if ( (_nonDefaultEngineSettingsWarning==0)&&((_tempDisabledWarnings&64)==0) )
         {
@@ -310,76 +308,79 @@ bool CDynamicsContainer::displayNonDefaultParameterWarningRequired()
 
 void CDynamicsContainer::displayWarningsIfNeeded()
 {
-    if ( (_pureSpheroidNotSupportedMark==1)&&((_tempDisabledWarnings&1)==0) )
+    if (App::getConsoleVerbosity()>=sim_verbosity_warnings)
     {
-#ifdef SIM_WITH_GUI
-        App::uiThread->messageBox_warning(App::mainWindow,strTranslate(IDSN_PURE_SPHEROID),strTranslate(IDS_WARNING_WHEN_PURE_SPHEROID_NOT_SUPPORTED),VMESSAGEBOX_OKELI);
-#else
-        printf("%s\n",IDS_WARNING_WHEN_PURE_SPHEROID_NOT_SUPPORTED);
-#endif
-        _pureSpheroidNotSupportedMark++;
-    }
-    if ( (_pureConeNotSupportedMark==1)&&((_tempDisabledWarnings&2)==0) )
-    {
-#ifdef SIM_WITH_GUI
-        App::uiThread->messageBox_warning(App::mainWindow,strTranslate(IDSN_PURE_CONE),strTranslate(IDS_WARNING_WHEN_PURE_CONE_NOT_SUPPORTED),VMESSAGEBOX_OKELI);
-#else
-        printf("%s\n",IDS_WARNING_WHEN_PURE_CONE_NOT_SUPPORTED);
-#endif
-        _pureConeNotSupportedMark++;
-    }
-    if ( (_pureHollowShapeNotSupportedMark==1)&&((_tempDisabledWarnings&4)==0) )
-    {
-#ifdef SIM_WITH_GUI
-        App::uiThread->messageBox_warning(App::mainWindow,strTranslate(IDSN_PURE_HOLLOW_SHAPES),strTranslate(IDS_WARNING_WHEN_PURE_HOLLOW_SHAPE_NOT_SUPPORTED),VMESSAGEBOX_OKELI);
-#else
-        printf("%s\n",IDS_WARNING_WHEN_PURE_HOLLOW_SHAPE_NOT_SUPPORTED);
-#endif
-        _pureHollowShapeNotSupportedMark++;
-    }
-    if ( (_physicsEngineNotSupportedWarning==1)&&((_tempDisabledWarnings&8)==0) )
-    {
-        if (_dynamicEngineToUse==sim_physics_vortex)
+        if ( (_pureSpheroidNotSupportedMark==1)&&((_tempDisabledWarnings&1)==0) )
         {
-#ifdef WIN_SIM
     #ifdef SIM_WITH_GUI
-            App::uiThread->messageBox_warning(App::mainWindow,strTranslate(IDSN_PHYSICS_ENGINE),strTranslate(IDS_WARNING_WHEN_PHYSICS_ENGINE_NOT_SUPPORTED),VMESSAGEBOX_OKELI);
+            App::uiThread->messageBox_warning(App::mainWindow,IDSN_PURE_SPHEROID,IDS_WARNING_WHEN_PURE_SPHEROID_NOT_SUPPORTED,VMESSAGEBOX_OKELI,VMESSAGEBOX_REPLY_OK);
     #else
-            printf("%s\n",IDS_WARNING_WHEN_PHYSICS_ENGINE_NOT_SUPPORTED);
+            App::logMsg(sim_verbosity_warnings,IDS_WARNING_WHEN_PURE_SPHEROID_NOT_SUPPORTED);
     #endif
-#endif
-#ifdef LIN_SIM
-    #ifdef SIM_WITH_GUI
-            App::uiThread->messageBox_warning(App::mainWindow,strTranslate(IDSN_PHYSICS_ENGINE),strTranslate(IDS_WARNING_WHEN_PHYSICS_ENGINE_NOT_SUPPORTED),VMESSAGEBOX_OKELI);
-    #else
-            printf("%s\n",IDS_WARNING_WHEN_PHYSICS_ENGINE_NOT_SUPPORTED);
-    #endif
-#endif
-#ifdef MAC_SIM
-    #ifdef SIM_WITH_GUI
-            App::uiThread->messageBox_warning(App::mainWindow,strTranslate(IDSN_PHYSICS_ENGINE),strTranslate(IDS_WARNING_WHEN_VORTEX_NOT_YET_SUPPORTED),VMESSAGEBOX_OKELI);
-    #else
-            printf("%s\n",IDS_WARNING_WHEN_VORTEX_NOT_YET_SUPPORTED);
-    #endif
-#endif
+            _pureSpheroidNotSupportedMark++;
         }
-        else
-#ifdef SIM_WITH_GUI
-            App::uiThread->messageBox_warning(App::mainWindow,strTranslate(IDSN_PHYSICS_ENGINE),strTranslate(IDS_WARNING_WHEN_PHYSICS_ENGINE_NOT_SUPPORTED),VMESSAGEBOX_OKELI);
-#else
-            printf("%s\n",IDS_WARNING_WHEN_PHYSICS_ENGINE_NOT_SUPPORTED);
-#endif
+        if ( (_pureConeNotSupportedMark==1)&&((_tempDisabledWarnings&2)==0) )
+        {
+    #ifdef SIM_WITH_GUI
+            App::uiThread->messageBox_warning(App::mainWindow,IDSN_PURE_CONE,IDS_WARNING_WHEN_PURE_CONE_NOT_SUPPORTED,VMESSAGEBOX_OKELI,VMESSAGEBOX_REPLY_OK);
+    #else
+            App::logMsg(sim_verbosity_warnings,IDS_WARNING_WHEN_PURE_CONE_NOT_SUPPORTED);
+    #endif
+            _pureConeNotSupportedMark++;
+        }
+        if ( (_pureHollowShapeNotSupportedMark==1)&&((_tempDisabledWarnings&4)==0) )
+        {
+    #ifdef SIM_WITH_GUI
+            App::uiThread->messageBox_warning(App::mainWindow,IDSN_PURE_HOLLOW_SHAPES,IDS_WARNING_WHEN_PURE_HOLLOW_SHAPE_NOT_SUPPORTED,VMESSAGEBOX_OKELI,VMESSAGEBOX_REPLY_OK);
+    #else
+            App::logMsg(sim_verbosity_warnings,IDS_WARNING_WHEN_PURE_HOLLOW_SHAPE_NOT_SUPPORTED);
+    #endif
+            _pureHollowShapeNotSupportedMark++;
+        }
+        if ( (_physicsEngineNotSupportedWarning==1)&&((_tempDisabledWarnings&8)==0) )
+        {
+            if (_dynamicEngineToUse==sim_physics_vortex)
+            {
+    #ifdef WIN_SIM
+        #ifdef SIM_WITH_GUI
+                App::uiThread->messageBox_warning(App::mainWindow,IDSN_PHYSICS_ENGINE,IDS_WARNING_WHEN_VORTEX_PLUGIN_NOT_FOUND,VMESSAGEBOX_OKELI,VMESSAGEBOX_REPLY_OK);
+        #else
+                App::logMsg(sim_verbosity_warnings,IDS_WARNING_WHEN_VORTEX_PLUGIN_NOT_FOUND);
+        #endif
+    #endif
+    #ifdef LIN_SIM
+        #ifdef SIM_WITH_GUI
+                App::uiThread->messageBox_warning(App::mainWindow,IDSN_PHYSICS_ENGINE,IDS_WARNING_WHEN_VORTEX_PLUGIN_NOT_FOUND,VMESSAGEBOX_OKELI,VMESSAGEBOX_REPLY_OK);
+        #else
+                App::logMsg(sim_verbosity_warnings,IDS_WARNING_WHEN_VORTEX_PLUGIN_NOT_FOUND);
+        #endif
+    #endif
+    #ifdef MAC_SIM
+        #ifdef SIM_WITH_GUI
+                App::uiThread->messageBox_warning(App::mainWindow,IDSN_PHYSICS_ENGINE,IDS_WARNING_WHEN_VORTEX_NOT_YET_SUPPORTED,VMESSAGEBOX_OKELI,VMESSAGEBOX_REPLY_OK);
+        #else
+                App::logMsg(sim_verbosity_warnings,IDS_WARNING_WHEN_VORTEX_NOT_YET_SUPPORTED);
+        #endif
+    #endif
+            }
+            else
+    #ifdef SIM_WITH_GUI
+                App::uiThread->messageBox_warning(App::mainWindow,IDSN_PHYSICS_ENGINE,IDS_WARNING_WHEN_PHYSICS_ENGINE_NOT_SUPPORTED,VMESSAGEBOX_OKELI,VMESSAGEBOX_REPLY_OK);
+    #else
+                App::logMsg(sim_verbosity_warnings,IDS_WARNING_WHEN_PHYSICS_ENGINE_NOT_SUPPORTED);
+    #endif
 
-        _physicsEngineNotSupportedWarning++;
-    }
-    if ( (_newtonDynamicRandomMeshNotSupportedMark==1)&&((_tempDisabledWarnings&256)==0) )
-    {
-#ifdef SIM_WITH_GUI
-        App::uiThread->messageBox_warning(App::mainWindow,strTranslate(IDSN_NEWTON_NON_CONVEX_MESH),strTranslate(IDS_WARNING_WITH_NEWTON_NON_CONVEX_DYNAMIC_MESH),VMESSAGEBOX_OKELI);
-#else
-        printf("%s\n",IDS_WARNING_WITH_NEWTON_NON_CONVEX_DYNAMIC_MESH);
-#endif
-        _newtonDynamicRandomMeshNotSupportedMark++;
+            _physicsEngineNotSupportedWarning++;
+        }
+        if ( (_newtonDynamicRandomMeshNotSupportedMark==1)&&((_tempDisabledWarnings&256)==0) )
+        {
+    #ifdef SIM_WITH_GUI
+            App::uiThread->messageBox_warning(App::mainWindow,IDSN_NEWTON_NON_CONVEX_MESH,IDS_WARNING_WITH_NEWTON_NON_CONVEX_DYNAMIC_MESH,VMESSAGEBOX_OKELI,VMESSAGEBOX_REPLY_OK);
+    #else
+            App::logMsg(sim_verbosity_warnings,IDS_WARNING_WITH_NEWTON_NON_CONVEX_DYNAMIC_MESH);
+    #endif
+            _newtonDynamicRandomMeshNotSupportedMark++;
+        }
     }
 }
 
@@ -408,20 +409,38 @@ bool CDynamicsContainer::getDisplayContactPoints()
 }
 
 
-void CDynamicsContainer::setUseDynamicDefaultCalculationParameters(int def)
+void CDynamicsContainer::setDynamicsSettingsMode(int def)
 {
-    def=tt::getLimitedInt(0,4,def);
-    _dynamicDefaultTypeCalculationParameters=def;
+    def=tt::getLimitedInt(dynset_first,dynset_last,def);
+    _dynamicsSettingsMode=def;
 }
 
-int CDynamicsContainer::getUseDynamicDefaultCalculationParameters()
+int CDynamicsContainer::getDynamicsSettingsMode()
 {
-    return(_dynamicDefaultTypeCalculationParameters);
+    return(_dynamicsSettingsMode);
+}
+
+std::string CDynamicsContainer::getDynamicsSettingsModeStr(int dynSetMode)
+{
+    std::string retStr;
+    if (dynSetMode==dynset_veryprecise)
+        retStr="very accurate";
+    if (dynSetMode==dynset_precise)
+        retStr="accurate";
+    if (dynSetMode==dynset_balanced)
+        retStr="balanced (default)";
+    if (dynSetMode==dynset_fast)
+        retStr="fast";
+    if (dynSetMode==dynset_veryfast)
+        retStr="very fast";
+    if (dynSetMode==dynset_custom)
+        retStr="custom";
+    return(retStr);
 }
 
 bool CDynamicsContainer::setCurrentDynamicStepSize(float s)
 { // will modify the current engine's step size if setting is custom
-    if (App::ct->simulation->isSimulationStopped())
+    if (App::currentWorld->simulation->isSimulationStopped())
     {
         if (_dynamicEngineToUse==sim_physics_bullet)
             setEngineFloatParam(sim_bullet_global_stepsize,s,false);
@@ -431,7 +450,7 @@ bool CDynamicsContainer::setCurrentDynamicStepSize(float s)
             setEngineFloatParam(sim_vortex_global_stepsize,s,false);
         if (_dynamicEngineToUse==sim_physics_newton)
             setEngineFloatParam(sim_newton_global_stepsize,s,false);
-        return(_dynamicDefaultTypeCalculationParameters==4);
+        return(_dynamicsSettingsMode==dynset_custom);
     }
     return(false);
 }
@@ -451,7 +470,7 @@ float CDynamicsContainer::getCurrentDynamicStepSize()
 
 bool CDynamicsContainer::setCurrentIterationCount(int c)
 { // will modify the current engine's it. count if setting is custom
-    if (App::ct->simulation->isSimulationStopped())
+    if (App::currentWorld->simulation->isSimulationStopped())
     {
         if (_dynamicEngineToUse==sim_physics_bullet)
             setEngineIntParam(sim_bullet_global_constraintsolvingiterations,c,false);
@@ -461,7 +480,7 @@ bool CDynamicsContainer::setCurrentIterationCount(int c)
             return(false); // not available
         if (_dynamicEngineToUse==sim_physics_newton)
             setEngineIntParam(sim_newton_global_constraintsolvingiterations,c,false);
-        return(_dynamicDefaultTypeCalculationParameters==4);
+        return(_dynamicsSettingsMode==dynset_custom);
     }
     return(false);
 }
@@ -476,7 +495,7 @@ int CDynamicsContainer::getCurrentIterationCount()
         return(0); // not available
     if (_dynamicEngineToUse==sim_physics_newton)
         return(getEngineIntParam(sim_newton_global_constraintsolvingiterations,nullptr));
-    return(0.0f);
+    return(0);
 }
 
 float CDynamicsContainer::getEngineFloatParam(int what,bool* ok)
@@ -739,10 +758,10 @@ bool CDynamicsContainer::setEngineBoolParam(int what,bool v,bool setDirect)
 
 void CDynamicsContainer::getBulletFloatParams(std::vector<float>& p)
 {
-    if (_dynamicDefaultTypeCalculationParameters==4)
+    if (_dynamicsSettingsMode==dynset_custom)
         p.assign(_bulletFloatParams.begin(),_bulletFloatParams.end());
     else
-        getBulletDefaultFloatParams(p,_dynamicDefaultTypeCalculationParameters);
+        getBulletDefaultFloatParams(p,_dynamicsSettingsMode);
 }
 void CDynamicsContainer::getBulletDefaultFloatParams(std::vector<float>& p,int defType)
 {
@@ -756,7 +775,7 @@ void CDynamicsContainer::getBulletDefaultFloatParams(std::vector<float>& p,int d
 }
 void CDynamicsContainer::setBulletFloatParams(const std::vector<float>& p,bool setDirect)
 {
-    if ((_dynamicDefaultTypeCalculationParameters==4)||setDirect)
+    if ((_dynamicsSettingsMode==dynset_custom)||setDirect)
         _bulletFloatParams.assign(p.begin(),p.end());
     _bulletFloatParams[simi_bullet_global_stepsize]=tt::getLimitedFloat(0.00001f,1.0f,_bulletFloatParams[simi_bullet_global_stepsize]); // step size
     _bulletFloatParams[simi_bullet_global_internalscalingfactor]=tt::getLimitedFloat(0.0001f,10000.0f,_bulletFloatParams[simi_bullet_global_internalscalingfactor]); // internal scaling factor
@@ -764,10 +783,10 @@ void CDynamicsContainer::setBulletFloatParams(const std::vector<float>& p,bool s
 }
 void CDynamicsContainer::getBulletIntParams(std::vector<int>& p)
 {
-    if (_dynamicDefaultTypeCalculationParameters==4)
+    if (_dynamicsSettingsMode==dynset_custom)
         p.assign(_bulletIntParams.begin(),_bulletIntParams.end());
     else
-        getBulletDefaultIntParams(p,_dynamicDefaultTypeCalculationParameters);
+        getBulletDefaultIntParams(p,_dynamicsSettingsMode);
 }
 void CDynamicsContainer::getBulletDefaultIntParams(std::vector<int>& p,int defType)
 {
@@ -782,7 +801,7 @@ void CDynamicsContainer::getBulletDefaultIntParams(std::vector<int>& p,int defTy
 }
 void CDynamicsContainer::setBulletIntParams(const std::vector<int>& p,bool setDirect)
 {
-    if ((_dynamicDefaultTypeCalculationParameters==4)||setDirect)
+    if ((_dynamicsSettingsMode==dynset_custom)||setDirect)
         _bulletIntParams.assign(p.begin(),p.end());
     _bulletIntParams[simi_bullet_global_constraintsolvingiterations]=tt::getLimitedFloat(1,10000,_bulletIntParams[simi_bullet_global_constraintsolvingiterations]); // constr. solv. iterations
 }
@@ -790,10 +809,10 @@ void CDynamicsContainer::setBulletIntParams(const std::vector<int>& p,bool setDi
 
 void CDynamicsContainer::getOdeFloatParams(std::vector<float>& p)
 {
-    if (_dynamicDefaultTypeCalculationParameters==4)
+    if (_dynamicsSettingsMode==dynset_custom)
         p.assign(_odeFloatParams.begin(),_odeFloatParams.end());
     else
-        getOdeDefaultFloatParams(p,_dynamicDefaultTypeCalculationParameters);
+        getOdeDefaultFloatParams(p,_dynamicsSettingsMode);
 }
 void CDynamicsContainer::getOdeDefaultFloatParams(std::vector<float>& p,int defType)
 {
@@ -807,7 +826,7 @@ void CDynamicsContainer::getOdeDefaultFloatParams(std::vector<float>& p,int defT
 }
 void CDynamicsContainer::setOdeFloatParams(const std::vector<float>& p,bool setDirect)
 {
-    if ((_dynamicDefaultTypeCalculationParameters==4)||setDirect)
+    if ((_dynamicsSettingsMode==dynset_custom)||setDirect)
         _odeFloatParams.assign(p.begin(),p.end());
     _odeFloatParams[simi_ode_global_stepsize]=tt::getLimitedFloat(0.00001f,1.0f,_odeFloatParams[simi_ode_global_stepsize]); // step size
     _odeFloatParams[simi_ode_global_internalscalingfactor]=tt::getLimitedFloat(0.0001f,10000.0f,_odeFloatParams[simi_ode_global_internalscalingfactor]); // internal scaling factor
@@ -816,10 +835,10 @@ void CDynamicsContainer::setOdeFloatParams(const std::vector<float>& p,bool setD
 }
 void CDynamicsContainer::getOdeIntParams(std::vector<int>& p)
 {
-    if (_dynamicDefaultTypeCalculationParameters==4)
+    if (_dynamicsSettingsMode==dynset_custom)
         p.assign(_odeIntParams.begin(),_odeIntParams.end());
     else
-        getOdeDefaultIntParams(p,_dynamicDefaultTypeCalculationParameters);
+        getOdeDefaultIntParams(p,_dynamicsSettingsMode);
 }
 void CDynamicsContainer::getOdeDefaultIntParams(std::vector<int>& p,int defType)
 {
@@ -836,7 +855,7 @@ void CDynamicsContainer::getOdeDefaultIntParams(std::vector<int>& p,int defType)
 }
 void CDynamicsContainer::setOdeIntParams(const std::vector<int>& p,bool setDirect)
 {
-    if ((_dynamicDefaultTypeCalculationParameters==4)||setDirect)
+    if ((_dynamicsSettingsMode==dynset_custom)||setDirect)
         _odeIntParams.assign(p.begin(),p.end());
     _odeIntParams[simi_ode_global_constraintsolvingiterations]=tt::getLimitedFloat(1,10000,_odeIntParams[simi_ode_global_constraintsolvingiterations]); // constr. solv. iterations
 }
@@ -844,10 +863,10 @@ void CDynamicsContainer::setOdeIntParams(const std::vector<int>& p,bool setDirec
 
 void CDynamicsContainer::getVortexFloatParams(std::vector<float>& p)
 {
-    if (_dynamicDefaultTypeCalculationParameters==4)
+    if (_dynamicsSettingsMode==dynset_custom)
         p.assign(_vortexFloatParams.begin(),_vortexFloatParams.end());
     else
-        getVortexDefaultFloatParams(p,_dynamicDefaultTypeCalculationParameters);
+        getVortexDefaultFloatParams(p,_dynamicsSettingsMode);
 }
 void CDynamicsContainer::getVortexDefaultFloatParams(std::vector<float>& p,int defType)
 {
@@ -866,7 +885,7 @@ void CDynamicsContainer::getVortexDefaultFloatParams(std::vector<float>& p,int d
 }
 void CDynamicsContainer::setVortexFloatParams(const std::vector<float>& p,bool setDirect)
 {
-    if ((_dynamicDefaultTypeCalculationParameters==4)||setDirect)
+    if ((_dynamicsSettingsMode==dynset_custom)||setDirect)
         _vortexFloatParams.assign(p.begin(),p.end());
     _vortexFloatParams[simi_vortex_global_stepsize]=tt::getLimitedFloat(0.00001f,1.0f,_vortexFloatParams[simi_vortex_global_stepsize]); // step size
     _vortexFloatParams[simi_vortex_global_internalscalingfactor]=tt::getLimitedFloat(0.0001f,10000.0f,_vortexFloatParams[simi_vortex_global_internalscalingfactor]); // internal scaling factor
@@ -875,10 +894,10 @@ void CDynamicsContainer::setVortexFloatParams(const std::vector<float>& p,bool s
 }
 void CDynamicsContainer::getVortexIntParams(std::vector<int>& p)
 {
-    if (_dynamicDefaultTypeCalculationParameters==4)
+    if (_dynamicsSettingsMode==dynset_custom)
         p.assign(_vortexIntParams.begin(),_vortexIntParams.end());
     else
-        getVortexDefaultIntParams(p,_dynamicDefaultTypeCalculationParameters);
+        getVortexDefaultIntParams(p,_dynamicsSettingsMode);
 }
 void CDynamicsContainer::getVortexDefaultIntParams(std::vector<int>& p,int defType)
 {
@@ -895,17 +914,17 @@ void CDynamicsContainer::getVortexDefaultIntParams(std::vector<int>& p,int defTy
 }
 void CDynamicsContainer::setVortexIntParams(const std::vector<int>& p,bool setDirect)
 {
-    if ((_dynamicDefaultTypeCalculationParameters==4)||setDirect)
+    if ((_dynamicsSettingsMode==dynset_custom)||setDirect)
         _vortexIntParams.assign(p.begin(),p.end());
 }
 
 
 void CDynamicsContainer::getNewtonFloatParams(std::vector<float>& p)
 {
-    if (_dynamicDefaultTypeCalculationParameters==4)
+    if (_dynamicsSettingsMode==dynset_custom)
         p.assign(_newtonFloatParams.begin(),_newtonFloatParams.end());
     else
-        getNewtonDefaultFloatParams(p,_dynamicDefaultTypeCalculationParameters);
+        getNewtonDefaultFloatParams(p,_dynamicsSettingsMode);
 }
 void CDynamicsContainer::getNewtonDefaultFloatParams(std::vector<float>& p,int defType)
 {
@@ -916,17 +935,17 @@ void CDynamicsContainer::getNewtonDefaultFloatParams(std::vector<float>& p,int d
 }
 void CDynamicsContainer::setNewtonFloatParams(const std::vector<float>& p,bool setDirect)
 {
-    if ((_dynamicDefaultTypeCalculationParameters==4)||setDirect)
+    if ((_dynamicsSettingsMode==dynset_custom)||setDirect)
         _newtonFloatParams.assign(p.begin(),p.end());
     _newtonFloatParams[simi_newton_global_stepsize]=tt::getLimitedFloat(0.00001f,1.0f,_newtonFloatParams[simi_newton_global_stepsize]); // step size
     _newtonFloatParams[simi_newton_global_contactmergetolerance]=tt::getLimitedFloat(0.0001f,1.0f,_newtonFloatParams[simi_newton_global_contactmergetolerance]); // contact merge tolerance
 }
 void CDynamicsContainer::getNewtonIntParams(std::vector<int>& p)
 {
-    if (_dynamicDefaultTypeCalculationParameters==4)
+    if (_dynamicsSettingsMode==dynset_custom)
         p.assign(_newtonIntParams.begin(),_newtonIntParams.end());
     else
-        getNewtonDefaultIntParams(p,_dynamicDefaultTypeCalculationParameters);
+        getNewtonDefaultIntParams(p,_dynamicsSettingsMode);
 }
 void CDynamicsContainer::getNewtonDefaultIntParams(std::vector<int>& p,int defType)
 {
@@ -945,40 +964,38 @@ void CDynamicsContainer::getNewtonDefaultIntParams(std::vector<int>& p,int defTy
 
 void CDynamicsContainer::setNewtonIntParams(const std::vector<int>& p,bool setDirect)
 {
-    if ((_dynamicDefaultTypeCalculationParameters==4)||setDirect)
+    if ((_dynamicsSettingsMode==dynset_custom)||setDirect)
         _newtonIntParams.assign(p.begin(),p.end());
     _newtonIntParams[simi_newton_global_constraintsolvingiterations]=tt::getLimitedInt(1,128,_newtonIntParams[simi_newton_global_constraintsolvingiterations]); // solving iterations
 }
-
-
 
 
 float CDynamicsContainer::getPositionScalingFactorDyn()
 {
     if (_dynamicEngineToUse==sim_physics_bullet)
     {
-        if (_dynamicDefaultTypeCalculationParameters==4)
+        if (_dynamicsSettingsMode==dynset_custom)
             return(_bulletFloatParams[simi_bullet_global_internalscalingfactor]);
-        return(DYNAMIC_BULLET_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicDefaultTypeCalculationParameters]);
+        return(DYNAMIC_BULLET_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicsSettingsMode]);
     }
     if (_dynamicEngineToUse==sim_physics_ode)
     {
-        if (_dynamicDefaultTypeCalculationParameters==4)
+        if (_dynamicsSettingsMode==dynset_custom)
             return(_odeFloatParams[simi_ode_global_internalscalingfactor]);
-        return(DYNAMIC_ODE_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicDefaultTypeCalculationParameters]);
+        return(DYNAMIC_ODE_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicsSettingsMode]);
     }
     if (_dynamicEngineToUse==sim_physics_vortex)
     {
-        if (_dynamicDefaultTypeCalculationParameters==4)
+        if (_dynamicsSettingsMode==dynset_custom)
             return(_vortexFloatParams[simi_vortex_global_internalscalingfactor]);
-        return(DYNAMIC_VORTEX_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicDefaultTypeCalculationParameters]);
+        return(DYNAMIC_VORTEX_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicsSettingsMode]);
     }
     if (_dynamicEngineToUse==sim_physics_newton)
     {
         return(1.0f);
-        //if (_dynamicDefaultTypeCalculationParameters==4)
+        //if (_dynamicsSettingsMode==dynset_custom)
         //  return(_newtonFloatParams[1]);
-        //return(DYNAMIC_NEWTON_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicDefaultTypeCalculationParameters]);
+        //return(DYNAMIC_NEWTON_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicsSettingsMode]);
     }
     return(1.0f);
 }
@@ -987,28 +1004,28 @@ float CDynamicsContainer::getGravityScalingFactorDyn()
 {
     if (_dynamicEngineToUse==sim_physics_bullet)
     {
-        if (_dynamicDefaultTypeCalculationParameters==4)
+        if (_dynamicsSettingsMode==dynset_custom)
             return(_bulletFloatParams[simi_bullet_global_internalscalingfactor]);
-        return(DYNAMIC_BULLET_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicDefaultTypeCalculationParameters]);
+        return(DYNAMIC_BULLET_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicsSettingsMode]);
     }
     if (_dynamicEngineToUse==sim_physics_ode)
     {
-        if (_dynamicDefaultTypeCalculationParameters==4)
+        if (_dynamicsSettingsMode==dynset_custom)
             return(_odeFloatParams[simi_ode_global_internalscalingfactor]);
-        return(DYNAMIC_ODE_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicDefaultTypeCalculationParameters]);
+        return(DYNAMIC_ODE_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicsSettingsMode]);
     }
     if (_dynamicEngineToUse==sim_physics_vortex)
     {
-        if (_dynamicDefaultTypeCalculationParameters==4)
+        if (_dynamicsSettingsMode==dynset_custom)
             return(_vortexFloatParams[simi_vortex_global_internalscalingfactor]);
-        return(DYNAMIC_VORTEX_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicDefaultTypeCalculationParameters]);
+        return(DYNAMIC_VORTEX_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicsSettingsMode]);
     }
     if (_dynamicEngineToUse==sim_physics_newton)
     {
         return(1.0f);
-        //if (_dynamicDefaultTypeCalculationParameters==4)
+        //if (_dynamicsSettingsMode==dynset_custom)
         //  return(_newtonFloatParams[1]);
-        //return(DYNAMIC_NEWTON_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicDefaultTypeCalculationParameters]);
+        //return(DYNAMIC_NEWTON_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicsSettingsMode]);
     }
     return(1.0f);
 }
@@ -1017,28 +1034,28 @@ float CDynamicsContainer::getLinearVelocityScalingFactorDyn()
 {
     if (_dynamicEngineToUse==sim_physics_bullet)
     {
-        if (_dynamicDefaultTypeCalculationParameters==4)
+        if (_dynamicsSettingsMode==dynset_custom)
             return(_bulletFloatParams[simi_bullet_global_internalscalingfactor]);
-        return(DYNAMIC_BULLET_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicDefaultTypeCalculationParameters]);
+        return(DYNAMIC_BULLET_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicsSettingsMode]);
     }
     if (_dynamicEngineToUse==sim_physics_ode)
     {
-        if (_dynamicDefaultTypeCalculationParameters==4)
+        if (_dynamicsSettingsMode==dynset_custom)
             return(_odeFloatParams[simi_ode_global_internalscalingfactor]);
-        return(DYNAMIC_ODE_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicDefaultTypeCalculationParameters]);
+        return(DYNAMIC_ODE_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicsSettingsMode]);
     }
     if (_dynamicEngineToUse==sim_physics_vortex)
     {
-        if (_dynamicDefaultTypeCalculationParameters==4)
+        if (_dynamicsSettingsMode==dynset_custom)
             return(_vortexFloatParams[simi_vortex_global_internalscalingfactor]);
-        return(DYNAMIC_VORTEX_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicDefaultTypeCalculationParameters]);
+        return(DYNAMIC_VORTEX_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicsSettingsMode]);
     }
     if (_dynamicEngineToUse==sim_physics_newton)
     {
         return(1.0f);
-        //if (_dynamicDefaultTypeCalculationParameters==4)
+        //if (_dynamicsSettingsMode==dynset_custom)
         //  return(_newtonFloatParams[1]);
-        //return(DYNAMIC_NEWTON_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicDefaultTypeCalculationParameters]);
+        //return(DYNAMIC_NEWTON_DEFAULT_INTERNAL_SCALING_FACTOR[_dynamicsSettingsMode]);
     }
     return(1.0f);
 }
@@ -1048,17 +1065,17 @@ float CDynamicsContainer::getMassScalingFactorDyn()
     bool full=false;
     if (_dynamicEngineToUse==sim_physics_bullet)
     {
-        if (_dynamicDefaultTypeCalculationParameters==4)
+        if (_dynamicsSettingsMode==dynset_custom)
             full=(_bulletIntParams[simi_bullet_global_bitcoded]&simi_bullet_global_fullinternalscaling);
         else
-            full=DYNAMIC_BULLET_DEFAULT_FULL_INTERNAL_SCALING[_dynamicDefaultTypeCalculationParameters];
+            full=DYNAMIC_BULLET_DEFAULT_FULL_INTERNAL_SCALING[_dynamicsSettingsMode];
     }
     if (_dynamicEngineToUse==sim_physics_ode)
     {
-        if (_dynamicDefaultTypeCalculationParameters==4)
+        if (_dynamicsSettingsMode==dynset_custom)
             full=(_odeIntParams[simi_ode_global_bitcoded]&simi_ode_global_fullinternalscaling);
         else
-            full=DYNAMIC_ODE_DEFAULT_FULL_INTERNAL_SCALING[_dynamicDefaultTypeCalculationParameters];
+            full=DYNAMIC_ODE_DEFAULT_FULL_INTERNAL_SCALING[_dynamicsSettingsMode];
     }
     if (_dynamicEngineToUse==sim_physics_vortex)
     {
@@ -1087,17 +1104,17 @@ float CDynamicsContainer::getForceScalingFactorDyn()
     bool full=false;
     if (_dynamicEngineToUse==sim_physics_bullet)
     {
-        if (_dynamicDefaultTypeCalculationParameters==4)
+        if (_dynamicsSettingsMode==dynset_custom)
             full=(_bulletIntParams[simi_bullet_global_bitcoded]&simi_bullet_global_fullinternalscaling);
         else
-            full=DYNAMIC_BULLET_DEFAULT_FULL_INTERNAL_SCALING[_dynamicDefaultTypeCalculationParameters];
+            full=DYNAMIC_BULLET_DEFAULT_FULL_INTERNAL_SCALING[_dynamicsSettingsMode];
     }
     if (_dynamicEngineToUse==sim_physics_ode)
     {
-        if (_dynamicDefaultTypeCalculationParameters==4)
+        if (_dynamicsSettingsMode==dynset_custom)
             full=(_odeIntParams[simi_ode_global_bitcoded]&simi_ode_global_fullinternalscaling);
         else
-            full=DYNAMIC_ODE_DEFAULT_FULL_INTERNAL_SCALING[_dynamicDefaultTypeCalculationParameters];
+            full=DYNAMIC_ODE_DEFAULT_FULL_INTERNAL_SCALING[_dynamicsSettingsMode];
     }
     if (_dynamicEngineToUse==sim_physics_vortex)
     {
@@ -1119,17 +1136,17 @@ float CDynamicsContainer::getTorqueScalingFactorDyn()
     bool full=false;
     if (_dynamicEngineToUse==sim_physics_bullet)
     {
-        if (_dynamicDefaultTypeCalculationParameters==4)
+        if (_dynamicsSettingsMode==dynset_custom)
             full=(_bulletIntParams[simi_bullet_global_bitcoded]&simi_bullet_global_fullinternalscaling);
         else
-            full=DYNAMIC_BULLET_DEFAULT_FULL_INTERNAL_SCALING[_dynamicDefaultTypeCalculationParameters];
+            full=DYNAMIC_BULLET_DEFAULT_FULL_INTERNAL_SCALING[_dynamicsSettingsMode];
     }
     if (_dynamicEngineToUse==sim_physics_ode)
     {
-        if (_dynamicDefaultTypeCalculationParameters==4)
+        if (_dynamicsSettingsMode==dynset_custom)
             full=(_odeIntParams[simi_ode_global_bitcoded]&simi_ode_global_fullinternalscaling);
         else
-            full=DYNAMIC_ODE_DEFAULT_FULL_INTERNAL_SCALING[_dynamicDefaultTypeCalculationParameters];
+            full=DYNAMIC_ODE_DEFAULT_FULL_INTERNAL_SCALING[_dynamicsSettingsMode];
     }
     if (_dynamicEngineToUse==sim_physics_vortex)
     {
@@ -1150,11 +1167,11 @@ void CDynamicsContainer::setDynamicsEnabled(bool e)
 {
     _dynamicsEnabled=e;
     if (!e)
-        App::ct->dynamicsContainer->removeWorld();
+        App::currentWorld->dynamicsContainer->removeWorld();
     else
     {
-        if (App::ct->simulation->isSimulationRunning())
-            App::ct->dynamicsContainer->addWorldIfNotThere();
+        if (App::currentWorld->simulation->isSimulationRunning())
+            App::currentWorld->dynamicsContainer->addWorldIfNotThere();
     }
 }
 
@@ -1182,8 +1199,8 @@ void CDynamicsContainer::serialize(CSer& ar)
     {
         if (ar.isStoring())
         {       // Storing
-            ar.storeDataName("En2"); // En2 since we have the Vortex option
-            ar << _dynamicEngineToUse << _gravity(0) << _gravity(1) << _gravity(2) << _dynamicDefaultTypeCalculationParameters;
+            ar.storeDataName("En3");
+            ar << _dynamicEngineToUse << _gravity(0) << _gravity(1) << _gravity(2) << _dynamicsSettingsMode;
             ar.flush();
 
             ar.storeDataName("Ver");
@@ -1260,14 +1277,23 @@ void CDynamicsContainer::serialize(CSer& ar)
                     { // keep for backward compatibility (23/09/2013)
                         noHit=false;
                         ar >> byteQuantity;
-                        ar >> _dynamicEngineToUse >> _gravity(0) >> _gravity(1) >> _gravity(2) >>_dynamicDefaultTypeCalculationParameters;
+                        ar >> _dynamicEngineToUse >> _gravity(0) >> _gravity(1) >> _gravity(2) >>_dynamicsSettingsMode;
+                        _dynamicsSettingsMode++;
                     }
 
                     if (theName.compare("En2")==0)
                     {
                         noHit=false;
                         ar >> byteQuantity;
-                        ar >> _dynamicEngineToUse >> _gravity(0) >> _gravity(1) >> _gravity(2) >>_dynamicDefaultTypeCalculationParameters;
+                        ar >> _dynamicEngineToUse >> _gravity(0) >> _gravity(1) >> _gravity(2) >>_dynamicsSettingsMode;
+                        _dynamicsSettingsMode++;
+                    }
+
+                    if (theName.compare("En3")==0)
+                    {
+                        noHit=false;
+                        ar >> byteQuantity;
+                        ar >> _dynamicEngineToUse >> _gravity(0) >> _gravity(1) >> _gravity(2) >>_dynamicsSettingsMode;
                     }
 
                     if (theName.compare("Ver")==0)
@@ -1467,8 +1493,8 @@ void CDynamicsContainer::serialize(CSer& ar)
 
             ar.xmlAddNode_int("engineVersion",_dynamicEngineVersionToUse);
 
-            ar.xmlAddNode_comment(" 'engineMode' tag: can be 'veryAccurate', 'accurate', 'fast', 'veryFast' or 'customized' ",exhaustiveXml);
-            ar.xmlAddNode_enum("engineMode",_dynamicDefaultTypeCalculationParameters,0,"veryAccurate",1,"accurate",2,"fast",3,"veryFast",4,"customized");
+            ar.xmlAddNode_comment(" 'settingsMode' tag: can be 'veryAccurate', 'accurate', 'balanced', 'fast', 'veryFast' or 'custom' ",exhaustiveXml);
+            ar.xmlAddNode_enum("settingsMode",_dynamicsSettingsMode,0,"veryAccurate",1,"accurate",2,"balanced",3,"fast",4,"veryFast",5,"custom");
 
             ar.xmlAddNode_floats("gravity",_gravity.data,3);
 
@@ -1540,7 +1566,11 @@ void CDynamicsContainer::serialize(CSer& ar)
                     _dynamicEngineVersionToUse=0;
             }
 
-            ar.xmlGetNode_enum("engineMode",_dynamicDefaultTypeCalculationParameters,exhaustiveXml,"veryAccurate",0,"accurate",1,"fast",2,"veryFast",3,"customized",4);
+            bool engMod=ar.xmlGetNode_enum("engineMode",_dynamicsSettingsMode,false,"veryAccurate",0,"accurate",1,"fast",2,"veryFast",3,"customized",4);
+            if (engMod)
+                _dynamicsSettingsMode++;
+
+            ar.xmlGetNode_enum("settingsMode",_dynamicsSettingsMode,exhaustiveXml&&(!engMod),"veryAccurate",0,"accurate",1,"balanced",2,"fast",3,"veryFast",4,"custom",5);
 
             ar.xmlGetNode_floats("gravity",_gravity.data,3,exhaustiveXml);
 
@@ -1630,7 +1660,7 @@ void CDynamicsContainer::renderYour3DStuff(CViewableBase* renderingObject,int di
             float* cols;
             int objectType;
             int particlesCount;
-            C4X4Matrix m(renderingObject->getCumulativeTransformation().getMatrix());
+            C4X4Matrix m(renderingObject->getFullCumulativeTransformation().getMatrix());
             void** particlesPointer=CPluginContainer::dyn_getParticles(index++,&particlesCount,&objectType,&cols);
             while (particlesCount!=-1)
             {

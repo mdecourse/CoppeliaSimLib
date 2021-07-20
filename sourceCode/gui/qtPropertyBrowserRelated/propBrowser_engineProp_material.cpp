@@ -102,38 +102,50 @@ void CPropBrowserEngineMaterial::show(QWidget* parentWindow)
     p_copyFromPredefined = variantManager->addProperty(QtVariantPropertyManager::enumTypeId(),"Apply predefined settings:");
     p_copyFromPredefined->setAttribute("enumNames", defMatTypeEnum);
     QtBrowserItem* anItem=addProperty(p_copyFromPredefined);
-    setBackgroundColor(anItem,QTPROPERTYBROWSER_COLOR_GREY);
+    if (App::userSettings->darkMode)
+        setBackgroundColor(anItem,QTPROPERTYBROWSER_COLOR_GREY_D);
+    else
+        setBackgroundColor(anItem,QTPROPERTYBROWSER_COLOR_GREY);
 
-//    p_materialName = variantManager->addProperty(QVariant::String,"Material name");
-//    anItem=addProperty(p_materialName);
-//    setBackgroundColor(anItem,QTPROPERTYBROWSER_COLOR_GREY);
 
     // Bullet:
     QtProperty *bulletGroup = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),"Bullet properties");
     bulletGroup->theBrightness=140;
     bulletGroupItem=addProperty(bulletGroup);
-    setBackgroundColor(bulletGroupItem,QTPROPERTYBROWSER_COLOR_RED);
+    if (App::userSettings->darkMode)
+        setBackgroundColor(bulletGroupItem,QTPROPERTYBROWSER_COLOR_RED_D);
+    else
+        setBackgroundColor(bulletGroupItem,QTPROPERTYBROWSER_COLOR_RED);
     setExpanded(bulletGroupItem,_bulletPropertiesExpanded);
 
     // ODE::
     QtProperty *odeGroup = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),"ODE properties");
     odeGroup->theBrightness=140;
     odeGroupItem=addProperty(odeGroup);
-    setBackgroundColor(odeGroupItem,QTPROPERTYBROWSER_COLOR_GREEN);
+    if (App::userSettings->darkMode)
+        setBackgroundColor(odeGroupItem,QTPROPERTYBROWSER_COLOR_GREEN_D);
+    else
+        setBackgroundColor(odeGroupItem,QTPROPERTYBROWSER_COLOR_GREEN);
     setExpanded(odeGroupItem,_odePropertiesExpanded);
 
     // Vortex:
     QtProperty *vortexGroup = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),"Vortex properties");
     vortexGroup->theBrightness=140;
     vortexGroupItem=addProperty(vortexGroup);
-    setBackgroundColor(vortexGroupItem,QTPROPERTYBROWSER_COLOR_BLUE);
+    if (App::userSettings->darkMode)
+        setBackgroundColor(vortexGroupItem,QTPROPERTYBROWSER_COLOR_BLUE_D);
+    else
+        setBackgroundColor(vortexGroupItem,QTPROPERTYBROWSER_COLOR_BLUE);
     setExpanded(vortexGroupItem,_vortexPropertiesExpanded);
 
     // Newton:
     QtProperty *newtonGroup = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),"Newton properties");
     newtonGroup->theBrightness=140;
     newtonGroupItem=addProperty(newtonGroup);
-    setBackgroundColor(newtonGroupItem,QTPROPERTYBROWSER_COLOR_PURPLE);
+    if (App::userSettings->darkMode)
+        setBackgroundColor(newtonGroupItem,QTPROPERTYBROWSER_COLOR_PURPLE_D);
+    else
+        setBackgroundColor(newtonGroupItem,QTPROPERTYBROWSER_COLOR_PURPLE);
     setExpanded(newtonGroupItem,_newtonPropertiesExpanded);
 
     // Bullet:
@@ -366,8 +378,8 @@ void CPropBrowserEngineMaterial::enableNotifications(bool enable)
 
 void CPropBrowserEngineMaterial::refresh()
 {
-    CShape* it=App::ct->objCont->getLastSelection_shape();
-    CGeomWrap* geom=it->geomData->geomInfo;
+    CShape* it=App::currentWorld->sceneObjects->getLastSelectionShape();
+    CMeshWrapper* geom=it->getMeshWrapper();
     CDynMaterialObject* mat=it->getDynMaterial();
     bool editable=true;
 
@@ -444,7 +456,7 @@ void CPropBrowserEngineMaterial::refresh()
     int o_maxContacts=mat->getEngineIntParam(sim_ode_body_maxcontacts,nullptr);
     p_odeFriction->setValue(tt::floatToEInfString(o_friction,false).c_str());
     p_odeFriction->setEnabled(editable);
-    p_odeMaxContacts->setValue(tt::intToString(o_maxContacts).c_str());
+    p_odeMaxContacts->setValue(std::to_string(o_maxContacts).c_str());
     p_odeMaxContacts->setEnabled(editable);
     p_odeSoftERP->setValue(tt::floatToEInfString(o_softErp,false).c_str());
     p_odeSoftERP->setEnabled(editable);
@@ -620,7 +632,7 @@ void CPropBrowserEngineMaterial::refresh()
     p_autoSleepAngSpeedThreshold->setEnabled(editable);
     p_autoSleepAngAccelThreshold->setValue(tt::floatToEInfString(autoSleep_angular_accel_threshold,false).c_str());
     p_autoSleepAngAccelThreshold->setEnabled(editable);
-    p_autoSleepStepsThreshold->setValue(tt::intToString(autoSleepStepLiveThreshold).c_str());
+    p_autoSleepStepsThreshold->setValue(std::to_string(autoSleepStepLiveThreshold).c_str());
     p_autoSleepStepsThreshold->setEnabled(editable);
 
     p_vortexFrictionModelLinPrim->setValue(frictionModel_primary_linearAxis);
@@ -799,8 +811,8 @@ void CPropBrowserEngineMaterial::catchPropertyChangesString(QtProperty *_prop, Q
 
 void CPropBrowserEngineMaterial::handlePropertyChanges(QtProperty *_prop)
 {
-    CShape* it=App::ct->objCont->getLastSelection_shape();
-    CGeomWrap* geom=it->geomData->geomInfo;
+    CShape* it=App::currentWorld->sceneObjects->getLastSelectionShape();
+    CMeshWrapper* geom=it->getMeshWrapper();
     CDynMaterialObject* mat=it->getDynMaterial();
 
     float f;

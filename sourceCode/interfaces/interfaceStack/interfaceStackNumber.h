@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include "interfaceStackObject.h"
@@ -10,13 +9,12 @@ public:
     virtual ~CInterfaceStackNumber();
 
     CInterfaceStackObject* copyYourself() const;
-    void printContent(int spaces) const;
+    void printContent(int spaces,std::string& buffer) const;
     std::string getObjectData() const;
     unsigned int createFromData(const char* data);
     static bool checkCreateFromData(const char* data,unsigned int& w,unsigned int l);
 
     double getValue() const;
-    void setValue(double theValue);
 
 protected:
     double _value;

@@ -1,4 +1,3 @@
-
 #include "millRendering.h"
 
 #ifdef SIM_WITH_OPENGL
@@ -12,12 +11,12 @@ void displayMill(CMill* mill,CViewableBase* renderingObject,int displayAttrib)
     if (displayAttrib&sim_displayattribute_renderpass)
         _displayBoundingBox(mill,displayAttrib,true,0.0);
 
-    C3Vector normalVectorForLinesAndPoints(mill->getCumulativeTransformation().Q.getInverse()*C3Vector::unitZVector);
+    C3Vector normalVectorForLinesAndPoints(mill->getFullCumulativeTransformation().Q.getInverse()*C3Vector::unitZVector);
 
     // Display the object:
     if (mill->getShouldObjectBeDisplayed(renderingObject->getObjectHandle(),displayAttrib))
     {
-        if ((App::getEditModeType()&SHAPE_OR_PATH_EDIT_MODE)==0)
+        if ((App::getEditModeType()&SHAPE_OR_PATH_EDIT_MODE_OLD)==0)
         {
             if (mill->getLocalObjectProperty()&sim_objectproperty_selectmodelbaseinstead)
                 glLoadName(mill->getModelSelectionHandle());

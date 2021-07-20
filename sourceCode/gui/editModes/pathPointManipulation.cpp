@@ -1,40 +1,38 @@
-
 #include "pathPointManipulation.h"
-#include "funcDebug.h"
 #include "app.h"
 
-CPathPointManipulation::CPathPointManipulation()
+CPathPointManipulation_old::CPathPointManipulation_old()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     _uniqueSelectedPathID_nonEditMode=-1;
     _simulationStopped=true;
 }
 
-CPathPointManipulation::~CPathPointManipulation()
+CPathPointManipulation_old::~CPathPointManipulation_old()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     // Following should already be erased:
 }
 
-void CPathPointManipulation::keyPress(int key)
+void CPathPointManipulation_old::keyPress(int key)
 {
 
 }
 
-std::vector<int>* CPathPointManipulation::getPointerToSelectedPathPointIndices_nonEditMode()
+std::vector<int>* CPathPointManipulation_old::getPointerToSelectedPathPointIndices_nonEditMode()
 {
     return(&_selectedPathPointIndices_nonEditMode);
 }
 
-void CPathPointManipulation::clearPathPointIndices_nonEditMode()
+void CPathPointManipulation_old::clearPathPointIndices_nonEditMode()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     _selectedPathPointIndices_nonEditMode.clear();
 }
 
-bool CPathPointManipulation::isPathPointIndexSelected_nonEditMode(int index,bool removeIfYes)
+bool CPathPointManipulation_old::isPathPointIndexSelected_nonEditMode(int index,bool removeIfYes)
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     for (int i=0;i<int(_selectedPathPointIndices_nonEditMode.size());i++)
     {
         if (index==_selectedPathPointIndices_nonEditMode[i])
@@ -48,9 +46,9 @@ bool CPathPointManipulation::isPathPointIndexSelected_nonEditMode(int index,bool
     return(false);
 }
 
-void CPathPointManipulation::addPathPointToSelection_nonEditMode(int pathPointIdentifier)
+void CPathPointManipulation_old::addPathPointToSelection_nonEditMode(int pathPointIdentifier)
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     if (pathPointIdentifier>=NON_OBJECT_PICKING_ID_PATH_PTS_START)
     {
         if (_uniqueSelectedPathID_nonEditMode!=-1)
@@ -61,9 +59,9 @@ void CPathPointManipulation::addPathPointToSelection_nonEditMode(int pathPointId
     }
 }
 
-void CPathPointManipulation::xorAddPathPointToSelection_nonEditMode(int pathPointIdentifier)
+void CPathPointManipulation_old::xorAddPathPointToSelection_nonEditMode(int pathPointIdentifier)
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     if (pathPointIdentifier>=NON_OBJECT_PICKING_ID_PATH_PTS_START)
     {
         if (_uniqueSelectedPathID_nonEditMode!=-1)
@@ -74,14 +72,14 @@ void CPathPointManipulation::xorAddPathPointToSelection_nonEditMode(int pathPoin
     }
 }
 
-void CPathPointManipulation::announceObjectSelectionChanged()
+void CPathPointManipulation_old::announceObjectSelectionChanged()
 {
-    FUNCTION_DEBUG;
-    if ((App::ct==nullptr)||(App::ct->objCont==nullptr))
+    TRACE_INTERNAL;
+    if ((App::worldContainer==nullptr)||(App::currentWorld->sceneObjects==nullptr))
         return;
-    if ( (App::ct->objCont->getSelSize()==1)&&_simulationStopped )
+    if ( (App::currentWorld->sceneObjects->getSelectionCount()==1)&&_simulationStopped )
     {
-        CPath* selPath=App::ct->objCont->getPath(App::ct->objCont->getLastSelectionID());
+        CPath_old* selPath=App::currentWorld->sceneObjects->getPathFromHandle(App::currentWorld->sceneObjects->getLastSelectionHandle());
         if (selPath!=nullptr)
         {
             if (selPath->getObjectHandle()!=_uniqueSelectedPathID_nonEditMode)
@@ -103,47 +101,35 @@ void CPathPointManipulation::announceObjectSelectionChanged()
     }
 }
 
-void CPathPointManipulation::announceSceneInstanceChanged()
+void CPathPointManipulation_old::announceSceneInstanceChanged()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     _selectedPathPointIndices_nonEditMode.clear();
     _uniqueSelectedPathID_nonEditMode=-1;
 }
 
-void CPathPointManipulation::simulationAboutToStart()
+void CPathPointManipulation_old::simulationAboutToStart()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     _selectedPathPointIndices_nonEditMode.clear();
     _uniqueSelectedPathID_nonEditMode=-1;
     _simulationStopped=false;
 }
 
-void CPathPointManipulation::simulationEnded()
+void CPathPointManipulation_old::simulationEnded()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     _simulationStopped=true;
 }
 
-int CPathPointManipulation::getUniqueSelectedPathId_nonEditMode()
+int CPathPointManipulation_old::getUniqueSelectedPathId_nonEditMode()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     return(_uniqueSelectedPathID_nonEditMode);
 }
 
-int CPathPointManipulation::getSelectedPathPointIndicesSize_nonEditMode()
+int CPathPointManipulation_old::getSelectedPathPointIndicesSize_nonEditMode()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     return(int(_selectedPathPointIndices_nonEditMode.size()));
-}
-
-bool CPathPointManipulation::deleteSelectedPathPoints_nonEditMode()
-{
-    FUNCTION_DEBUG;
-    SSimulationThreadCommand cmd;
-    cmd.cmdId=DELETE_SELECTED_PATH_POINTS_NON_EDIT_FROMUI_TOSIM_CMD;
-    cmd.intParams.push_back(_uniqueSelectedPathID_nonEditMode);
-    cmd.intVectorParams.push_back(_selectedPathPointIndices_nonEditMode);
-    App::simThread->appendSimulationThreadCommand(cmd);
-    _selectedPathPointIndices_nonEditMode.clear();
-    return(true);
 }

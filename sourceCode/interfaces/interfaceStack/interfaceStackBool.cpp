@@ -16,25 +16,20 @@ bool CInterfaceStackBool::getValue() const
     return(_value);
 }
 
-void CInterfaceStackBool::setValue(bool theValue)
-{
-    _value=theValue;
-}
-
 CInterfaceStackObject* CInterfaceStackBool::copyYourself() const
 {
     CInterfaceStackBool* retVal=new CInterfaceStackBool(_value);
     return(retVal);
 }
 
-void CInterfaceStackBool::printContent(int spaces) const
+void CInterfaceStackBool::printContent(int spaces,std::string& buffer) const
 {
     for (int i=0;i<spaces;i++)
-        printf(" ");
+        buffer+=" ";
     if (_value)
-        printf("BOOL: true\n");
+        buffer+="BOOL: true\n";
     else
-        printf("BOOL: false\n");
+        buffer+="BOOL: false\n";
 }
 
 std::string CInterfaceStackBool::getObjectData() const

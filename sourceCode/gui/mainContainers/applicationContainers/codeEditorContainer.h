@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <QString>
+#include "tinyxml2.h"
 
 struct SCodeEditor {
     int handle;
@@ -42,7 +43,7 @@ public:
     void applyChanges(int handle) const;
     bool closeFromScriptHandle(int scriptHandle,int posAndSize[4],bool ignoreChange);
     void restartScript(int handle) const;
-    void killLuaState(int scriptHandle) const;
+    void resetScript(int scriptHandle) const;
     int getCallingScriptHandle(int handle) const;
     bool getCloseAfterCallbackCalled(int handle) const;
     void simulationAboutToStart() const;
@@ -54,18 +55,19 @@ public:
     int showOrHide(int handle,bool showState);
     int getShowState(int handle) const;
     bool appendText(int handle,const char* txt) const;
+    bool hasSomethingBeenModifiedInCurrentScene() const;
 
     // From any thread:
     int getHandleFromUniqueId(int uid);
     int getUniqueId(int handle);
     bool areSceneEditorsOpen() const;
     void sceneClosed(int sceneUniqueId);
-    static QString getXmlColorString(const char* colTxt,const int rgbCol[3]);
-    static QString getXmlColorString(const char* colTxt,int r,int g,int b);
-    static QString getKeywords(int scriptType,bool threaded);
-    static QString getFuncKeywords(int scriptType,bool threaded);
-    static QString getVarKeywords(int scriptType,bool threaded);
-    static QString translateXml(const char* oldXml,const char* callback);
+    static std::string getColorStr(const int rgbCol[3]);
+    static void getKeywords(sim::tinyxml2::XMLDocument* doc,sim::tinyxml2::XMLElement* parentNode,int scriptType,bool threaded);
+    static void getFuncKeywords(sim::tinyxml2::XMLDocument* doc,sim::tinyxml2::XMLElement* parentNode,int scriptType,bool threaded);
+    static void getVarKeywords(sim::tinyxml2::XMLDocument* doc,sim::tinyxml2::XMLElement* parentNode,int scriptType,bool threaded);
+    static std::string translateXml(const char* oldXml,const char* callback);
+    static const char* toBoolStr(bool v);
 
 protected:
     std::vector<SCodeEditor> _allEditors;

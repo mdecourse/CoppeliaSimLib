@@ -1,13 +1,12 @@
 #pragma once
 
-#include "mainCont.h"
 #include "sPage.h"
 #include "global.h"
 #include "buttonBlock.h"
 
 #define PAGES_COUNT 8
 
-class CPageContainer : public CMainCont
+class CPageContainer
 {
 public:
     CPageContainer();
@@ -15,15 +14,14 @@ public:
 
     void simulationAboutToStart();
     void simulationEnded();
-    void renderYour3DStuff(CViewableBase* renderingObject,int displayAttrib);
 
     void emptySceneProcedure();
-    void initializeInitialValues(bool simulationIsRunning,int initializeOnlyForThisNewObject);
+    void initializeInitialValues(bool simulationAlreadyRunning,int initializeOnlyForThisNewObject);
     void removeAllPages();
     void setUpDefaultPages(bool createASingleView=false);
     void announceObjectWillBeErased(int objectID);
     void serialize(CSer& ar);
-    void performObjectLoadingMapping(std::vector<int>* map);
+    void performObjectLoadingMapping(const std::vector<int>* map);
     CSPage* getPage(int pageIndex) const;
     int getMainCameraHandle() const;
 

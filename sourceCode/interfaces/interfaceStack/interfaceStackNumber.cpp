@@ -1,4 +1,3 @@
-
 #include "interfaceStackNumber.h"
 
 CInterfaceStackNumber::CInterfaceStackNumber(double theValue)
@@ -16,22 +15,19 @@ double CInterfaceStackNumber::getValue() const
     return(_value);
 }
 
-void CInterfaceStackNumber::setValue(double theValue)
-{
-    _value=theValue;
-}
-
 CInterfaceStackObject* CInterfaceStackNumber::copyYourself() const
 {
     CInterfaceStackNumber* retVal=new CInterfaceStackNumber(_value);
     return(retVal);
 }
 
-void CInterfaceStackNumber::printContent(int spaces) const
+void CInterfaceStackNumber::printContent(int spaces,std::string& buffer) const
 {
     for (int i=0;i<spaces;i++)
-        printf(" ");
-    printf("NUMBER: %f\n",_value);
+        buffer+=" ";
+    buffer+="NUMBER: ";
+    buffer+=std::to_string(_value);
+    buffer+="\n";
 }
 
 std::string CInterfaceStackNumber::getObjectData() const

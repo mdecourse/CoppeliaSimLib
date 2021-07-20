@@ -20,7 +20,7 @@ CQDlgModelThumbnail::CQDlgModelThumbnail(QWidget *parent) :
 
 CQDlgModelThumbnail::~CQDlgModelThumbnail()
 {
-    App::ct->objCont->eraseObject(rs,false); // oops, we are in the wrong thread here. Very dangerous
+    App::currentWorld->sceneObjects->eraseObject(rs,false); // oops, we are in the wrong thread here. Very dangerous
     delete ui;
 }
 
@@ -50,7 +50,7 @@ void CQDlgModelThumbnail::initialize()
     thumbnail.setRandomImage();
 
     rs=new CVisionSensor();
-    App::ct->objCont->addObjectToScene(rs,false,false); // oops, we are in the wrong thread here. Very dangerous
+    App::currentWorld->sceneObjects->addObjectToScene(rs,false,false); // oops, we are in the wrong thread here. Very dangerous
     int res[2]={256,256};
     rs->setDesiredResolution(res);
     rs->setPerspectiveOperation(true);
@@ -58,7 +58,7 @@ void CQDlgModelThumbnail::initialize()
     rs->setViewAngle(THUMBNAIL_THING_VIEW_ANGLE*degToRad_f);
     rs->setNearClippingPlane(0.01f);
     rs->setFarClippingPlane(20.0f);
-    rs->layer=0;
+    rs->setVisibilityLayer(0);
     sel.clear();
     sel.push_back(modelBaseDummyID);
     CSceneObjectOperations::addRootObjectChildrenToSelection(sel);
@@ -71,7 +71,7 @@ void CQDlgModelThumbnail::actualizeBitmap()
     C3Vector maxC(-999.0f,-999.0f,-999.0f);
     for (size_t i=0;i<sel.size();i++)
     {
-        C3DObject* it=App::ct->objCont->getObjectFromHandle(sel[i]);
+        CSceneObject* it=App::currentWorld->sceneObjects->getObjectFromHandle(sel[i]);
         bool display=true;
         if (it->getObjectType()==sim_object_proximitysensor_type)
         {
@@ -83,9 +83,9 @@ void CQDlgModelThumbnail::actualizeBitmap()
             if (!((CVisionSensor*)it)->getShowVolumeWhenNotDetecting())
                 display=false;
         }
-        if ( (!it->isObjectPartOfInvisibleModel())&&(it->layer&App::ct->mainSettings->getActiveLayers())&&display )
+        if ( (!it->isObjectPartOfInvisibleModel())&&(it->getVisibilityLayer()&App::currentWorld->mainSettings->getActiveLayers())&&display )
         {
-            C7Vector tr(it->getCumulativeTransformationPart1());
+            C7Vector tr(it->getCumulativeTransformation());
             C3Vector minV,maxV;
             it->getMarkingBoundingBox(minV,maxV);
             tr.X*=(maxV+minV)*0.5f;
@@ -301,13 +301,13 @@ void CQDlgModelThumbnail::actualizeBitmap()
 
 void CQDlgModelThumbnail::on_qqFromFile_clicked()
 {
-    std::string tst(App::directories->textureDirectory);
-    std::string filenameAndPath=App::uiThread->getOpenFileName(this,0,"Loading texture...",tst,"",true,"Image files","tga","jpg","jpeg","png","gif","bmp","tiff");
+    std::string tst(App::folders->getTexturesPath());
+    std::string filenameAndPath=App::uiThread->getOpenFileName(this,0,"Loading texture...",tst.c_str(),"",true,"Image files","tga","jpg","jpeg","png","gif","bmp","tiff");
     if (filenameAndPath.length()!=0)
     {
-        if (VFile::doesFileExist(filenameAndPath))
+        if (VFile::doesFileExist(filenameAndPath.c_str()))
         {
-            App::appendSimulationThreadCommand(SET_CURRENTDIRECTORY_GUITRIGGEREDCMD,DIRECTORY_ID_TEXTURE,-1,0.0,0.0,App::directories->getPathFromFull(filenameAndPath).c_str());
+            App::appendSimulationThreadCommand(SET_CURRENTDIRECTORY_GUITRIGGEREDCMD,DIRECTORY_ID_TEXTURE,-1,0.0,0.0,App::folders->getPathFromFull(filenameAndPath.c_str()).c_str());
             int resX,resY,n;
             unsigned char* data=CImageLoaderSaver::load(filenameAndPath.c_str(),&resX,&resY,&n,0);
             if (n<3)
@@ -317,11 +317,11 @@ void CQDlgModelThumbnail::on_qqFromFile_clicked()
             }
 
             if (data==nullptr)
-                App::uiThread->messageBox_critical(App::mainWindow,strTranslate("Thumbnail"),strTranslate(IDS_TEXTURE_FILE_COULD_NOT_BE_LOADED),VMESSAGEBOX_OKELI);
+                App::uiThread->messageBox_critical(App::mainWindow,"Thumbnail",IDS_TEXTURE_FILE_COULD_NOT_BE_LOADED,VMESSAGEBOX_OKELI,VMESSAGEBOX_REPLY_OK);
             else
             {
                 if ( (resX!=128)||(resY!=128) )
-                    App::uiThread->messageBox_critical(App::mainWindow,strTranslate("Thumbnail"),strTranslate(IDS_THUMBNAILS_REQUIRE_128X128_RESOLUTION),VMESSAGEBOX_OKELI);
+                    App::uiThread->messageBox_critical(App::mainWindow,"Thumbnail",IDS_THUMBNAILS_REQUIRE_128X128_RESOLUTION,VMESSAGEBOX_OKELI,VMESSAGEBOX_REPLY_OK);
                 else
                 {
                     thumbnail.setUncompressedThumbnailImage((char*)data,n>3,true);

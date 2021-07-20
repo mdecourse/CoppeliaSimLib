@@ -1,21 +1,18 @@
-
 #pragma once
 
-#include "mainCont.h"
 #include "vThread.h"
 #include "ser.h"
 #ifdef SIM_WITH_GUI
 #include "vMenubar.h"
 #endif
 
-class CSimulation : public CMainCont
+class CSimulation
 {
 public:
     CSimulation();
     virtual ~CSimulation();
     void simulationAboutToStart();
     void simulationEnded();
-    void renderYour3DStuff(CViewableBase* renderingObject,int displayAttrib);
     void setUpDefaultValues();
     bool startOrResumeSimulation();
     bool stopSimulation();
@@ -28,15 +25,13 @@ public:
     int getDefaultSimulationParameterIndex();
     void setRealTimeSimulation(bool realTime);
     bool getRealTimeSimulation();
-    void setOnlineMode(bool onlineMode);
-    bool getOnlineMode();
     void serialize(CSer& ar);
 
-    quint64 getSimulationTime_ns();
-    quint64 getSimulationTime_real_ns();
-    void clearSimulationTimeHistory_ns();
-    void addToSimulationTimeHistory_ns(quint64 simTime,quint64 simTimeReal);
-    bool getSimulationTimeHistoryDurations_ns(quint64& simTime,quint64& simTimeReal);
+    quint64 getSimulationTime_us();
+    quint64 getSimulationTime_real_us();
+    void clearSimulationTimeHistory_us();
+    void addToSimulationTimeHistory_us(quint64 simTime,quint64 simTimeReal);
+    bool getSimulationTimeHistoryDurations_us(quint64& simTime,quint64& simTimeReal);
     void setResetSceneAtSimulationEnd(bool r);
     bool getResetSceneAtSimulationEnd();
     void setRemoveNewObjectsAtSimulationEnd(bool r);
@@ -54,15 +49,11 @@ public:
     bool goFasterOrSlower(int action);
     int getSpeedModifierIndexOffset();
     bool setSpeedModifierIndexOffset(int offset);
-    bool canToggleThreadedRendering();
-    void toggleThreadedRendering(bool noWarningMessage);
-    bool getThreadedRendering();
-    bool getThreadedRenderingIfSimulationWasRunning();
     int getSpeedModifier_forCalcPassPerRendering();
 
-    void setSimulationTimeStep_raw_ns(quint64 dt);
-    quint64 getSimulationTimeStep_raw_ns(int parameterIndex=-1);
-    quint64 getSimulationTimeStep_speedModified_ns(int parameterIndex=-1);
+    void setSimulationTimeStep_raw_us(quint64 dt);
+    quint64 getSimulationTimeStep_raw_us(int parameterIndex=-1);
+    quint64 getSimulationTimeStep_speedModified_us(int parameterIndex=-1);
 
     void setSimulationPassesPerRendering_raw(int n);
     int getSimulationPassesPerRendering_raw();
@@ -74,7 +65,7 @@ public:
     bool getDynamicContentVisualizationOnly();
     void setDynamicContentVisualizationOnly(bool dynOnly);
 
-    void adjustRealTimeTimer_ns(quint64 deltaTime);
+    void adjustRealTimeTimer_us(quint64 deltaTime);
 
     void setFullscreenAtSimulationStart(bool f);
     bool getFullscreenAtSimulationStart();
@@ -90,9 +81,8 @@ public:
     void setPauseAtError(bool br);
     bool getPauseAtError();
     void pauseOnErrorRequested();
-//    bool getPauseOnErrorRequested();
-    void setPauseTime_ns(quint64 time);
-    quint64 getPauseTime_ns();
+    void setPauseTime_us(quint64 time);
+    quint64 getPauseTime_us();
     bool getPauseAtSpecificTime();
     void setPauseAtSpecificTime(bool e);
     void setCatchUpIfLate(bool c);
@@ -107,7 +97,7 @@ public:
 
 
 #ifdef SIM_WITH_GUI
-    void showAndHandleEmergencyStopButton(bool showState,const char* scriptName);
+    bool showAndHandleEmergencyStopButton(bool showState,const char* scriptName);
     void keyPress(int key);
     void addMenu(VMenu* menu);
 #endif
@@ -123,24 +113,21 @@ private:
     bool _avoidBlocking;
     bool _fullscreenAtSimulationStart;
 
-    quint64 _simulationTime_ns;
-    quint64 simulationTime_real_ns;
-    quint64 simulationTime_real_noCatchUp_ns;
+    quint64 _simulationTime_us;
+    quint64 simulationTime_real_us;
+    quint64 simulationTime_real_noCatchUp_us;
 
     int simulationTime_real_lastInMs;
-    quint64 _realTimeCorrection_ns;
+    quint64 _realTimeCorrection_us;
 
     int _simulationStepCount;
-
-    bool _threadedRenderingToggle;
-    bool _threadedRenderingMessageShown;
 
     bool _displayedWarningAboutNonDefaultParameters;
     int _disableWarningsFlags;
 
     int _defaultSimulationParameterIndex;
     int _simulationPassesPerRendering;
-    quint64 _simulationTimeStep_ns;
+    quint64 _simulationTimeStep_us;
     int _speedModifierIndexOffset;
     int _desiredFasterOrSlowerSpeed;
 
@@ -148,10 +135,9 @@ private:
     int timeInMsWhenStopWasPressed;
 
     bool _realTimeSimulation;
-    bool _onlineMode; // not serialized
     double _realTimeCoefficient;
 
-    quint64 _simulationTimeToPause_ns;
+    quint64 _simulationTimeToPause_us;
     bool _pauseAtSpecificTime;
     bool _pauseAtError;
     bool _pauseOnErrorRequested;
@@ -165,8 +151,8 @@ private:
     bool _requestToPause; // added on 2010/01/13 (simPauseSimulation didn't work in the first simulation pass)
 
     // Following is needed to determine if we are really in real-time mode
-    std::vector<quint64> simulationTime_history_ns;
-    std::vector<quint64> simulationTime_real_history_ns;
+    std::vector<quint64> simulationTime_history_us;
+    std::vector<quint64> simulationTime_real_history_us;
 
     bool _initialValuesInitialized;
     bool _initialPauseAtSpecificTime;

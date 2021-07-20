@@ -15,7 +15,7 @@ public:
     CSView(int theLinkedObjectID);
     virtual ~CSView();
     void render(int mainWindowXPos,bool clipWithMainWindowXPos,bool drawText,bool passiveSubView);
-    void initializeInitialValues(bool simulationIsRunning);
+    void initializeInitialValues(bool simulationAlreadyRunning);
     bool simulationEnded();
     void setDefaultValues();
     int getLinkedObjectID() const;
@@ -73,7 +73,7 @@ public:
     void getGraphSize(float size[2]) const;
     void serialize(CSer& ar);
     bool announceObjectWillBeErased(int objectID);
-    void performObjectLoadingMapping(std::vector<int>* map);
+    void performObjectLoadingMapping(const std::vector<int>* map);
     void setViewSizeAndPosition(int sizeX,int sizeY,int posX,int posY);
     void getViewSize(int size[2]) const;
     void getViewPosition(int pos[2]) const;

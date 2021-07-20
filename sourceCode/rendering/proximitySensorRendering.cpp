@@ -1,4 +1,3 @@
-
 #include "proximitySensorRendering.h"
 
 #ifdef SIM_WITH_OPENGL
@@ -12,13 +11,13 @@ void displayProximitySensor(CProxSensor* proxSensor,CViewableBase* renderingObje
     if (displayAttrib&sim_displayattribute_renderpass)
         _displayBoundingBox(proxSensor,displayAttrib,true,0.0);
 
-    C3Vector normalVectorForLinesAndPoints(proxSensor->getCumulativeTransformation().Q.getInverse()*C3Vector::unitZVector);
+    C3Vector normalVectorForLinesAndPoints(proxSensor->getFullCumulativeTransformation().Q.getInverse()*C3Vector::unitZVector);
 
     // Display the object:
     if (proxSensor->getShouldObjectBeDisplayed(renderingObject->getObjectHandle(),displayAttrib))
     {
         _enableAuxClippingPlanes(proxSensor->getObjectHandle());
-        if ((App::getEditModeType()&SHAPE_OR_PATH_EDIT_MODE)==0)
+        if ((App::getEditModeType()&SHAPE_OR_PATH_EDIT_MODE_OLD)==0)
         {
             if (proxSensor->getLocalObjectProperty()&sim_objectproperty_selectmodelbaseinstead)
                 glLoadName(proxSensor->getModelSelectionHandle());

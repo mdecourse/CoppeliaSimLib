@@ -9,24 +9,21 @@
 #include "qdlgshapeeditioncontainer.h"
 #include "sceneObjectOperations.h"
 #include "qdlgopenglsettings.h"
-#include "libLic.h"
+#include "simFlavor.h"
 
 CDlgCont::CDlgCont(QWidget* pWindow)
 {
-    MUST_BE_UI_THREAD;
     _destroyingContainerNow=false;
     initialize(pWindow);
 }
 
 CDlgCont::~CDlgCont()
 {
-    MUST_BE_UI_THREAD;
     killAllDialogs();
 }
 
 void CDlgCont::initialize(QWidget* pWindow)
 {
-    MUST_BE_UI_THREAD;
     if (dialogs.size()!=0)
         return; // Already initialized!
     parentWindow=pWindow;
@@ -37,7 +34,6 @@ void CDlgCont::initialize(QWidget* pWindow)
     dialogs.push_back(new CToolDlgWrapper(OBJECT_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(CALCULATION_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(JOINT_DYN_DLG,0));
-    dialogs.push_back(new CToolDlgWrapper(CUSTOM_UI_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(TRANSLATION_ROTATION_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(PATH_EDITION_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(MULTISHAPE_EDITION_DLG,0));
@@ -53,20 +49,16 @@ void CDlgCont::initialize(QWidget* pWindow)
     dialogs.push_back(new CToolDlgWrapper(FORCE_SENSOR_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(GRAPH_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(SETTINGS_DLG,0));
-    dialogs.push_back(new CToolDlgWrapper(SELECTION_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(COLLECTION_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(ENVIRONMENT_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(COLLISION_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(DISTANCE_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(IK_DLG,0));
-    dialogs.push_back(new CToolDlgWrapper(BUTTON_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(LUA_SCRIPT_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(DUMMY_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(LAYERS_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(DYNAMICS_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(PATH_DLG,0));
-    dialogs.push_back(new CToolDlgWrapper(PATH_PLANNING_DLG,0));
-    dialogs.push_back(new CToolDlgWrapper(CONSTRAINT_SOLVER_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(SIMULATION_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(FOG_DLG,0));
     dialogs.push_back(new CToolDlgWrapper(MATERIAL_DLG,0));
@@ -82,7 +74,6 @@ void CDlgCont::initialize(QWidget* pWindow)
 
 void CDlgCont::refresh()
 {
-    MUST_BE_UI_THREAD;
     if (!_destroyingContainerNow)
     {
         for (size_t i=0;i<dialogs.size();i++)
@@ -92,7 +83,6 @@ void CDlgCont::refresh()
 
 void CDlgCont::callDialogFunction(const SUIThreadCommand* cmdIn,SUIThreadCommand* cmdOut)
 {
-    MUST_BE_UI_THREAD;
     if ( (!_destroyingContainerNow)&&(cmdIn!=nullptr) )
     {
         for (size_t i=0;i<dialogs.size();i++)
@@ -102,7 +92,6 @@ void CDlgCont::callDialogFunction(const SUIThreadCommand* cmdIn,SUIThreadCommand
 
 void CDlgCont::destroyWhatNeedsDestruction()
 {
-    MUST_BE_UI_THREAD;
     if (!_destroyingContainerNow)
     {
         for (size_t i=0;i<dialogs.size();i++)
@@ -112,7 +101,6 @@ void CDlgCont::destroyWhatNeedsDestruction()
 
 void CDlgCont::visibleInstanceAboutToSwitch()
 {
-    MUST_BE_UI_THREAD;
     if (!_destroyingContainerNow)
     {
         for (size_t i=0;i<dialogs.size();i++)
@@ -122,7 +110,6 @@ void CDlgCont::visibleInstanceAboutToSwitch()
 
 void CDlgCont::showDialogsButDontOpenThem()
 {
-    MUST_BE_UI_THREAD;
     if (!_destroyingContainerNow)
     {
         for (size_t i=0;i<dialogs.size();i++)
@@ -132,7 +119,6 @@ void CDlgCont::showDialogsButDontOpenThem()
 
 void CDlgCont::hideDialogsButDontCloseThem()
 {
-    MUST_BE_UI_THREAD;
     if (!_destroyingContainerNow)
     {
         for (size_t i=0;i<dialogs.size();i++)
@@ -142,7 +128,6 @@ void CDlgCont::hideDialogsButDontCloseThem()
 
 bool CDlgCont::openOrBringToFront(int dlgID)
 {
-    MUST_BE_UI_THREAD;
     if (!_destroyingContainerNow)
     {
         if (dlgID==HIERARCHY_DLG)
@@ -165,7 +150,6 @@ bool CDlgCont::openOrBringToFront(int dlgID)
 
 void CDlgCont::close(int dlgID)
 {
-    MUST_BE_UI_THREAD;
     if (!_destroyingContainerNow)
     {
         if (dlgID==HIERARCHY_DLG)
@@ -184,7 +168,6 @@ void CDlgCont::close(int dlgID)
 
 bool CDlgCont::toggle(int dlgID)
 {
-    MUST_BE_UI_THREAD;
     if (!_destroyingContainerNow)
     {
         if (dlgID==HIERARCHY_DLG)
@@ -221,7 +204,6 @@ CToolDlgWrapper* CDlgCont::_getDialogWrapper(int dlgID)
 
 VDialog* CDlgCont::getDialog(int dlgID)
 {
-    MUST_BE_UI_THREAD;
     if (!_destroyingContainerNow)
     {
         for (int i=0;i<int(dialogs.size());i++)
@@ -235,7 +217,6 @@ VDialog* CDlgCont::getDialog(int dlgID)
 
 bool CDlgCont::isVisible(int dlgID)
 {
-    MUST_BE_UI_THREAD;
     if (!_destroyingContainerNow)
     {
         if (dlgID==HIERARCHY_DLG)
@@ -254,7 +235,6 @@ bool CDlgCont::isVisible(int dlgID)
 
 void CDlgCont::killAllDialogs()
 {
-    MUST_BE_UI_THREAD;
     _destroyingContainerNow=true;
     for (int i=0;i<int(dialogs.size());i++)
         delete dialogs[i];
@@ -263,7 +243,6 @@ void CDlgCont::killAllDialogs()
 
 void CDlgCont::getWindowPos(int dlgID,int pos[2],bool& visible)
 {
-    MUST_BE_UI_THREAD;
     if (!_destroyingContainerNow)
     {
         if (dlgID==HIERARCHY_DLG)
@@ -289,7 +268,6 @@ void CDlgCont::getWindowPos(int dlgID,int pos[2],bool& visible)
 
 void CDlgCont::setWindowPos(int dlgID,int pos[2],bool visible)
 {
-    MUST_BE_UI_THREAD;
     if (!_destroyingContainerNow)
     {
         if (dlgID==HIERARCHY_DLG)
@@ -323,24 +301,24 @@ void CDlgCont::keyPress(int key)
 void CDlgCont::addMenu(VMenu* menu)
 { 
     bool noShapePathEditModeNoSelector=true;
-    if ((App::getEditModeType()&SHAPE_EDIT_MODE)||(App::getEditModeType()==PATH_EDIT_MODE))
+    if ((App::getEditModeType()&SHAPE_EDIT_MODE)||(App::getEditModeType()==PATH_EDIT_MODE_OLD))
         noShapePathEditModeNoSelector=false;
-    if (App::mainWindow->oglSurface->isSceneSelectionActive()||App::mainWindow->oglSurface->isPageSelectionActive())
+    if (App::mainWindow->oglSurface->isPageSelectionActive())
         noShapePathEditModeNoSelector=false;
 
-    if ( (CLibLic::getIntVal(2)==-1)||(CLibLic::getIntVal(2)==1)||(CLibLic::getIntVal(2)==2) )
+    if ( (CSimFlavor::getIntVal(2)==-1)||(CSimFlavor::getIntVal(2)==1)||(CSimFlavor::getIntVal(2)==2) )
     {
         menu->appendMenuItem(App::mainWindow->getObjPropToggleViaGuiEnabled()&&noShapePathEditModeNoSelector,App::mainWindow->dlgCont->isVisible(OBJECT_DLG),TOGGLE_OBJECT_DLG_CMD,IDSN_OBJECT_PROPERTIES_MENU_ITEM,true);
-        menu->appendMenuItem(App::mainWindow->getCalcModulesToggleViaGuiEnabled()&&noShapePathEditModeNoSelector,App::mainWindow->dlgCont->isVisible(CALCULATION_DLG),TOGGLE_CALCULATION_DLG_CMD,IDSN_CALCULATION_MODULE_PROPERTIES_MENU_ITEM,true);
+        menu->appendMenuItem(App::mainWindow->getCalcModulesToggleViaGuiEnabled()&&noShapePathEditModeNoSelector,App::mainWindow->dlgCont->isVisible(CALCULATION_DLG),TOGGLE_CALCULATION_DLG_CMD,IDSN_DYNAMICS_PROPERTIES_MENU_ITEM,true);
         menu->appendMenuSeparator();
         menu->appendMenuItem(noShapePathEditModeNoSelector,App::mainWindow->dlgCont->isVisible(LUA_SCRIPT_DLG),TOGGLE_LUA_SCRIPT_DLG_CMD,IDSN_SCRIPTS,true);
-        menu->appendMenuItem(noShapePathEditModeNoSelector,App::mainWindow->dlgCont->isVisible(COLLECTION_DLG),TOGGLE_COLLECTION_DLG_CMD,IDSN_COLLECTIONS,true);
-        menu->appendMenuItem(noShapePathEditModeNoSelector,App::mainWindow->dlgCont->isVisible(SELECTION_DLG),TOGGLE_SELECTION_DLG_CMD,IDSN_SELECTION,true);
+        if (App::userSettings->showOldDlgs)
+            menu->appendMenuItem(noShapePathEditModeNoSelector,App::mainWindow->dlgCont->isVisible(COLLECTION_DLG),TOGGLE_COLLECTION_DLG_CMD,IDSN_COLLECTIONS,true);
         menu->appendMenuItem(noShapePathEditModeNoSelector,App::mainWindow->dlgCont->isVisible(ENVIRONMENT_DLG),TOGGLE_ENVIRONMENT_DLG_CMD,IDSN_ENVIRONMENT,true);
         menu->appendMenuItem(noShapePathEditModeNoSelector&&App::mainWindow->getBrowserToggleViaGuiEnabled(),App::getBrowserEnabled(),TOGGLE_BROWSER_DLG_CMD,IDSN_MODEL_BROWSER,true);
         menu->appendMenuItem(App::mainWindow->getHierarchyToggleViaGuiEnabled(),App::mainWindow->oglSurface->isHierarchyEnabled(),TOGGLE_HIERARCHY_DLG_CMD,IDSN_SCENE_HIERARCHY,true);
     }
-    if (CLibLic::getIntVal(2)==0)
+    if (CSimFlavor::getIntVal(2)==0)
     {
         menu->appendMenuItem(noShapePathEditModeNoSelector,App::getBrowserEnabled(),TOGGLE_BROWSER_DLG_CMD,IDSN_MODEL_BROWSER,true);
         menu->appendMenuItem(true,App::mainWindow->oglSurface->isHierarchyEnabled(),TOGGLE_HIERARCHY_DLG_CMD,IDSN_SCENE_HIERARCHY,true);
@@ -348,13 +326,13 @@ void CDlgCont::addMenu(VMenu* menu)
         menu->appendMenuItem(CAuxLibVideo::video_recorderGetEncoderString!=nullptr,App::mainWindow->dlgCont->isVisible(AVI_RECORDER_DLG),TOGGLE_AVI_RECORDER_DLG_CMD,IDSN_AVI_RECORDER,true);
         menu->appendMenuItem(noShapePathEditModeNoSelector,App::mainWindow->dlgCont->isVisible(SETTINGS_DLG),TOGGLE_SETTINGS_DLG_CMD,IDSN_USER_SETTINGS,true);
     }
-    if ( (CLibLic::getIntVal(2)==-1)||(CLibLic::getIntVal(2)==0)||(CLibLic::getIntVal(2)==1)||(CLibLic::getIntVal(2)==2) )
+    if ( (CSimFlavor::getIntVal(2)==-1)||(CSimFlavor::getIntVal(2)==0)||(CSimFlavor::getIntVal(2)==1)||(CSimFlavor::getIntVal(2)==2) )
     {
         menu->appendMenuItem(true,App::mainWindow->dlgCont->isVisible(LAYERS_DLG),TOGGLE_LAYERS_DLG_CMD,IDS_LAYERS,true);
         menu->appendMenuItem(CAuxLibVideo::video_recorderGetEncoderString!=nullptr,App::mainWindow->dlgCont->isVisible(AVI_RECORDER_DLG),TOGGLE_AVI_RECORDER_DLG_CMD,IDSN_AVI_RECORDER,true);
         menu->appendMenuItem(noShapePathEditModeNoSelector,App::mainWindow->dlgCont->isVisible(SETTINGS_DLG),TOGGLE_SETTINGS_DLG_CMD,IDSN_USER_SETTINGS,true);
     }
-    if (CLibLic::getIntVal(2)==0)
+    if (CSimFlavor::getIntVal(2)==0)
     {
         menu->appendMenuItem(noShapePathEditModeNoSelector,App::getBrowserEnabled(),TOGGLE_BROWSER_DLG_CMD,IDSN_MODEL_BROWSER,true);
         menu->appendMenuItem(CAuxLibVideo::video_recorderGetEncoderString!=nullptr,App::mainWindow->dlgCont->isVisible(AVI_RECORDER_DLG),TOGGLE_AVI_RECORDER_DLG_CMD,IDSN_AVI_RECORDER,true);
@@ -376,16 +354,6 @@ bool CDlgCont::processCommand(int commandID)
     }
     else
     { // We are in the UI thread.
-        if (commandID==OPEN_CUSTOM_UI_DLG_CMD)
-        {
-            openOrBringToFront(CUSTOM_UI_DLG);
-            return(true);
-        }
-        if (commandID==CLOSE_CUSTOM_UI_DLG_CMD)
-        {
-            close(CUSTOM_UI_DLG);
-            return(true);
-        }
         if (commandID==OPEN_MULTISHAPE_EDITION_DLG_CMD)
         {
             openOrBringToFront(MULTISHAPE_EDITION_DLG);
@@ -511,11 +479,6 @@ bool CDlgCont::processCommand(int commandID)
             openOrBringToFront(PATH_DLG);
             return(true);
         }
-        if (commandID==OPEN_BUTTON_DLG_CMD)
-        {
-            openOrBringToFront(BUTTON_DLG);
-            return(true);
-        }
         if (commandID==OPEN_ENVIRONMENT_DLG_CMD)
         {
             openOrBringToFront(ENVIRONMENT_DLG);
@@ -561,11 +524,6 @@ bool CDlgCont::processCommand(int commandID)
             toggle(COLLISION_DLG);
             return(true);
         }
-        if (commandID==TOGGLE_SELECTION_DLG_CMD)
-        {
-            toggle(SELECTION_DLG);
-            return(true);
-        }
         if (commandID==TOGGLE_SHAPE_DLG_CMD)
         {
             toggle(SHAPE_DLG);
@@ -598,7 +556,7 @@ bool CDlgCont::processCommand(int commandID)
         }
         if (commandID==TOGGLE_SETTINGS_DLG_CMD)
         {
-            if (CLibLic::getBoolVal(11))
+            if (CSimFlavor::getBoolVal(11))
                 toggle(SETTINGS_DLG);
             else
             {
@@ -663,11 +621,6 @@ bool CDlgCont::processCommand(int commandID)
             toggle(DYNAMICS_DLG);
             return(true);
         }
-        if (commandID==TOGGLE_CONSTRAINT_SOLVER_DLG_CMD)
-        {
-            toggle(CONSTRAINT_SOLVER_DLG);
-            return(true);
-        }
         if (commandID==TOGGLE_SIMULATION_DLG_CMD)
         {
             toggle(SIMULATION_DLG);
@@ -676,11 +629,6 @@ bool CDlgCont::processCommand(int commandID)
         if (commandID==TOGGLE_AVI_RECORDER_DLG_CMD)
         {
             toggle(AVI_RECORDER_DLG);
-            return(true);
-        }
-        if (commandID==TOGGLE_BUTTON_DLG_CMD)
-        {
-            toggle(BUTTON_DLG);
             return(true);
         }
         if (commandID==TOGGLE_HIERARCHY_DLG_CMD)
@@ -716,11 +664,6 @@ bool CDlgCont::processCommand(int commandID)
         if (commandID==TOGGLE_PATH_DLG_CMD)
         {
             toggle(PATH_DLG);
-            return(true);
-        }
-        if (commandID==TOGGLE_PATH_PLANNING_DLG_CMD)
-        {
-            toggle(PATH_PLANNING_DLG);
             return(true);
         }
         if (commandID==TOGGLE_OBJECT_DLG_CMD)

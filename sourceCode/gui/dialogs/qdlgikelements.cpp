@@ -42,15 +42,16 @@ void CQDlgIkElements::updateObjectsInList()
 {
     noListSelectionAllowed=true;
     ui->qqList->clear();
-    CikGroup* ikGroup=App::ct->ikGroups->getIkGroup(_ikGroupHandle);
+    CIkGroup_old* ikGroup=App::currentWorld->ikGroups->getObjectFromHandle(_ikGroupHandle);
     if (ikGroup!=nullptr)
     {
-        for (size_t i=0;i<ikGroup->ikElements.size();i++)
+        for (size_t i=0;i<ikGroup->getIkElementCount();i++)
         {
-            int tooltipID=ikGroup->ikElements[i]->getTooltip();
-            int elementID=ikGroup->ikElements[i]->getObjectID();
-            CDummy* theTooltip=App::ct->objCont->getDummy(tooltipID);
-            QListWidgetItem* itm=new QListWidgetItem(theTooltip->getObjectName().c_str());
+            CIkElement_old* ikElement=ikGroup->getIkElementFromIndex(i);
+            int tooltipID=ikElement->getTipHandle();
+            int elementID=ikElement->getObjectHandle();
+            CDummy* theTooltip=App::currentWorld->sceneObjects->getDummyFromHandle(tooltipID);
+            QListWidgetItem* itm=new QListWidgetItem(theTooltip->getObjectAlias_printPath().c_str());
             itm->setData(Qt::UserRole,QVariant(elementID));
             itm->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
             ui->qqList->addItem(itm);
@@ -95,7 +96,7 @@ bool CQDlgIkElements::needsDestruction()
 void CQDlgIkElements::_initialize(int ikGroupHandle)
 {
     _ikGroupHandle=ikGroupHandle;
-    CikGroup* ikGroup=App::ct->ikGroups->getIkGroup(_ikGroupHandle);
+    CIkGroup_old* ikGroup=App::currentWorld->ikGroups->getObjectFromHandle(_ikGroupHandle);
     if (ikGroup!=nullptr)
     {
         std::string titleText("IK Group (");
@@ -109,11 +110,11 @@ void CQDlgIkElements::_initialize(int ikGroupHandle)
 
 bool CQDlgIkElements::isLinkedDataValid()
 {
-    if (!App::ct->simulation->isSimulationStopped())
+    if (!App::currentWorld->simulation->isSimulationStopped())
         return(false);
     if (App::getEditModeType()!=NO_EDIT_MODE)
         return(false);
-    if (App::ct->ikGroups->getIkGroup(_ikGroupHandle)!=nullptr)
+    if (App::currentWorld->ikGroups->getObjectFromHandle(_ikGroupHandle)!=nullptr)
         return(!_invalid);
     return(false);
 }
@@ -152,12 +153,12 @@ void CQDlgIkElements::refresh()
 {
     inMainRefreshRoutine=true;
     QLineEdit* lineEditToSelect=getSelectedLineEdit();
-    bool noEditModeNoSim=(App::getEditModeType()==NO_EDIT_MODE)&&App::ct->simulation->isSimulationStopped();
+    bool noEditModeNoSim=(App::getEditModeType()==NO_EDIT_MODE)&&App::currentWorld->simulation->isSimulationStopped();
     if (!isLinkedDataValid())
         return;
-    CikGroup* ikGroup=App::ct->ikGroups->getIkGroup(_ikGroupHandle);
+    CIkGroup_old* ikGroup=App::currentWorld->ikGroups->getObjectFromHandle(_ikGroupHandle);
     int elementID=getSelectedObjectID();
-    CikEl* it=ikGroup->getIkElement(elementID);
+    CIkElement_old* it=ikGroup->getIkElementFromHandle(elementID);
 
     if (!inListSelectionRoutine)
     {
@@ -178,7 +179,7 @@ void CQDlgIkElements::refresh()
     ui->qqWeightLinear->setEnabled((it!=nullptr)&&noEditModeNoSim);
     ui->qqWeightAngular->setEnabled((it!=nullptr)&&noEditModeNoSim);
 
-    ui->qqActive->setChecked((it!=nullptr)&&it->getActive());
+    ui->qqActive->setChecked((it!=nullptr)&&it->getEnabled());
     ui->qqBaseCombo->clear();
     ui->qqX->setChecked((it!=nullptr)&&(it->getConstraints()&sim_ik_x_constraint));
     ui->qqY->setChecked((it!=nullptr)&&(it->getConstraints()&sim_ik_y_constraint));
@@ -191,10 +192,10 @@ void CQDlgIkElements::refresh()
     std::vector<int> ids;
 
     ui->qqTipCombo->clear();
-    for (size_t i=0;i<App::ct->objCont->dummyList.size();i++)
+    for (size_t i=0;i<App::currentWorld->sceneObjects->getDummyCount();i++)
     {
-        CDummy* it2=App::ct->objCont->getDummy(App::ct->objCont->dummyList[i]);
-        names.push_back(it2->getObjectName());
+        CDummy* it2=App::currentWorld->sceneObjects->getDummyFromIndex(i);
+        names.push_back(it2->getObjectAlias_printPath());
         ids.push_back(it2->getObjectHandle());
     }
     tt::orderStrings(names,ids);
@@ -203,33 +204,33 @@ void CQDlgIkElements::refresh()
 
     if (it!=nullptr)
     {
-        CDummy* tip=App::ct->objCont->getDummy(it->getTooltip());
+        CDummy* tip=App::currentWorld->sceneObjects->getDummyFromHandle(it->getTipHandle());
         if (tip==nullptr)
             ui->qqTargetString->setText("");
         else
         {
-            CDummy* target=App::ct->objCont->getDummy(tip->getLinkedDummyID());
+            CDummy* target=App::currentWorld->sceneObjects->getDummyFromHandle(tip->getLinkedDummyHandle());
             if (target==nullptr)
-                ui->qqTargetString->setText(strTranslate(IDS_WARNING_TIP_DUMMY_NOT_LINKED));
+                ui->qqTargetString->setText(IDS_WARNING_TIP_DUMMY_NOT_LINKED);
             else
             {
                 if (tip->getLinkType()!=sim_dummy_linktype_ik_tip_target)
-                    ui->qqTargetString->setText(strTranslate(IDS_WARNING_WRONG_DUMMY_LINK_TYPE));
+                    ui->qqTargetString->setText(IDS_WARNING_WRONG_DUMMY_LINK_TYPE);
                 else
-                    ui->qqTargetString->setText(target->getObjectName().c_str());
+                    ui->qqTargetString->setText(target->getObjectAlias_printPath().c_str());
             }
         }
 
-        CDummy* tooltip=App::ct->objCont->getDummy(it->getTooltip());
-        ui->qqBaseCombo->addItem(strTranslate(IDSN_WORLD),QVariant(-1));
+        CDummy* tooltip=App::currentWorld->sceneObjects->getDummyFromHandle(it->getTipHandle());
+        ui->qqBaseCombo->addItem(IDSN_WORLD,QVariant(-1));
         names.clear();
         ids.clear();
-        for (size_t i=0;i<App::ct->objCont->objectList.size();i++)
+        for (size_t i=0;i<App::currentWorld->sceneObjects->getObjectCount();i++)
         {
-            C3DObject* it2=App::ct->objCont->getObjectFromHandle(App::ct->objCont->objectList[i]);
+            CSceneObject* it2=App::currentWorld->sceneObjects->getObjectFromIndex(i);
             if (tooltip->isObjectParentedWith(it2))
             {
-                names.push_back(it2->getObjectName());
+                names.push_back(it2->getObjectAlias_printPath());
                 ids.push_back(it2->getObjectHandle());
             }
         }
@@ -247,13 +248,13 @@ void CQDlgIkElements::refresh()
 
         names.clear();
         ids.clear();
-        ui->qqRelativeCombo->addItem(strTranslate(IDSN_SAME_AS_BASE),QVariant(-1));
-        for (size_t i=0;i<App::ct->objCont->objectList.size();i++)
+        ui->qqRelativeCombo->addItem(IDSN_SAME_AS_BASE,QVariant(-1));
+        for (size_t i=0;i<App::currentWorld->sceneObjects->getObjectCount();i++)
         {
-            C3DObject* it2=App::ct->objCont->getObjectFromHandle(App::ct->objCont->objectList[i]);
+            CSceneObject* it2=App::currentWorld->sceneObjects->getObjectFromIndex(i);
             if ( (it2->getObjectType()==sim_object_dummy_type)&&(it2!=tooltip) )
             {
-                names.push_back(it2->getObjectName());
+                names.push_back(it2->getObjectAlias_printPath());
                 ids.push_back(it2->getObjectHandle());
             }
         }

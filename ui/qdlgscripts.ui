@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>430</width>
-    <height>404</height>
+    <height>349</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,29 +16,13 @@
   <property name="locale">
    <locale language="English" country="UnitedStates"/>
   </property>
-  <widget class="QToolButton" name="qqAddNewScript">
-   <property name="geometry">
-    <rect>
-     <x>270</x>
-     <y>10</y>
-     <width>151</width>
-     <height>18</height>
-    </rect>
-   </property>
-   <property name="focusPolicy">
-    <enum>Qt::StrongFocus</enum>
-   </property>
-   <property name="text">
-    <string>Insert new script</string>
-   </property>
-  </widget>
   <widget class="QGroupBox" name="groupBox_2">
    <property name="geometry">
     <rect>
      <x>10</x>
      <y>240</y>
      <width>411</width>
-     <height>151</height>
+     <height>101</height>
     </rect>
    </property>
    <property name="title">
@@ -79,37 +63,11 @@
      <string>Execute just once</string>
     </property>
    </widget>
-   <widget class="QLabel" name="label">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>65</y>
-      <width>161</width>
-      <height>18</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Associated object</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="qqAssociatedObjectCombo">
-    <property name="geometry">
-     <rect>
-      <x>170</x>
-      <y>65</y>
-      <width>231</width>
-      <height>18</height>
-     </rect>
-    </property>
-    <property name="maxVisibleItems">
-     <number>50</number>
-    </property>
-   </widget>
    <widget class="QLabel" name="label_2">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>85</y>
+      <y>50</y>
       <width>161</width>
       <height>18</height>
      </rect>
@@ -122,33 +80,17 @@
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>85</y>
+      <y>50</y>
       <width>231</width>
       <height>18</height>
      </rect>
-    </property>
-   </widget>
-   <widget class="QCheckBox" name="qqDisableWithError">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>45</y>
-      <width>211</width>
-      <height>18</height>
-     </rect>
-    </property>
-    <property name="focusPolicy">
-     <enum>Qt::StrongFocus</enum>
-    </property>
-    <property name="text">
-     <string>Disable with error</string>
     </property>
    </widget>
    <widget class="QComboBox" name="qqTreeTraversalDirection">
     <property name="geometry">
      <rect>
       <x>170</x>
-      <y>105</y>
+      <y>70</y>
       <width>231</width>
       <height>18</height>
      </rect>
@@ -158,36 +100,13 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>105</y>
+      <y>70</y>
       <width>161</width>
       <height>18</height>
      </rect>
     </property>
     <property name="text">
      <string>Tree traversal</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="qqDebugMode">
-    <property name="geometry">
-     <rect>
-      <x>170</x>
-      <y>125</y>
-      <width>231</width>
-      <height>18</height>
-     </rect>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_5">
-    <property name="geometry">
-     <rect>
-      <x>10</x>
-      <y>125</y>
-      <width>161</width>
-      <height>18</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Debug mode</string>
     </property>
    </widget>
   </widget>
@@ -236,12 +155,9 @@
  </widget>
  <tabstops>
   <tabstop>qqCombo</tabstop>
-  <tabstop>qqAddNewScript</tabstop>
   <tabstop>qqScriptList</tabstop>
   <tabstop>qqDisabled</tabstop>
   <tabstop>qqExecuteOnce</tabstop>
-  <tabstop>qqDisableWithError</tabstop>
-  <tabstop>qqAssociatedObjectCombo</tabstop>
   <tabstop>qqExecutionOrder</tabstop>
   <tabstop>qqTreeTraversalDirection</tabstop>
  </tabstops>

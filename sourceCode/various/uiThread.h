@@ -3,7 +3,7 @@
 #include "3Vector.h"
 #include "4Vector.h"
 #include "7Vector.h"
-#include "3DObject.h"
+#include "sceneObject.h"
 
 struct SUIThreadCommand
 {
@@ -49,7 +49,7 @@ enum {  OPEN_OR_CLOSE_UITHREADCMD=0,
         TOGGLE_VISUALIZATION_UITHREADCMD,
         VISUALIZATION_OFF_UITHREADCMD,
         VISUALIZATION_ON_UITHREADCMD,
-        FLASH_STATUSBAR_UITHREADCMD,
+//        FLASH_STATUSBAR_UITHREADCMD,
         OPEN_HIERARCHY_UITHREADCMD,
         CLOSE_HIERARCHY_UITHREADCMD,
 
@@ -60,8 +60,6 @@ enum {  OPEN_OR_CLOSE_UITHREADCMD=0,
         MAIN_WINDOW_VIEW_SELECTOR_DLG_REOPEN_MWUITHREADCMD,
         MAIN_WINDOW_PAGE_SELECTOR_DLG_CLOSE_MWUITHREADCMD,
         MAIN_WINDOW_PAGE_SELECTOR_DLG_REOPEN_MWUITHREADCMD,
-        MAIN_WINDOW_SCENE_SELECTOR_DLG_CLOSE_MWUITHREADCMD,
-        MAIN_WINDOW_SCENE_SELECTOR_DLG_REOPEN_MWUITHREADCMD,
         MAIN_WINDOW_SET_FULLSCREEN_MWTHREADCMD,
         MAIN_WINDOW_ACTIVATE_MWUITHREADCMD,
         MAIN_WINDOW_CLOSE_DLG_MWUITHREADCMD,
@@ -90,7 +88,6 @@ enum {  OPEN_OR_CLOSE_UITHREADCMD=0,
         PLUGIN_END_PLUGUITHREADCMD,
 
         DESTROY_GL_TEXTURE_UITHREADCMD,
-        DISPLAY_MSGBOX_API_UITHREADCMD,
         DISPLAY_FILE_DLG_UITHREADCMD,
         DISPLAY_MSG_WITH_CHECKBOX_UITHREADCMD,
         DISPLAY_MSGBOX_UITHREADCMD,
@@ -103,9 +100,7 @@ enum {  OPEN_OR_CLOSE_UITHREADCMD=0,
         SET_FILEDIALOG_NATIVE_UITHREADCMD,
         SHOW_PRIMITIVE_SHAPE_DLG_UITHREADCMD,
 
-        DESTROY_UIOBJECT_UITHREADCMD,
-
-        ADD_STATUSBAR_MESSAGE_UITHREADCMD,
+        LOG_MSG_TO_STATUSBAR_UITHREADCMD,
         CLEAR_STATUSBAR_UITHREADCMD,
         NO_SIGNAL_SLOT_EXIT_UITHREADCMD,
 
@@ -122,11 +117,10 @@ enum {  OPEN_OR_CLOSE_UITHREADCMD=0,
         COPY_TEXT_TO_CLIPBOARD_UITHREADCMD,
         INSTANCE_PASS_FROM_UITHREAD_UITHREADCMD,
 
-        JOB_NAME_UITHREADCMD,
         MENUBAR_COLOR_UITHREADCMD,
      };
 
-#ifdef SIM_WITHOUT_QT_AT_ALL
+#ifndef SIM_WITH_QT
 class CUiThread
 {
 #else
@@ -143,16 +137,15 @@ public:
     void showOrHideProgressBar(bool show,float pos=999.0f,const char* txt=nullptr);
     bool showOrHideEmergencyStop(bool show,const char* txt);
 
-#ifdef SIM_WITHOUT_QT_AT_ALL
+#ifndef SIM_WITH_QT
     void processGuiEventsUntilQuit_noSignalSlots();
 #endif
 
 private:
     int _frameId;
-    bool _frame_bufferMainDisplayStateVariables;
     int _lastFrameId;
 
-#ifndef SIM_WITHOUT_QT_AT_ALL
+#ifdef SIM_WITH_QT
 signals:
     void _executeCommandViaUiThread(SUIThreadCommand* cmdIn,SUIThreadCommand* cmdOut);
 
@@ -170,32 +163,28 @@ private slots:
 public:
     int getLastFrameId();
     void setLastFrameId(int fid);
-    void requestSceneRender(bool bufferMainDisplayStateVariables); // not waiting
     void requestSceneRender_wait();
-    int messageBox_api(int boxType,int buttons,const char* title,const char* message);
-    bool messageBox_checkbox(void* parentWidget,const std::string& title,const std::string& message,const std::string& checkboxMessage);
+    bool messageBox_checkbox(void* parentWidget,const char* title,const char* message,const char* checkboxMessage,bool isWarning);
     void setFileDialogsNative(int n);
-    std::string getOpenFileName(void* parentWidget,unsigned short option,const std::string& title,const std::string& startPath,const std::string& initFilename,bool allowAnyFile,const std::string& extensionName,const std::string& extension1,const std::string& extension2="",const std::string& extension3="",const std::string& extension4="",const std::string& extension5="",const std::string& extension6="",const std::string& extension7="",const std::string& extension8="",const std::string& extension9="",const std::string& extension10="");
-    bool getOpenFileNames(std::vector<std::string>& files,void* parentWidget,unsigned short option,const std::string& title,const std::string& startPath,const std::string& initFilename,bool allowAnyFile,const std::string& extensionName,const std::string& extension1,const std::string& extension2="",const std::string& extension3="",const std::string& extension4="",const std::string& extension5="",const std::string& extension6="",const std::string& extension7="",const std::string& extension8="",const std::string& extension9="",const std::string& extension10="");
-    std::string getSaveFileName(void* parentWidget,unsigned short option,const std::string& title,const std::string& startPath,const std::string& initFilename,bool allowAnyFile,const std::string& extensionName,const std::string& extension1,const std::string& extension2="",const std::string& extension3="",const std::string& extension4="",const std::string& extension5="",const std::string& extension6="",const std::string& extension7="",const std::string& extension8="",const std::string& extension9="",const std::string& extension10="");
+    std::string getOpenFileName(void* parentWidget,unsigned short option,const char* title,const char* startPath,const char* initFilename,bool allowAnyFile,const char* extensionName,const char* extension1,const char* extension2="",const char* extension3="",const char* extension4="",const char* extension5="",const char* extension6="",const char* extension7="",const char* extension8="",const char* extension9="",const char* extension10="");
+    bool getOpenFileNames(std::vector<std::string>& files,void* parentWidget,unsigned short option,const char* title,const char* startPath,const char* initFilename,bool allowAnyFile,const char* extensionName,const char* extension1,const char* extension2="",const char* extension3="",const char* extension4="",const char* extension5="",const char* extension6="",const char* extension7="",const char* extension8="",const char* extension9="",const char* extension10="");
+    std::string getSaveFileName(void* parentWidget,unsigned short option,const char* title,const char* startPath,const char* initFilename,bool allowAnyFile,const char* extensionName,const char* extension1,const char* extension2="",const char* extension3="",const char* extension4="",const char* extension5="",const char* extension6="",const char* extension7="",const char* extension8="",const char* extension9="",const char* extension10="");
     std::string getOpenOrSaveFileName_api(int mode,const char* title,const char* startPath,const char* initName,const char* extName,const char* ext);
-    bool showPrimitiveShapeDialog(int type,const C3Vector* optionalSizesIn,C3Vector& sizes,int subdiv[3],int& faces,int& sides,int& discSubdiv,bool& smooth,int& openEnds,bool& dynamic,bool& pure,bool& cone,float& density,bool& negVolume,float& negVolumeScaling);
-    unsigned short messageBox_informationSystemModal(void* parentWidget,const std::string& title,const std::string& message,unsigned short flags);
-    unsigned short messageBox_information(void* parentWidget,const std::string& title,const std::string& message,unsigned short flags);
-    unsigned short messageBox_question(void* parentWidget,const std::string& title,const std::string& message,unsigned short flags);
-    unsigned short messageBox_warning(void* parentWidget,const std::string& title,const std::string& message,unsigned short flags);
-    unsigned short messageBox_critical(void* parentWidget,const std::string& title,const std::string& message,unsigned short flags);
+    bool showPrimitiveShapeDialog(int type,const C3Vector* optionalSizesIn,C3Vector& sizes,int subdiv[3],int& faces,int& sides,int& discSubdiv,bool& smooth,int& openEnds,bool& dynamic,bool& pure,bool& cone,float& density);
+    unsigned short messageBox_informationSystemModal(void* parentWidget,const char* title,const char* message,unsigned short flags,unsigned short defaultAnswer);
+    unsigned short messageBox_information(void* parentWidget,const char* title,const char* message,unsigned short flags,unsigned short defaultAnswer);
+    unsigned short messageBox_question(void* parentWidget,const char* title,const char* message,unsigned short flags,unsigned short defaultAnswer);
+    unsigned short messageBox_warning(void* parentWidget,const char* title,const char* message,unsigned short flags,unsigned short defaultAnswer);
+    unsigned short messageBox_critical(void* parentWidget,const char* title,const char* message,unsigned short flags,unsigned short defaultAnswer);
     bool dialogInputGetFloat(void* parentWidget,const char* title,const char* msg,float def,float minV,float maxV,int decimals,float* outFloat);
 
 private:
-    unsigned short _messageBox(int type,void* parentWidget,const std::string& title,const std::string& message,unsigned short flags);
+    unsigned short _messageBox(int type,void* parentWidget,const char* title,const char* message,unsigned short flags,unsigned short defaultAnswer);
 
 signals:
-    void _requestSceneRender_wait(bool bufferMainDisplayStateVariables);
-    void _requestSceneRender(bool bufferMainDisplayStateVariables);
+    void _requestSceneRender_wait();
 
 private slots:
-    void __requestSceneRender(bool bufferMainDisplayStateVariables);
-    void __requestSceneRender_wait(bool bufferMainDisplayStateVariables);
+    void __requestSceneRender_wait();
 #endif
 };

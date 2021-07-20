@@ -12,7 +12,6 @@
 #include "qdlgvisionsensors.h"
 #include "qdlgshapes.h"
 #include "qdlgproximitysensors.h"
-#include "qdlgmills.h"
 #include "qdlgjoints.h"
 #include "qdlggraphs.h"
 #include "qdlgdetectionvolume.h"
@@ -31,7 +30,10 @@ CQDlgObjectDialogContainer::CQDlgObjectDialogContainer(QWidget *parent) :
     ui->setupUi(this);
     pageDlgs[0]=new CQDlgDummies();
     originalHeights[0]=pageDlgs[0]->size().height();
-    ui->qqObjectProp->setText(strTranslate(IDSN_DUMMY));
+    if (App::userSettings->showOldDlgs)
+        originalHeights[0]=352;
+
+    ui->qqObjectProp->setText(IDSN_DUMMY);
     objTypeDlg=sim_object_dummy_type;
 
     pageDlgs[1]=new CQDlgCommonProperties();
@@ -94,58 +96,56 @@ void CQDlgObjectDialogContainer::refresh()
 
     }
 
-    C3DObject* sel=App::ct->objCont->getLastSelection_object();
+    CSceneObject* sel=App::currentWorld->sceneObjects->getLastSelectionObject();
     int editMode=App::getEditModeType();
     if (sel!=nullptr)
     {
         int t=sel->getObjectType();
         std::string title;
         if (t==sim_object_octree_type)
-            title=strTranslate(IDSN_OCTREE);
+            title=IDSN_OCTREE;
         if (t==sim_object_pointcloud_type)
-            title=strTranslate(IDSN_POINTCLOUD);
+            title=IDSN_POINTCLOUD;
         if (t==sim_object_mirror_type)
-            title=strTranslate(IDSN_MIRROR);
+            title=IDSN_MIRROR;
         if (t==sim_object_shape_type)
-            title=strTranslate(IDSN_SHAPE);
+            title=IDSN_SHAPE;
         if (t==sim_object_joint_type)
-            title=strTranslate(IDSN_JOINT);
+            title=IDSN_JOINT;
         if (t==sim_object_camera_type)
-            title=strTranslate(IDSN_CAMERA);
+            title=IDSN_CAMERA;
         if (t==sim_object_dummy_type)
-            title=strTranslate(IDSN_DUMMY);
+            title=IDSN_DUMMY;
         if (t==sim_object_proximitysensor_type)
-            title=strTranslate(IDSN_PROXIMITY_SENSOR);
+            title=IDSN_PROXIMITY_SENSOR;
         if (t==sim_object_path_type)
-            title=strTranslate(IDSN_PATH);
+            title=IDSN_PATH;
         if (t==sim_object_visionsensor_type)
-            title=strTranslate(IDSN_VISION_SENSOR);
-        if (t==sim_object_mill_type)
-            title=strTranslate(IDSN_MILL);
+            title=IDSN_VISION_SENSOR;
         if (t==sim_object_forcesensor_type)
-            title=strTranslate(IDSN_FORCE_SENSOR);
+            title=IDSN_FORCE_SENSOR;
         if (t==sim_object_light_type)
-            title=strTranslate(IDSN_LIGHT);
+            title=IDSN_LIGHT;
         if (t==sim_object_graph_type)
-            title=strTranslate(IDSN_GRAPH);
+            title=IDSN_GRAPH;
         ui->qqObjectProp->setText(title.c_str());
     }
     else
     {
-        if (editMode==PATH_EDIT_MODE)
-            ui->qqObjectProp->setText(strTranslate(IDSN_GRAPH));
+        if (editMode==PATH_EDIT_MODE_OLD)
+            ui->qqObjectProp->setText(IDSN_GRAPH);
         if (editMode&SHAPE_EDIT_MODE)
-            ui->qqObjectProp->setText(strTranslate(IDSN_SHAPE));
+            ui->qqObjectProp->setText(IDSN_SHAPE);
     }
 
-    if ((currentPage==0)&&((sel!=nullptr)||(editMode==PATH_EDIT_MODE)||(editMode&SHAPE_EDIT_MODE)))
+    if ((currentPage==0)&&((sel!=nullptr)||(editMode==PATH_EDIT_MODE_OLD)||(editMode&SHAPE_EDIT_MODE)))
     { // object properties
         int t=-1;
         if (sel!=nullptr)
             t=sel->getObjectType();
         else
         {
-            if (editMode==PATH_EDIT_MODE)
+            if (editMode==PATH_EDIT_MODE_OLD)
                 t=sim_object_path_type;
             if (editMode&SHAPE_EDIT_MODE)
                 t=sim_object_shape_type;
@@ -177,14 +177,16 @@ void CQDlgObjectDialogContainer::refresh()
                 pageDlgs[currentPage]=new CQDlgVisionSensors();
             if (objTypeDlg==sim_object_path_type)
                 pageDlgs[currentPage]=new CQDlgPaths();
-            if (objTypeDlg==sim_object_mill_type)
-                pageDlgs[currentPage]=new CQDlgMills();
             if (objTypeDlg==sim_object_forcesensor_type)
                 pageDlgs[currentPage]=new CQDlgForceSensors();
             if (objTypeDlg==sim_object_light_type)
                 pageDlgs[currentPage]=new CQDlgLights();
 
             originalHeights[currentPage]=pageDlgs[currentPage]->size().height();
+            if ( (App::userSettings->showOldDlgs)&&(objTypeDlg==sim_object_dummy_type) )
+                originalHeights[0]=352;
+            if ( (App::userSettings->showOldDlgs)&&(objTypeDlg==sim_object_graph_type) )
+                originalHeights[0]=501;
 
             bl->addWidget(pageDlgs[currentPage]);
 

@@ -5,7 +5,6 @@
 #include "qdlgsettings.h"
 #include "qdlglayers.h"
 #include "qdlgavirecorder.h"
-#include "qdlgselection.h"
 #include "qdlgsimulation.h"
 #include "qdlgcommonproperties.h"
 #include "qdlgenvironment.h"
@@ -22,7 +21,6 @@
 #include "qdlglights.h"
 #include "qdlgdummies.h"
 #include "qdlgforcesensors.h"
-#include "qdlgconstraintsolver.h"
 #include "qdlgvisionsensors.h"
 #include "qdlgshapes.h"
 #include "qdlgtextures.h"
@@ -30,7 +28,6 @@
 #include "qdlgshapedyn.h"
 #include "qdlgproximitysensors.h"
 #include "qdlgdetectionvolume.h"
-#include "qdlgmills.h"
 #include "qdlgobjectdialogcontainer.h"
 #include "qdlgcalcdialogcontainer.h"
 #include "qdlgshapeeditioncontainer.h"
@@ -38,7 +35,6 @@
 #include "qdlgjointdyn.h"
 #include "qdlggraphs.h"
 #include "qdlgik.h"
-#include "qdlguidialogcontainer.h"
 #include "qdlgpathshaping.h"
 #include "qdlgpathedit.h"
 #include "qdlgtranslationrotationcont.h"
@@ -121,8 +117,6 @@ void CToolDlgWrapper::setVisible(bool visible,QWidget* parentWindow)
                 toolDialog=new CQDlgLayers(App::mainWindow);
             if (dialogType==AVI_RECORDER_DLG)
                 toolDialog=new CQDlgAviRecorder(App::mainWindow);
-            if (dialogType==SELECTION_DLG)
-                toolDialog=new CQDlgSelection(App::mainWindow);
             if (dialogType==SIMULATION_DLG)
                 toolDialog=new CQDlgSimulation(App::mainWindow);
             if (dialogType==ENVIRONMENT_DLG)
@@ -162,8 +156,6 @@ void CToolDlgWrapper::setVisible(bool visible,QWidget* parentWindow)
                 toolDialog=new CQDlgCalcDialogContainer(App::mainWindow);
             if (dialogType==JOINT_DYN_DLG)
                 toolDialog=new CQDlgJointDyn(App::mainWindow);
-            if (dialogType==CUSTOM_UI_DLG)
-                toolDialog=new CQDlgUiDialogContainer(App::mainWindow);
             if (dialogType==TRANSLATION_ROTATION_DLG)
                 toolDialog=new CQDlgTranslationRotationCont(App::mainWindow);
             if (dialogType==PATH_SHAPING_DLG)

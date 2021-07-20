@@ -1,18 +1,27 @@
 #pragma once
 
+#include <string>
+
+// Old:
+// ************************
 #include <vector>
-#include "mainCont.h"
 #ifndef WIN_SIM
     #include <pthread.h>
 #endif
+struct SThreadAndMsg_old
+{
+    VTHREAD_ID_TYPE threadId;
+    std::string message;
+};
+// ************************
 
-#define SIM_API_CALL_NO_ERROR "No error."
 #define SIM_ERROR_SIMULATOR_NOT_INITIALIZED             "Simulator not initialized."
 #define SIM_ERRROR_EDIT_MODE_ACTIVE             "Edit mode is active."
 #define SIM_ERROR_CANNOT_SET_GET_PARAM_LAUNCH           "Cannot set/get parameter: simulator launch state is wrong."
 #define SIM_ERROR_CANNOT_SET_GET_PARAM_WINDOW           "Cannot set/get parameter: simulator window initialization state is wrong."
 #define SIM_ERROR_CANNOT_SET_GET_PARAM_SIM          "Cannot set/get parameter: simulation run state is wrong."
 #define SIM_ERROR_OBJECT_INEXISTANT             "Object does not exist."
+#define SIM_ERROR_OBJECT_INEXISTANT_OR_ILL_FORMATTED_PATH  "Object does not exist, or alias/path is ill formatted."
 #define SIM_ERROR_VISION_SENSOR_INEXISTANT          "Vision sensor does not exist."
 #define SIM_ERROR_PATH_INEXISTANT           "Path does not exist."
 #define SIM_ERROR_ENTITY_INEXISTANT             "Entity does not exist."
@@ -30,22 +39,26 @@
 #define SIM_ERROR_OBJECT_NOT_PATH           "Object is not a path."
 #define SIM_ERROR_OBJECT_NOT_LIGHT          "Object is not a light."
 #define SIM_ERROR_OBJECT_NOT_DUMMY          "Object is not a dummy."
-#define SIM_ERROR_OBJECT_NOT_OCTREE             "Object is not an octree."
+#define SIM_ERROR_OBJECT_NOT_OCTREE             "Object is not an OC tree."
 #define SIM_ERROR_OBJECT_NOT_POINTCLOUD         "Object is not a point cloud."
 #define SIM_ERROR_UI_INEXISTANT             "UI does not exist."
 #define SIM_ERROR_UI_BUTTON_INEXISTANT          "UI button does not exist."
 #define SIM_ERROR_IK_GROUP_INEXISTANT           "IK group does not exist."
 #define SIM_ERROR_IK_ELEMENT_INEXISTANT             "IK element does not exist."
 #define SIM_ERROR_INVALID_COLLISION_PAIRS       "Invalid collision pairs."
+#define SIM_ERROR_IK_PLUGIN_NOT_FOUND       "IK plugin was not found."
 #define SIM_ERROR_MECHANISM_INEXISTANT          "Mechanism does not exist."
 #define SIM_ERROR_BUFFER_INEXISTANT             "Buffer does not exist."
 #define SIM_ERROR_PATH_PLANNING_OBJECT_INEXISTANT           "Path planning object does not exist."
 #define SIM_ERROR_MOTION_PLANNING_OBJECT_INEXISTANT         "Motion planning object does not exist."
 #define SIM_ERROR_SCRIPT_INEXISTANT             "Script does not exist."
+#define SIM_ERROR_ILLEGAL_SCRIPT_TYPE             "Illegal script type."
+#define SIM_ERROR_SCRIPT_NOT_INITIALIZED        "Script is not initialized (or has already ended)"
 #define SIM_ERROR_SPECIFIED_SCRIPT_IS_NOT_MAIN_OR_CHILD "Specified script is not a main nor a child script."
 #define SIM_ERROR_NO_ASSOCIATED_CHILD_SCRIPT_FOUND "No associated child script found."
 #define SIM_ERROR_PAGE_INEXISTANT               "Page does not exist."
 #define SIM_ERROR_ILLEGAL_OBJECT_NAME           "Illegal object name."
+#define SIM_ERROR_ILLEGAL_OBJECT_ALIAS           "Illegal object alias."
 #define SIM_ERROR_ILLEGAL_COLLECTION_NAME           "Illegal collection name."
 #define SIM_ERROR_JOINT_SPHERICAL           "Joint is spherical."
 #define SIM_ERROR_JOINT_NOT_SPHERICAL           "Joint is not spherical."
@@ -73,6 +86,7 @@
 #define SIM_ERROR_SCRIPT_NOT_TAGGED_FOR_EXPLICIT_HANDLING           "Script not tagged for explicit handling."
 #define SIM_ERROR_SCRIPT_WAS_DESTROYED          "Script was destroyed."
 #define SIM_ERROR_SCRIPT_NOT_CHILD_OR_CUSTOMIZATION_SCRIPT           "Script is not a child or customization script."
+#define SIM_ERROR_OBJECT_ALREADY_ASSOCIATED_WITH_SCRIPT_TYPE         "Object is already associated with such a script type."
 #define SIM_ERROR_CUSTOM_LUA_FUNC_COULD_NOT_BE_REGISTERED           "Custom function could not be registered."
 #define SIM_ERROR_CUSTOM_LUA_VAR_COULD_NOT_BE_REGISTERED            "Custom variable could not be registered."
 #define SIM_ERROR_MAIN_WINDOW_NOT_INITIALIZED           "Main window not initialized."
@@ -80,6 +94,8 @@
 #define SIM_ERROR_INVALID_PARAMETER             "Invalid parameter."
 #define SIM_ERROR_INVALID_FORMAT             "Invalid format."
 #define SIM_ERROR_INVALID_ARGUMENT          "Invalid argument."
+#define SIM_ERROR_EMPTY_STRING_NOT_ALLOWED          "Empty string is not allowed."
+#define SIM_ERROR_INVALID_CURVE_ID              "Invalid curve id."
 #define SIM_ERROR_INVALID_ARGUMENTS             "Invalid arguments."
 #define SIM_ERROR_INVALID_FIRST_ARGUMENT        "Invalid first argument."
 #define SIM_ERROR_INVALID_DIMENSIONS            "Invalid dimensions."
@@ -102,6 +118,7 @@
 #define SIM_ERROR_FOUND_INVALID_HANDLES     "Found invalid handles."
 #define SIM_ERROR_DATA_STREAM_NOT_USER_DEFINED          "Data stream is not user-defined."
 #define SIM_ERROR_PATH_EMPTY            "Path is empty."
+#define SIM_ERROR_INVALID_PATH            "Invalid path data."
 #define SIM_ERROR_INVALID_CTRL_PT       "Invalid control point."
 #define SIM_ERROR_PORT_NOT_OPEN             "Port is not open."
 #define SIM_ERROR_CANNOT_BE_CALLED_FROM_MAIN_THREAD             "Cannot be called from the main thread."
@@ -110,11 +127,13 @@
 #define SIM_ERROR_CANNOT_DIVIDE_COMPOUND_SHAPE "Cannot divide compound shape."
 #define SIM_ERROR_MATERIAL_INEXISTANT           "Material does not exist."
 #define SIM_ERROR_TEXTURE_INEXISTANT            "Texture does not exist."
+#define SIM_ERROR_BAD_INDICES            "Bad indices."
+#define SIM_ERROR_BAD_VERTICES            "Bad vertices."
 
 #define SIM_ERROR_FUNCTION_REQUIRES_MORE_ARGUMENTS "The function requires more arguments."
 #define SIM_ERROR_ONE_ARGUMENT_TYPE_IS_WRONG "One of the function's argument type is not correct."
-#define SIM_ERROR_ONE_TABLE_SIZE_IS_WRONG "One of the function's table size is not correct."
-#define SIM_ERROR_ONE_STRING_SIZE_IS_WRONG "One of the function's string size is not correct."
+#define SIM_ERROR_ONE_TABLE_SIZE_IS_WRONG "Incorrect table size."
+#define SIM_ERROR_ONE_STRING_SIZE_IS_WRONG "Incorrect string size."
 #define SIM_ERROR_NOT_MAIN_NOR_CHILD_SCRIPT "Script is not a main script nor a child script."
 #define SIM_ERROR_NON_EXPLICIT_CHILD_SCRIPT_EXECUTIONS_WERE_DELEGATED "Non-explicit child script executions were delegated."
 #define SIM_ERROR_THREAD_LAUNCHING_SCRIPTS_WILL_NOT_BE_CALLED_FROM_SENSING_SECTION "Scripts launching a thread will not be called when in a sensing section."
@@ -132,6 +151,7 @@
 #define SIM_ERROR_OBJECT_OR_TARGET_OBJECT_DOES_NOT_EXIST "Object or target object does not exist."
 #define SIM_ERROR_OBJECT_IS_SAME_AS_TARGET_OBJECT "Object is same as target object."
 #define SIM_ERROR_TARGET_OBJECT_IS_NOT_A_PATH "Target object is not a path."
+#define SIM_ERROR_CANNOT_OVERWRITE_STATIC_CURVE "Cannot overwrite static curve."
 #define SIM_ERROR_BLOCKING_OPERATION_ONLY_FROM_THREAD "Blocking operation only available when called from a thread."
 #define SIM_ERROR_COULD_NOT_LOCK_RESOURCES_FOR_READ "Could not lock resources for data read operation."
 #define SIM_ERROR_COULD_NOT_LOCK_RESOURCES_FOR_WRITE "Could not lock resources for data write operation."
@@ -150,6 +170,10 @@
 #define SIM_ERROR_BAD_TEXTURE_COORD_SIZE "Bad texture coordinates size."
 #define SIM_ERROR_CANNOT_BE_COMPOUND_SHAPE "Shape cannot be a compound shape."
 #define SIM_ERROR_ASSIMP_PLUGIN_NOT_FOUND "Assimp plugin was not found."
+#define SIM_ERROR_INVALID_MODULE_INFO_TYPE "Invalid module info type."
+#define SIM_ERROR_COULD_NOT_SET_PARAMETER "Could not set parameter."
+
+
 // Class is fully static
 class CApiErrors
 {
@@ -157,46 +181,23 @@ public:
     CApiErrors();
     virtual ~CApiErrors();
 
-    static bool addNewThreadForErrorReporting(int scriptId_or_0ForCGui_or_1ForCNonGui);
-    static bool removeThreadFromErrorReporting();
-    static void pushLocation(int scriptId_or_0IfNoScript);
-    static void popLocation();
+    static void setLastWarningOrError(const char* functionName,const char* errMsg);
+    static std::string getAndClearLastWarningOrError();
 
-    static void decorateLuaErrorMessage(const char* functionName,std::string& errMsg);
-    static void setLuaCallErrorMessage(const char* functionName,const char* errMsg); // call only from Lua
-    static void setLuaCallWarningMessage(const char* functionName,const char* warnMsg); // call only from Lua
-    static void setLuaCallErrorMessage_fromPlugin(const char* functionName,const char* errMsg); // call only indirectly from Lua via a plugin callback
-    static void setLuaCallWarningMessage_fromPlugin(const char* functionName,const char* warnMsg); // call only indirectly from Lua via a plugin callback
-
-    static void setApiCallErrorMessage(const char* functionName,const char* errMsg);
-    static std::string getApiCallErrorMessage();
-    static void clearApiCallErrorMessage();
-
-    static void setApiCallWarningMessage(const char* functionName,const char* warnMsg);
-    static std::string getApiCallWarningMessage();
-    static void clearApiCallWarningMessage();
-
-    static void setApiCallErrorReportMode(int mode);
-    static int getApiCallErrorReportMode();
-
-    static void clearCSideGeneratedLuaError();
-    static std::string getCSideGeneratedLuaError();
-    static std::string getCSideGeneratedLuaWarning();
+    // Old:
+    static void clearThreadBasedFirstCapiErrorAndWarning_old();
+    static void setThreadBasedFirstCapiWarning_old(const char* msg);
+    static std::string getAndClearThreadBasedFirstCapiWarning_old();
+    static void setThreadBasedFirstCapiError_old(const char* msg);
+    static std::string getAndClearThreadBasedFirstCapiError_old();
 
 private:
-    static int _getCurrentLocation(bool onlyLuaLocation=false);
-    static int _getIndexFromCurrentThread();
+    static std::string _lastWarningOrError; // warnings start with "warning@"
 
-
-    static std::vector<VTHREAD_ID_TYPE> _controllerLocation_threadIds;
-    static std::vector<std::vector<int> > _controllerLocation_locationStack;
-
-    static int _c_gui_errorReportMode;
-    static int _c_nonGui_errorReportMode;
-
-    static std::string _c_gui_lastError;
-    static std::string _c_nonGui_lastError;
-
-    static std::string _cSideGeneratedLuaError;
-    static std::vector<std::string> _cSideGeneratedLuaWarnings;
+    // Old:
+    static void _clearThreadBasedFirstCapiMsg_old(std::vector<SThreadAndMsg_old>& vect);
+    static void _setThreadBasedFirstCapiMsg_old(std::vector<SThreadAndMsg_old>& vect,const char* msg);
+    static std::string _getAndClearThreadBasedFirstCapiMsg_old(std::vector<SThreadAndMsg_old>& vect);
+    static std::vector<SThreadAndMsg_old> _threadBasedFirstCapiWarning_old;
+    static std::vector<SThreadAndMsg_old> _threadBasedFirstCapiError_old;
 };

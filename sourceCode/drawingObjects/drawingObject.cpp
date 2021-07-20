@@ -5,26 +5,6 @@
 #include "easyLock.h"
 #include "drawingObjectRendering.h"
 
-bool CDrawingObject::getCreatedFromScript() const
-{
-    return(_createdFromScript);
-}
-
-void CDrawingObject::setCreatedFromScript(bool c)
-{
-    _createdFromScript=c;
-}
-
-bool CDrawingObject::getPersistent() const
-{
-    return(_persistent);
-}
-
-void CDrawingObject::setPersistent(bool c)
-{
-    _persistent=c;
-}
-
 float CDrawingObject::getSize() const
 {
     return(_size);
@@ -47,10 +27,9 @@ std::vector<float>* CDrawingObject::getDataPtr()
     return(&_data);
 }
 
-CDrawingObject::CDrawingObject(int theObjectType,float size,float duplicateTolerance,int sceneObjID,int maxItemCount,bool createdFromScript)
+CDrawingObject::CDrawingObject(int theObjectType,float size,float duplicateTolerance,int sceneObjID,int maxItemCount,int creatorHandle)
 {
-    _persistent=false;
-    _createdFromScript=createdFromScript;
+    _creatorHandle=creatorHandle;
     float tr=0.0f;
     if (theObjectType&sim_drawing_50percenttransparency)
         tr+=0.5f;
@@ -62,21 +41,23 @@ CDrawingObject::CDrawingObject(int theObjectType,float size,float duplicateToler
 
     if (tr!=0.0f)
     {
-        color.translucid=true;
-        color.transparencyFactor=1.0f-tr;
+        color.setTranslucid(true);
+        color.setTransparencyFactor(1.0f-tr);
     }
 
     _objectID=0;
     _sceneObjectID=-1;
     size=tt::getLimitedFloat(0.0001f,100.0f,size);
     _size=size;
+    if (maxItemCount==0)
+        maxItemCount=10000000;
     maxItemCount=tt::getLimitedInt(1,10000000,maxItemCount);
     _maxItemCount=maxItemCount;
     _startItem=0;
     int tmp=theObjectType&0x001f;
     if (theObjectType&sim_drawing_vertexcolors)
     {
-        if ((tmp!=sim_drawing_lines)&&(tmp!=sim_drawing_triangles))
+        if ((tmp!=sim_drawing_lines)&&(tmp!=sim_drawing_triangles)&&(tmp!=sim_drawing_linestrip))
             theObjectType-=sim_drawing_vertexcolors;
         if ((theObjectType&sim_drawing_itemcolors)&&(theObjectType&sim_drawing_vertexcolors))
             theObjectType-=sim_drawing_vertexcolors;
@@ -99,7 +80,7 @@ CDrawingObject::CDrawingObject(int theObjectType,float size,float duplicateToler
         _sceneObjectID=-1;
     else
     {
-        C3DObject* it=App::ct->objCont->getObjectFromHandle(sceneObjID);
+        CSceneObject* it=App::currentWorld->sceneObjects->getObjectFromHandle(sceneObjID);
         if (it!=nullptr)
             _sceneObjectID=sceneObjID;
     }
@@ -153,7 +134,7 @@ void CDrawingObject::adjustForScaling(float xScale,float yScale,float zScale)
 {
     float avgScaling=(xScale+yScale+zScale)/3.0f;
     int tmp=_objectType&0x001f;
-    if ((tmp!=sim_drawing_points)&&(tmp!=sim_drawing_lines))
+    if ((tmp!=sim_drawing_points)&&(tmp!=sim_drawing_lines)&&(tmp!=sim_drawing_linestrip))
         _size*=avgScaling;
 
     for (int i=0;i<int(_data.size())/floatsPerItem;i++)
@@ -179,6 +160,14 @@ void CDrawingObject::adjustForScaling(float xScale,float yScale,float zScale)
         if (_objectType&sim_drawing_itemtransparency)
             off+=1;
     }
+}
+
+void CDrawingObject::setItems(const float* itemData,size_t itemCnt)
+{
+    addItem(nullptr);
+    size_t off=size_t(verticesPerItem*3+normalsPerItem*3+otherFloatsPerItem);
+    for (size_t i=0;i<itemCnt;i++)
+        addItem(itemData+off*i);
 }
 
 bool CDrawingObject::addItem(const float* itemData)
@@ -207,11 +196,11 @@ bool CDrawingObject::addItem(const float* itemData)
     trInv.setIdentity();
     if (_sceneObjectID>=0)
     {
-        C3DObject* it=App::ct->objCont->getObjectFromHandle(_sceneObjectID);
+        CSceneObject* it=App::currentWorld->sceneObjects->getObjectFromHandle(_sceneObjectID);
         if (it==nullptr)
             _sceneObjectID=-2; // should normally never happen!
         else
-            trInv=it->getCumulativeTransformationPart1().getInverse();
+            trInv=it->getCumulativeTransformation().getInverse();
     }
 
     if ( (_duplicateTolerance>0.0f)&&(verticesPerItem==1) )
@@ -271,6 +260,8 @@ void CDrawingObject::_setItemSizes()
         verticesPerItem=1;
     if (tmp==sim_drawing_lines)
         verticesPerItem=2;
+    if (tmp==sim_drawing_linestrip)
+        verticesPerItem=1;
     if (tmp==sim_drawing_triangles)
         verticesPerItem=3;
 
@@ -284,6 +275,8 @@ void CDrawingObject::_setItemSizes()
         otherFloatsPerItem+=3;
     if (_objectType&sim_drawing_vertexcolors)
     { 
+        if (tmp==sim_drawing_linestrip)
+            otherFloatsPerItem+=3;
         if (tmp==sim_drawing_lines)
             otherFloatsPerItem+=6;
         if (tmp==sim_drawing_triangles)
@@ -302,6 +295,11 @@ bool CDrawingObject::announceObjectWillBeErased(int objID)
     return(_sceneObjectID==objID);
 }
 
+bool CDrawingObject::announceScriptStateWillBeErased(int scriptHandle,bool simulationScript,bool sceneSwitchPersistentScript)
+{
+    return( (!sceneSwitchPersistentScript)&&(_creatorHandle==scriptHandle) );
+}
+
 bool CDrawingObject::canMeshBeExported() const
 {
     int tmp=_objectType&0x001f;
@@ -317,9 +315,9 @@ void CDrawingObject::getExportableMesh(std::vector<float>& vertices,std::vector<
     tr.setIdentity();
     if (_sceneObjectID>=0)
     {
-        C3DObject* it=App::ct->objCont->getObjectFromHandle(_sceneObjectID);
+        CSceneObject* it=App::currentWorld->sceneObjects->getObjectFromHandle(_sceneObjectID);
         if (it!=nullptr)
-            tr=it->getCumulativeTransformationPart1();
+            tr=it->getCumulativeTransformation();
     }
     int tmp=_objectType&0x001f;
     if (tmp==sim_drawing_triangles)
@@ -430,15 +428,15 @@ void CDrawingObject::draw(bool overlay,bool transparentObject,int displayAttrib,
 
     if (_sceneObjectID>=0)
     {
-        C3DObject* it=App::ct->objCont->getObjectFromHandle(_sceneObjectID);
+        CSceneObject* it=App::currentWorld->sceneObjects->getObjectFromHandle(_sceneObjectID);
         if (it==nullptr)
             _sceneObjectID=-2; // should normally never happen
         else
         {
-            tr=it->getCumulativeTransformationPart1();
+            tr=it->getCumulativeTransformation();
             if (_objectType&sim_drawing_followparentvisibility)
             {
-                if ( ((App::ct->mainSettings->getActiveLayers()&it->layer)==0)&&((displayAttrib&sim_displayattribute_ignorelayer)==0) )
+                if ( ((App::currentWorld->mainSettings->getActiveLayers()&it->getVisibilityLayer())==0)&&((displayAttrib&sim_displayattribute_ignorelayer)==0) )
                     return; // not visible
                 if (it->isObjectPartOfInvisibleModel())
                     return; // not visible

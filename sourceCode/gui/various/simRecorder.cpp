@@ -1,4 +1,3 @@
-#include "funcDebug.h"
 #include "simRecorder.h"
 #include "oGL.h"
 #include "tt.h"
@@ -129,14 +128,14 @@ bool CSimRecorder::recordFrameIfNeeded(int resX,int resY,int posX,int posY)
     static bool inside=false; // this function is not re-entrant!
     if (inside)
         return(true);
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     inside=true;
     if (_isRecording)
     {
         bool validFrame=true;
         if (!getManualStart())
         {
-            float simTime=float(App::ct->simulation->getSimulationTime_ns())/1000000.0f;
+            float simTime=float(App::currentWorld->simulation->getSimulationTime_us())/1000000.0f;
             if (_simulationTimeOfLastFrame!=simTime)
                 _simulationTimeOfLastFrame=simTime;
             else
@@ -202,14 +201,14 @@ bool CSimRecorder::recordFrameIfNeeded(int resX,int resY,int posX,int posY)
                     _aviGenInitialized=(res!='e');
                     if (_aviGenInitialized)
                     {
-                        App::addStatusbarMessage(IDSNS_VIDEO_COMPRESSOR_INITIALIZED);
+                        App::logMsg(sim_verbosity_msgs,IDSNS_VIDEO_COMPRESSOR_INITIALIZED);
                         if (res=='w')
-                            App::addStatusbarMessage(IDSNS_VIDEO_USING_PADDING);
+                            App::logMsg(sim_verbosity_msgs,IDSNS_VIDEO_USING_PADDING);
                     }
                     else
                     {
-                        App::addStatusbarMessage(IDSNS_VIDEO_COMPRESSOR_FAILED_TO_INITIALIZE);
-                        App::uiThread->messageBox_warning(App::mainWindow,strTranslate("Video Recorder"),strTranslate(IDSN_VIDEO_COMPRESSOR_FAILED_INITIALIZING_WARNING),VMESSAGEBOX_OKELI);
+                        App::logMsg(sim_verbosity_errors,IDSNS_VIDEO_COMPRESSOR_FAILED_TO_INITIALIZE);
+                        App::uiThread->messageBox_warning(App::mainWindow,"Video Recorder",IDSN_VIDEO_COMPRESSOR_FAILED_INITIALIZING_WARNING,VMESSAGEBOX_OKELI,VMESSAGEBOX_REPLY_OK);
                     }
                     _initFailed=(!_aviGenInitialized);
                     if (!_initFailed)
@@ -228,6 +227,14 @@ bool CSimRecorder::recordFrameIfNeeded(int resX,int resY,int posX,int posY)
                         if ((App::userSettings->desktopRecordingIndex>=0)&&(App::userSettings->desktopRecordingIndex<screens.size()))
                             screenIndex=App::userSettings->desktopRecordingIndex;
                         QPixmap pixmap(screens[screenIndex]->grabWindow(0));
+                        /*
+                        if (_showCursor)
+                        {
+                            QPixmap pixmapM(":/targaFiles/cur_arrow.tga");
+                            QPainter painter(&pixmap);
+                            painter.drawPixmap(App::mainWindow->cursor().pos(),pixmapM);
+                        }
+                        */
                         QImage img(pixmap.toImage());
 
                         if ((App::userSettings->desktopRecordingWidth>100)&&(App::userSettings->desktopRecordingWidth<4000))
@@ -279,7 +286,7 @@ bool CSimRecorder::willNextFrameBeRecorded()
         bool validFrame=true;
         if (!getManualStart())
         {
-            if (_simulationTimeOfLastFrame==float(App::ct->simulation->getSimulationTime_ns())/1000000.0f)
+            if (_simulationTimeOfLastFrame==float(App::currentWorld->simulation->getSimulationTime_us())/1000000.0f)
                 validFrame=false;
         }
 
@@ -318,7 +325,7 @@ bool CSimRecorder::getManualStart()
 
 void CSimRecorder::stopRecording(bool manualStop)
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     bool doIt=false;
     if (!manualStop)
         doIt=!_manualStart;
@@ -341,9 +348,9 @@ void CSimRecorder::stopRecording(bool manualStop)
             std::string tmp(IDS_AVI_FILE_WAS_SAVED);
             tmp+=_filenameAndPathAndExtension+")";
 
-            App::addStatusbarMessage(tmp.c_str());
+            App::logMsg(sim_verbosity_msgs,tmp.c_str());
             if (_showSavedMessage)
-                App::uiThread->messageBox_information(App::mainWindow,strTranslate(IDSN_AVI_RECORDER),tmp,VMESSAGEBOX_OKELI);
+                App::uiThread->messageBox_information(App::mainWindow,IDSN_AVI_RECORDER,tmp.c_str(),VMESSAGEBOX_OKELI,VMESSAGEBOX_REPLY_OK);
             _showSavedMessage=true; // reset this flag
             App::setFullDialogRefreshFlag();
         }
@@ -383,7 +390,7 @@ int CSimRecorder::getFrameRate()
 {
     if (_autoFrameRate)
     {
-        int frate=int((1.0f/(float(App::ct->simulation->getSimulationTimeStep_raw_ns())/1000000.0f))+0.5f);
+        int frate=int((1.0f/(float(App::currentWorld->simulation->getSimulationTimeStep_raw_us())/1000000.0f))+0.5f);
         return(tt::getLimitedInt(1,120,frate)); // the recorder probably doesn't support that high (120)
     }
     return(_frameRate);

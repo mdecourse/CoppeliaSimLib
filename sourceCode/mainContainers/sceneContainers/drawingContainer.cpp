@@ -10,29 +10,20 @@ CDrawingContainer::CDrawingContainer()
 
 CDrawingContainer::~CDrawingContainer()
 {
-    removeAllObjects(false,true);
-}
-
-void CDrawingContainer::simulationAboutToStart()
-{
-
+    for (size_t i=0;i<_allObjects.size();i++)
+    {
+        delete _allObjects[i];
+        _allObjects.erase(_allObjects.begin()+i);
+    }
 }
 
 void CDrawingContainer::simulationEnded()
 {
-    removeAllObjects(true,false);
-//  if (_initialValuesInitialized&&App::ct->simulation->getResetSceneAtSimulationEnd())
-//  {
-//  }
-}
-
-void CDrawingContainer::emptySceneProcedure()
-{ // don't do anything here! (plugin or add-on might be using that functionality too) 
 }
 
 CDrawingObject* CDrawingContainer::getObject(int objectID)
 {
-    for (int i=0;i<int(_allObjects.size());i++)
+    for (size_t i=0;i<_allObjects.size();i++)
     {
         if (_allObjects[i]->getObjectID()==objectID)
             return(_allObjects[i]);
@@ -53,27 +44,10 @@ int CDrawingContainer::addObject(CDrawingObject* it)
     return(newID);
 }
 
-void CDrawingContainer::removeAllObjects(bool onlyThoseCreatedFromScripts,bool alsoPersistentObjects)
-{
-    EASYLOCK(_objectMutex);
-    for (size_t i=0;i<_allObjects.size();i++)
-    {
-        if ( (!onlyThoseCreatedFromScripts)||_allObjects[i]->getCreatedFromScript() )
-        {
-            if (alsoPersistentObjects||(!_allObjects[i]->getPersistent()))
-            {
-                delete _allObjects[i];
-                _allObjects.erase(_allObjects.begin()+i);
-                i--; // reprocess this position
-            }
-        }
-    }
-}
-
 void CDrawingContainer::removeObject(int objectID)
 {
     EASYLOCK(_objectMutex);
-    for (int i=0;i<int(_allObjects.size());i++)
+    for (size_t i=0;i<_allObjects.size();i++)
     {
         if (_allObjects[i]->getObjectID()==objectID)
         {
@@ -106,7 +80,7 @@ bool CDrawingContainer::getExportableMeshAtIndex(int parentObjectID,int index,st
 
 void CDrawingContainer::adjustForFrameChange(int objectID,const C7Vector& preCorrection)
 {
-    for (int i=0;i<int(_allObjects.size());i++)
+    for (size_t i=0;i<_allObjects.size();i++)
     {
         if (_allObjects[i]->getSceneObjectID()==objectID)
             _allObjects[i]->adjustForFrameChange(preCorrection);
@@ -115,18 +89,24 @@ void CDrawingContainer::adjustForFrameChange(int objectID,const C7Vector& preCor
 
 void CDrawingContainer::adjustForScaling(int objectID,float xScale,float yScale,float zScale)
 {
-    for (int i=0;i<int(_allObjects.size());i++)
+    for (size_t i=0;i<_allObjects.size();i++)
     {
         if (_allObjects[i]->getSceneObjectID()==objectID)
             _allObjects[i]->adjustForScaling(xScale,yScale,zScale);
     }
 }
 
+void CDrawingContainer::removeAllObjects()
+{
+    for (size_t i=0;i<_allObjects.size();i++)
+        delete _allObjects[i];
+    _allObjects.clear();
+}
 
 void CDrawingContainer::announceObjectWillBeErased(int objID)
 { // Never called from copy buffer!
-    int i=0;
-    while (i<int(_allObjects.size()))
+    size_t i=0;
+    while (i<_allObjects.size())
     {
         if (_allObjects[i]->announceObjectWillBeErased(objID))
         {
@@ -138,19 +118,34 @@ void CDrawingContainer::announceObjectWillBeErased(int objID)
     }
 }
 
+void CDrawingContainer::announceScriptStateWillBeErased(int scriptHandle,bool simulationScript,bool sceneSwitchPersistentScript)
+{
+    size_t i=0;
+    while (i<_allObjects.size())
+    {
+        if (_allObjects[i]->announceScriptStateWillBeErased(scriptHandle,simulationScript,sceneSwitchPersistentScript))
+        {
+            delete _allObjects[i];
+            _allObjects.erase(_allObjects.begin()+i);
+        }
+        else
+            i++;
+    }
+}
+
 void CDrawingContainer::renderYour3DStuff_nonTransparent(CViewableBase* renderingObject,int displayAttrib)
 {
-    drawAll(false,false,displayAttrib,renderingObject->getCumulativeTransformation().getMatrix());
+    drawAll(false,false,displayAttrib,renderingObject->getFullCumulativeTransformation().getMatrix());
 }
 
 void CDrawingContainer::renderYour3DStuff_transparent(CViewableBase* renderingObject,int displayAttrib)
 {
-    drawAll(false,true,displayAttrib,renderingObject->getCumulativeTransformation().getMatrix());
+    drawAll(false,true,displayAttrib,renderingObject->getFullCumulativeTransformation().getMatrix());
 }
 
 void CDrawingContainer::renderYour3DStuff_overlay(CViewableBase* renderingObject,int displayAttrib)
 {
-    drawAll(true,true,displayAttrib,renderingObject->getCumulativeTransformation().getMatrix());
+    drawAll(true,true,displayAttrib,renderingObject->getFullCumulativeTransformation().getMatrix());
 }
 
 void CDrawingContainer::drawAll(bool overlay,bool transparentObject,int displayAttrib,const C4X4Matrix& cameraCTM)

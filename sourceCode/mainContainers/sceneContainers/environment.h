@@ -1,27 +1,24 @@
-
 #pragma once
 
-#include "visualParam.h"
-#include "mainCont.h"
+#include "colorObject.h"
 #include "thumbnail.h"
 #ifdef SIM_WITH_GUI
     #include "vMenubar.h"
 #endif
 
 class CCamera;
+class CViewableBase;
 
-class CEnvironment : public CMainCont
+class CEnvironment
 {
 public:
     CEnvironment();
     virtual ~CEnvironment();
-    void simulationAboutToStart();
-    void simulationEnded();
 
     void setUpDefaultValues();
 
     void serialize(CSer& ar);
-    void setAcknowledgement(const std::string& a);
+    void setAcknowledgement(const char* a);
     std::string getAcknowledgement() const;
     void setVisualizeWirelessEmitters(bool v);
     bool getVisualizeWirelessEmitters() const;
@@ -76,7 +73,6 @@ public:
     bool areNonAmbientLightsActive() const;
     void setNonAmbientLightsActive(bool a);
 
-    void renderYour3DStuff(CViewableBase* renderingObject,int displayAttrib);
     void setBackgroundColor(int viewSize[2]);
     void activateAmbientLight(bool a);
     void activateFogIfEnabled(CViewableBase* viewable,bool forDynamicContentOnly);
@@ -88,38 +84,15 @@ public:
     bool getSceneIsClosingFlag() const;
     void setSceneIsClosingFlag(bool closing);
 
-    std::string getCurrentJob() const;
-    bool setCurrentJob(const char* jobName);
-    int getJobCount();
-    int getJobIndex(const std::string& name);
-    std::string getJobAtIndex(int index);
-    bool createNewJob(std::string newName);
-    bool deleteCurrentJob();
-    bool renameCurrentJob(std::string newName);
-    bool switchJob(int index);
-    bool getJobFunctionalityEnabled();
-    void setJobFunctionalityEnabled(bool en);
-
-    void setShowPartRepository(bool en);
-    bool getShowPartRepository();
-    void setShowPalletRepository(bool en);
-    bool getShowPalletRepository();
-
     quint64 autoSaveLastSaveTimeInSecondsSince1970;
     float fogBackgroundColor[3];
     float backGroundColor[3];
     float backGroundColorDown[3];
     float ambientLightColor[3];
-    CVisualParam wirelessEmissionVolumeColor;
-    CVisualParam wirelessReceptionVolumeColor;
+    CColorObject wirelessEmissionVolumeColor;
+    CColorObject wirelessReceptionVolumeColor;
 
     CThumbnail modelThumbnail_notSerializedHere;
-
-#ifdef SIM_WITH_GUI
-    void addLayoutMenu(VMenu* menu);
-    void addJobsMenu(VMenu* menu);
-    bool processGuiCommand(int commandID);
-#endif
 
 protected:
     bool _nonAmbientLightsAreActive;
@@ -143,15 +116,8 @@ protected:
     bool _saveExistingCalculationStructuresTemp;
     bool _sceneCanBeDiscardedWhenNewSceneOpened;
 
-    bool _jobFuncEnabled; // not serialized
-    bool _showPartRepository; // not serialized
-    bool _showPalletRepository; // not serialized
-
     bool _sceneIsClosingFlag;
     std::string _extensionString;
-
-    std::vector<std::string> _jobs;
-    std::string _currentJob;
 
     int _sceneUniqueID;
 

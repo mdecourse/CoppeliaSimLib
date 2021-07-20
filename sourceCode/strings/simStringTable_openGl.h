@@ -10,11 +10,11 @@
 #define IDSOGL_PATH "Path"
 #define IDSOGL_JOINT "Joint"
 #define IDSOGL_DUMMY "Dummy"
-#define IDSOGL_OCTREE "Octree"
-#define IDSOGL_POINTCLOUD "Point_cloud"
+#define IDSOGL_OCTREE "OcTree"
+#define IDSOGL_POINTCLOUD "PointCloud"
 #define IDSOGL_GRAPH "Graph"
-#define IDSOGL_FORCE_SENSOR "Force_sensor"
-#define IDSOGL_FORCE_SENSOR_BROKEN "Force sensor (broken)"
+#define IDSOGL_FORCE_SENSOR "ForceSensor"
+
 #define IDSOGL_REVOLUTE "revolute"
 #define IDSOGL_SCREW "screw"
 #define IDSOGL_PRISMATIC "prismatic"
@@ -33,10 +33,8 @@
 #define IDSOGL_DISC "Disc"
 #define IDSOGL_UI "UI"
 #define IDSOGL_MECHANISM "Mechanism"
-#define IDSOGL_HEIGHTFIELD "heightfield"
 
 #define IDSOGL_MODEL_FOLDER_NOT_FOUND "Model folder not found"
-#define IDSOGL_IMPORTEDPATH "ImportedPath"
 
 #define IDSOGL_VISION_SENSOR "Vision sensor"
 #define IDSOGL_VISION_U_SENSOR "Vision_sensor"

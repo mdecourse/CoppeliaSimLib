@@ -23,15 +23,8 @@
 #include "simThread.h"
 #include "modelFolderWidget.h"
 #include "modelListWidget.h"
-#include "sceneHierarchyWidget.h"
 
-enum {FOCUS_ON_PAGE=0,FOCUS_ON_HIERARCHY,FOCUS_ON_SOFT_DIALOG,FOCUS_ON_SCENE_SELECTION_WINDOW,FOCUS_ON_VIEW_SELECTION_WINDOW,FOCUS_ON_PAGE_SELECTION_WINDOW,FOCUS_ON_UNKNOWN_OBJECT,FOCUS_ON_BROWSER};
-
-struct SSceneThumbnail
-{
-    unsigned char* textureData;
-    int textureResolution[2];
-};
+enum {FOCUS_ON_PAGE=0,FOCUS_ON_HIERARCHY,FOCUS_ON_SOFT_DIALOG,FOCUS_ON_VIEW_SELECTION_WINDOW,FOCUS_ON_PAGE_SELECTION_WINDOW,FOCUS_ON_UNKNOWN_OBJECT,FOCUS_ON_BROWSER};
 
 
 class CMainWindow : public QMainWindow
@@ -60,9 +53,9 @@ public:
     void setCurrentCursor(int cur);
     void setBrowserVisible(bool v);
 
-    void flashStatusbar();
-    void setFlyModeCameraHandle(int h);
-    int getFlyModeCameraHandle();
+//    void flashStatusbar();
+//    void setFlyModeCameraHandle(int h);
+//    int getFlyModeCameraHandle();
     void setProxSensorClickSelectDown(int v);
     int getProxSensorClickSelectDown();
     void setProxSensorClickSelectUp(int v);
@@ -94,8 +87,6 @@ public:
     void activateMainWindow();
     void closeDlg(int dlgId);
     void openOrBringDlgToFront(int dlgId);
-    bool prepareSceneThumbnail(const SSimulationThreadCommand& command);
-    unsigned char* getSceneThumbnail(int instanceIndex,int resolution[2]);
 
     bool getObjectShiftToggleViaGuiEnabled();
     void setObjectShiftToggleViaGuiEnabled(bool e);
@@ -117,8 +108,8 @@ public:
     bool getStopViaGuiEnabled();
 
 //------------------------
-    void uiThread_renderScene(bool bufferMainDisplayStateVariables);
-    void uiThread_renderScene_noLock(bool bufferMainDisplayStateVariables);
+    void uiThread_renderScene();
+    void uiThread_renderScene_noLock();
     void simThread_prepareToRenderScene();
     void refreshDialogs_uiThread();
     void callDialogFunction(const SUIThreadCommand* cmdIn,SUIThreadCommand* cmdOut);
@@ -129,8 +120,6 @@ public:
     CStatusBar* statusBar;
     CModelFolderWidget* modelFolderWidget;
     CModelListWidget* modelListWidget;
-    CSceneHierarchyWidget* sceneHierarchyWidget;
-    QHBoxLayout* sceneHierarchyLayout;
     QTabBar* tabBar;
 
     CDlgCont* dlgCont;
@@ -172,8 +161,6 @@ public:
     void reopenTemporarilyClosedDialogsForViewSelector();
     void closeTemporarilyDialogsForPageSelector();
     void reopenTemporarilyClosedDialogsForPageSelector();
-    void closeTemporarilyDialogsForSceneSelector();
-    void reopenTemporarilyClosedDialogsForSceneSelector();
 
 private:
     int _renderOpenGlContent_callFromRenderingThreadOnly();
@@ -183,7 +170,7 @@ private:
     void _recomputeClientSizeAndPos();
     void _setInitialDimensions(bool maximized);
     void _setClientArea(int x,int y);
-    void _resetStatusbarFlashIfNeeded();
+//    void _resetStatusbarFlashIfNeeded();
     void _closeDialogTemporarilyIfOpened(int dlgID,std::vector<int>& vect);
 
     QSignalMapper* _signalMapper;
@@ -198,16 +185,10 @@ private:
     VMenu* _editSystemMenu;
     VMenu* _addSystemMenu;
     VMenu* _simulationSystemMenu;
-    VMenu* _windowSystemMenu;
-    VMenu* _addOnSystemMenu;
+    VMenu* _toolsSystemMenu;
     VMenu* _helpSystemMenu;
     VMenu* _instancesSystemMenu;
-    VMenu* _layoutSystemMenu;
-    VMenu* _jobsSystemMenu;
 
-
-    std::vector<SSceneThumbnail> _sceneThumbnails;
-    std::vector<CSceneHierarchyWidget*> _sceneHierarchyWidgetList;
 
 
     QToolBar* _toolbar1;
@@ -217,7 +198,6 @@ private:
     QAction* _toolbarActionCameraZoom;
     QAction* _toolbarActionCameraAngle;
     QAction* _toolbarActionCameraSizeToScreen;
-//    QAction* _toolbarActionCameraFly;
     QAction* _toolbarActionObjectShift;
     QAction* _toolbarActionObjectRotate;
 
@@ -230,27 +210,21 @@ private:
     QComboBox* _engineSelectCombo;
     QComboBox* _enginePrecisionCombo;
     QComboBox* _timeStepConfigCombo;
-    QAction* _toolbarActionVerify;
     QAction* _toolbarActionStart;
     QAction* _toolbarActionPause;
     QAction* _toolbarActionStop;
     QAction* _toolbarActionRealTime;
-    QAction* _toolbarActionOnline;
     QAction* _toolbarActionReduceSpeed;
     QAction* _toolbarActionIncreaseSpeed;
-    QAction* _toolbarActionThreadedRendering;
     QAction* _toolbarActionToggleVisualization;
     QAction* _toolbarActionPageSelector;
-    QAction* _toolbarActionSceneSelector;
     QAction* _toolbarActionSimulationSettings;
     QAction* _toolbarActionObjectProperties;
     QAction* _toolbarActionCalculationModules;
     QAction* _toolbarActionCollections;
     QAction* _toolbarActionScripts;
     QAction* _toolbarActionShapeEdition;
-    QAction* _toolbarAction2dElements;
     QAction* _toolbarActionPathEdition;
-    QAction* _toolbarActionSelection;
     QAction* _toolbarActionModelBrowser;
     QAction* _toolbarActionSceneHierarchy;
     QAction* _toolbarActionLayers;
@@ -260,7 +234,6 @@ private:
     std::vector<int> _dialogsClosedTemporarily_editModes;
     std::vector<int> _dialogsClosedTemporarily_viewSelector;
     std::vector<int> _dialogsClosedTemporarily_pageSelector;
-    std::vector<int> _dialogsClosedTemporarily_sceneSelector;
 
     int _mouseButtonsState; // 1=left, 2=wheel activity, 4=right, 8=middle wheel down, 16=last mouse down was left and not ctrl pressed
     int _keyDownState; // 1=ctrl, 2=shift, 4=up, 8=down, 16=left, 32=right
@@ -270,7 +243,7 @@ private:
     bool _hasStereo;
     float _stereoDistance;
     bool _leftEye;
-    int _statusbarFlashTime;
+//    int _statusbarFlashTime;
     VPoint _mouseRenderingPos;
     VPoint _clientArea;
     int _focusObject;
@@ -278,10 +251,9 @@ private:
     int _mouseWheelEventTime;
     bool _openGlDisplayEnabled;
     int _mouseMode;
-    int _flyModeCameraHandle;
+//    int _flyModeCameraHandle;
     int _proxSensorClickSelectDown;
     int _proxSensorClickSelectUp;
-    SSimulationThreadCommand _prepareSceneThumbnailCmd;
 
 
     bool _lightDialogRefreshFlag;
@@ -317,13 +289,10 @@ public slots:
     void _aboutToShowEditSystemMenu();
     void _aboutToShowAddSystemMenu();
     void _aboutToShowSimulationSystemMenu();
-    void _aboutToShowWindowSystemMenu();
-    void _aboutToShowAddOnSystemMenu();
+    void _aboutToShowToolsSystemMenu();
     void _aboutToShowHelpSystemMenu();
     void _aboutToShowInstancesSystemMenu();
     void _aboutToShowCustomMenu();
-    void _aboutToShowLayoutSystemMenu();
-    void _aboutToShowJobsSystemMenu();
 
     void statusbarSplitterMoved(int pos,int index);
 

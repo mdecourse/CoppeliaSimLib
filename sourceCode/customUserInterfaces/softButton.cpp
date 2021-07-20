@@ -72,20 +72,17 @@ int CSoftButton::getAttributes()
     return(_buttonAttributes);
 }
 
-void CSoftButton::initializeInitialValues(bool simulationIsRunning)
+void CSoftButton::initializeInitialValues(bool simulationAlreadyRunning)
 { // is called at simulation start, but also after object(s) have been copied into a scene!
-    _initialValuesInitialized=simulationIsRunning;
-    if (simulationIsRunning)
-    {
-        _initialSimulation_label=label;
-        _initialSimulation_buttonAttributes=_buttonAttributes;
-        _initialSimulation_sliderPos=sliderPos;
-    }
+    _initialValuesInitialized=true;
+    _initialSimulation_label=label;
+    _initialSimulation_buttonAttributes=_buttonAttributes;
+    _initialSimulation_sliderPos=sliderPos;
 }
 
 void CSoftButton::simulationEnded()
 { // Remember, this is not guaranteed to be run! (the object can be copied during simulation, and pasted after it ended). For thoses situations there is the initializeInitialValues routine!
-    if (_initialValuesInitialized&&App::ct->simulation->getResetSceneAtSimulationEnd())
+    if (_initialValuesInitialized&&App::currentWorld->simulation->getResetSceneAtSimulationEnd())
     {
         _buttonAttributes=_initialSimulation_buttonAttributes;
         label=_initialSimulation_label;
@@ -101,7 +98,7 @@ CSoftButton::~CSoftButton()
     delete[] arrayColors;
 }
 
-void CSoftButton::announce3DObjectWillBeErased(int objID)
+void CSoftButton::announceSceneObjectWillBeErased(int objID)
 {
     if (_textureProperty!=nullptr)
     {
@@ -113,18 +110,18 @@ void CSoftButton::announce3DObjectWillBeErased(int objID)
     }
 }
 
-void CSoftButton::perform3DObjectLoadingMapping(std::vector<int>* map)
+void CSoftButton::performSceneObjectLoadingMapping(const std::vector<int>* map)
 {
-    if (App::ct->objCont!=nullptr)
+    if (App::currentWorld->sceneObjects!=nullptr)
     {
         if (_textureProperty!=nullptr)
             _textureProperty->performObjectLoadingMapping(map);
     }
 }
 
-void CSoftButton::performTextureObjectLoadingMapping(std::vector<int>* map)
+void CSoftButton::performTextureObjectLoadingMapping(const std::vector<int>* map)
 {
-    if (App::ct->objCont!=nullptr)
+    if (App::currentWorld->sceneObjects!=nullptr)
     {
         if (_textureProperty!=nullptr)
             _textureProperty->performTextureObjectLoadingMapping(map);

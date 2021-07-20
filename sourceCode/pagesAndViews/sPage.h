@@ -12,13 +12,13 @@ public:
     CSPage(int thePageType);
     virtual ~CSPage();
     void render();
-    void initializeInitialValues(bool simulationIsRunning,int initializeOnlyForThisNewObject);
+    void initializeInitialValues(bool simulationAlreadyRunning,int initializeOnlyForThisNewObject);
     void simulationEnded();
     void serialize(CSer& ar);
     bool setPageType(int newType);
     int getPageType() const;
     void announceObjectWillBeErased(int objectID);
-    void performObjectLoadingMapping(std::vector<int>* map);
+    void performObjectLoadingMapping(const std::vector<int>* map);
     void getPageSizeAndPosition(int& sizeX,int& sizeY,int& posX,int& posY) const;
     void setPageSizeAndPosition(int sizeX,int sizeY,int posX,int posY);
     CSView* getView(int viewIndex);

@@ -3,14 +3,14 @@
 #include "vFileFinder.h"
 #include "imgLoaderSaver.h"
 #include "app.h"
-#include "libLic.h"
+#include "simFlavor.h"
 #include <QMimeData>
 #include <QScrollBar>
 
 CModelListWidget::CModelListWidget() : CModelListWidgetBase()
 {
     setViewMode(QListView::IconMode);
-    setGridSize(QSize(160,160));
+    setGridSize(QSize(160,180));
     setIconSize(QSize(128,128));
 
     setWrapping(true);
@@ -117,13 +117,13 @@ CThumbnail* CModelListWidget::loadModelThumbnail(const char* pathAndFilename,int
         {
             result=0;
 
-            CThumbnail* thumbO=App::ct->environment->modelThumbnail_notSerializedHere.copyYourself();
+            CThumbnail* thumbO=App::currentWorld->environment->modelThumbnail_notSerializedHere.copyYourself();
             modelTr.setIdentity();
             modelBoundingBoxSize.clear();
             modelNonDefaultTranslationStepSize=0.0;
-            App::ct->objCont->loadModel(serObj,true,false,&modelTr,&modelBoundingBoxSize,&modelNonDefaultTranslationStepSize);
-            retThumbnail=App::ct->environment->modelThumbnail_notSerializedHere.copyYourself();
-            App::ct->environment->modelThumbnail_notSerializedHere.copyFrom(thumbO);
+            App::currentWorld->loadModel(serObj,true,false,&modelTr,&modelBoundingBoxSize,&modelNonDefaultTranslationStepSize);
+            retThumbnail=App::currentWorld->environment->modelThumbnail_notSerializedHere.copyYourself();
+            App::currentWorld->environment->modelThumbnail_notSerializedHere.copyFrom(thumbO);
             delete thumbO;
             if (retThumbnail->getPointerToUncompressedImage()!=nullptr)
                 result=1;
@@ -136,8 +136,7 @@ CThumbnail* CModelListWidget::loadModelThumbnail(const char* pathAndFilename,int
 void CModelListWidget::setFolder(const char* folderPath)
 {
     clearAll();
-    std::vector<int> initialSelection;
-    App::ct->objCont->getSelectedObjects(initialSelection);
+    const std::vector<int>* initialSelection=App::currentWorld->sceneObjects->getSelectedObjectHandlesPtr();
     if (folderPath!=nullptr)
     {
         _folderPath=folderPath;
@@ -155,7 +154,7 @@ void CModelListWidget::setFolder(const char* folderPath)
             if (foundItem->isFile)
             { // Files
                 std::string filename(foundItem->name);
-                if (CLibLic::getBoolVal_str(0,filename.c_str()))
+                if (CSimFlavor::getBoolVal_str(0,filename.c_str()))
                 {
                     allModelNames.push_back(filename);
                     allModelCreationTimes.push_back((unsigned int)foundItem->lastWriteTime);
@@ -180,7 +179,7 @@ void CModelListWidget::setFolder(const char* folderPath)
         thmbFile+="/";
         thmbFile+=SIM_MODEL_THUMBNAILFILE_NAME;
         bool thumbnailFileExistsAndWasLoaded=false;
-        if (VFile::doesFileExist(thmbFile))
+        if (VFile::doesFileExist(thmbFile.c_str()))
         {
             CSer serObj(thmbFile.c_str(),CSer::filetype_csim_bin_thumbnails_file);
             int serializationVersion;
@@ -269,10 +268,7 @@ void CModelListWidget::setFolder(const char* folderPath)
             serObj.writeClose();
         }
     }
-    // Now restore previous object selection state:
-    App::ct->objCont->deselectObjects();
-    for (size_t i=0;i<initialSelection.size();i++)
-        App::ct->objCont->addObjectToSelection(initialSelection[i]);
+    App::currentWorld->sceneObjects->setSelectedObjectHandles(initialSelection);
 }
 
 void CModelListWidget::serializePart1(CSer& ar)

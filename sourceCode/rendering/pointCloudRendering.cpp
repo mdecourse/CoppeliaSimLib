@@ -1,4 +1,3 @@
-
 #include "pointCloudRendering.h"
 
 #ifdef SIM_WITH_OPENGL
@@ -15,12 +14,12 @@ void displayPointCloud(CPointCloud* pointCloud,CViewableBase* renderingObject,in
     if (displayAttrib&sim_displayattribute_renderpass)
         _displayBoundingBox(pointCloud,displayAttrib,true,cbrt(d(0)*d(1)*d(2))*0.6f);
 
-    C3Vector normalVectorForLinesAndPoints(pointCloud->getCumulativeTransformation().Q.getInverse()*C3Vector::unitZVector);
+    C3Vector normalVectorForLinesAndPoints(pointCloud->getFullCumulativeTransformation().Q.getInverse()*C3Vector::unitZVector);
 
     // Object display:
     if (pointCloud->getShouldObjectBeDisplayed(renderingObject->getObjectHandle(),displayAttrib))
     {
-        if ((App::getEditModeType()&SHAPE_OR_PATH_EDIT_MODE)==0)
+        if ((App::getEditModeType()&SHAPE_OR_PATH_EDIT_MODE_OLD)==0)
         {
             if (pointCloud->getLocalObjectProperty()&sim_objectproperty_selectmodelbaseinstead)
                 glLoadName(pointCloud->getModelSelectionHandle());
@@ -46,11 +45,11 @@ void displayPointCloud(CPointCloud* pointCloud,CViewableBase* renderingObject,in
         std::vector<float>& _points=pointCloud->getPoints()[0];
         if (_points.size()>0)
         {
-            bool setOtherColor=(App::ct->collisions->getCollisionColor(pointCloud->getObjectHandle())!=0);
-            for (size_t i=0;i<App::ct->collections->allCollections.size();i++)
+            bool setOtherColor=(App::currentWorld->collisions->getCollisionColor(pointCloud->getObjectHandle())!=0);
+            for (size_t i=0;i<App::currentWorld->collections->getObjectCount();i++)
             {
-                if (App::ct->collections->allCollections[i]->isObjectInCollection(pointCloud->getObjectHandle()))
-                    setOtherColor|=(App::ct->collisions->getCollisionColor(App::ct->collections->allCollections[i]->getCollectionID())!=0);
+                if (App::currentWorld->collections->getObjectFromIndex(i)->isObjectInCollection(pointCloud->getObjectHandle()))
+                    setOtherColor|=(App::currentWorld->collisions->getCollisionColor(App::currentWorld->collections->getObjectFromIndex(i)->getCollectionHandle())!=0);
             }
 
             if (displayAttrib&sim_displayattribute_forvisionsensor)
@@ -59,7 +58,7 @@ void displayPointCloud(CPointCloud* pointCloud,CViewableBase* renderingObject,in
             if (!setOtherColor)
                 pointCloud->getColor()->makeCurrentColor(false);
             else
-                App::ct->mainSettings->collisionColor.makeCurrentColor(false);
+                App::currentWorld->mainSettings->collisionColor.makeCurrentColor(false);
 
             if (pointCloud->getShowOctree()&&(pointCloud->getPointCloudInfo()!=nullptr)&&((displayAttrib&sim_displayattribute_forvisionsensor)==0))
             {
@@ -114,6 +113,7 @@ void displayPointCloud(CPointCloud* pointCloud,CViewableBase* renderingObject,in
                 cols=pointCloud->getDisplayColors();
             }
 
+
             if ((cols->size()==0)||setOtherColor)
             {
                 glBegin(GL_POINTS);
@@ -124,27 +124,28 @@ void displayPointCloud(CPointCloud* pointCloud,CViewableBase* renderingObject,in
             }
             else
             {
+                // note: glMaterialfv has some bugs in some geForce drivers, use glColor instead
+                glEnable(GL_COLOR_MATERIAL);
+                glColorMaterial(GL_FRONT_AND_BACK,GL_SPECULAR);
+                glColor3f(0.0f,0.0f,0.0f);
+                glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
+                glColor3f(0.0f,0.0f,0.0f);
+                glColorMaterial(GL_FRONT_AND_BACK,GL_SHININESS);
+                glColor3f(0.0f,0.0f,0.0f);
+                glColorMaterial(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE);
+                glColor3f(0.0f,0.0f,0.0f);
+                if (pointCloud->getColorIsEmissive())
+                    glColorMaterial(GL_FRONT_AND_BACK,GL_EMISSION);
+
                 glBegin(GL_POINTS);
                 glNormal3fv(normalVectorForLinesAndPoints.data);
-                if (pointCloud->getColorIsEmissive())
+                for (size_t i=0;i<pts->size()/3;i++)
                 {
-                    const float blk[4]={0.0,0.0,0.0,0.0};
-                    glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE,blk);
-                    for (size_t i=0;i<pts->size()/3;i++)
-                    {
-                        glMaterialfv(GL_FRONT_AND_BACK,GL_EMISSION,&(cols[0])[4*i]);
-                        glVertex3fv(&(pts[0])[3*i]);
-                    }
-                }
-                else
-                {
-                    for (size_t i=0;i<pts->size()/3;i++)
-                    {
-                        glMaterialfv(GL_FRONT_AND_BACK,GL_AMBIENT_AND_DIFFUSE,&(cols[0])[4*i]);
-                        glVertex3fv(&(pts[0])[3*i]);
-                    }
+                    glColor4fv(&(cols[0])[4*i]);
+                    glVertex3fv(&(pts[0])[3*i]);
                 }
                 glEnd();
+                glDisable(GL_COLOR_MATERIAL);
             }
             glPointSize(1.0);
         }

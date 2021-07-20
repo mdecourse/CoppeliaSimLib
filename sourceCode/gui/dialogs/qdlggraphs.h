@@ -46,8 +46,6 @@ private slots:
 
     void on_qqBufferIsCyclic_clicked();
 
-    void on_qqShowXYZPlanes_clicked();
-
     void on_qqObjectSize_editingFinished();
 
     void on_qqBufferSize_editingFinished();
@@ -79,6 +77,8 @@ private slots:
     void on_qqEditXYGraphs_clicked();
 
     void on_qqEdit3DCurves_clicked();
+
+    void on_qqRemoveAll_clicked();
 
 private:
     Ui::CQDlgGraphs *ui;

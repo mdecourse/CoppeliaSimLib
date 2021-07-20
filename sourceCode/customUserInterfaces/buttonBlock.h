@@ -48,7 +48,7 @@ public:
     void getRollupMin(VPoint& rollupMinVal);
     void setRollupMax(VPoint rollupMaxVal);
     void getRollupMax(VPoint& rollupMaxVal);
-    void initializeInitialValues(bool simulationIsRunning);
+    void initializeInitialValues(bool simulationAlreadyRunning);
     void simulationAboutToStart();
     void simulationEnded();
     void setBlockID(int newBlockID);
@@ -56,9 +56,9 @@ public:
     void setViewToAppearOn(int theView);
     int getViewToAppearOn();
     int getFreeButtonHandle();
-    void perform3DObjectLoadingMapping(std::vector<int>* map);
-    void performTextureObjectLoadingMapping(std::vector<int>* map);
-    bool announce3DObjectWillBeErased(int objectID,bool copyBuffer);
+    void performSceneObjectLoadingMapping(const std::vector<int>* map);
+    void performTextureObjectLoadingMapping(const std::vector<int>* map);
+    bool announceSceneObjectWillBeErased(int objectID,bool copyBuffer);
     void setTextureDependencies();
     void removeAllVisionSensorTextures();
     void removeAllObjectAttachements();

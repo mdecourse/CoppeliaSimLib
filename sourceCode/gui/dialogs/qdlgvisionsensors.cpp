@@ -33,11 +33,11 @@ void CQDlgVisionSensors::refresh()
     inMainRefreshRoutine=true;
     QLineEdit* lineEditToSelect=getSelectedLineEdit();
 
-    CVisionSensor* it=App::ct->objCont->getLastSelection_visionSensor();
+    CVisionSensor* it=App::currentWorld->sceneObjects->getLastSelectionVisionSensor();
 
-    bool isSensor=App::ct->objCont->isLastSelectionAVisionSensor();
-    bool manySensors=App::ct->objCont->getVisionSensorNumberInSelection()>1;
-    bool noEditModeAndNoSim=(App::getEditModeType()==NO_EDIT_MODE)&&App::ct->simulation->isSimulationStopped();
+    bool isSensor=App::currentWorld->sceneObjects->isLastSelectionAVisionSensor();
+    bool manySensors=App::currentWorld->sceneObjects->getVisionSensorCountInSelection()>1;
+    bool noEditModeAndNoSim=(App::getEditModeType()==NO_EDIT_MODE)&&App::currentWorld->simulation->isSimulationStopped();
 
     ui->qqNearPlane->setEnabled(isSensor&&noEditModeAndNoSim);
     ui->qqFarPlane->setEnabled(isSensor&&noEditModeAndNoSim);
@@ -55,7 +55,9 @@ void CQDlgVisionSensors::refresh()
     ui->qqExplicitHandling->setEnabled(isSensor&&noEditModeAndNoSim);
     ui->qqExternalInput->setEnabled(isSensor&&noEditModeAndNoSim);
     ui->qqLocalLights->setEnabled(isSensor&&noEditModeAndNoSim);
+    ui->qqLocalLights->setVisible(App::userSettings->showOldDlgs);
 
+    ui->qqShowFog->setVisible(App::userSettings->showOldDlgs);
     ui->qqShowFog->setEnabled(isSensor&&noEditModeAndNoSim);
 
     ui->qqShowNotDetecting->setEnabled(isSensor&&noEditModeAndNoSim);
@@ -68,7 +70,8 @@ void CQDlgVisionSensors::refresh()
     ui->qqCasingColorPassive->setEnabled(isSensor&&noEditModeAndNoSim);
     ui->qqCasingColorActive->setEnabled(isSensor&&noEditModeAndNoSim);
 
-    ui->qqEnabled->setChecked(App::ct->mainSettings->visionSensorsEnabled);
+    ui->qqEnabled->setVisible(App::userSettings->showOldDlgs);
+    ui->qqEnabled->setChecked(App::currentWorld->mainSettings->visionSensorsEnabled);
 
     ui->qqApplyMainProperties->setEnabled(isSensor&&manySensors&&noEditModeAndNoSim);
     ui->qqApplyColors->setEnabled(isSensor&&manySensors&&noEditModeAndNoSim);
@@ -78,12 +81,9 @@ void CQDlgVisionSensors::refresh()
     ui->qqRenderModeCombo->setEnabled(isSensor&&noEditModeAndNoSim);
     ui->qqRenderModeCombo->clear();
 
-    ui->qqEntityCombo->setEnabled(isSensor&&noEditModeAndNoSim);
-    ui->qqEntityCombo->clear();
-
     if (isSensor)
     {
-        CVisionSensor* s=App::ct->objCont->getLastSelection_visionSensor();
+        CVisionSensor* s=App::currentWorld->sceneObjects->getLastSelectionVisionSensor();
 
         ui->qqShowFog->setChecked(s->getShowFogIfAvailable());
 
@@ -117,15 +117,15 @@ void CQDlgVisionSensors::refresh()
         ui->qqIgnoreDepth->setChecked(s->getIgnoreDepthInfo());
         ui->qqIgnorePacket1->setChecked(!s->getComputeImageBasicStats());
 
-        ui->qqRenderModeCombo->addItem(strTranslate(IDS_VISIBLE_COMPONENTS),QVariant(sim_rendermode_opengl));
-        ui->qqRenderModeCombo->addItem(strTranslate(IDS_AUXILIARY_CHANNELS),QVariant(sim_rendermode_auxchannels));
-        ui->qqRenderModeCombo->addItem(strTranslate(IDS_COLOR_CODED_IDS),QVariant(sim_rendermode_colorcoded));
-        ui->qqRenderModeCombo->addItem(strTranslate(IDS_RAY_TRACING),QVariant(sim_rendermode_povray));
-//        ui->qqRenderModeCombo->addItem(strTranslate(IDS_RAY_TRACING2),QVariant(4));
-        ui->qqRenderModeCombo->addItem(strTranslate(IDS_EXTERNAL_RENDERER),QVariant(sim_rendermode_extrenderer));
-        ui->qqRenderModeCombo->addItem(strTranslate(IDS_EXTERNAL_RENDERER_WINDOWED),QVariant(sim_rendermode_extrendererwindowed));
-        ui->qqRenderModeCombo->addItem(strTranslate(IDS_OPENGL3),QVariant(sim_rendermode_opengl3));
-        ui->qqRenderModeCombo->addItem(strTranslate(IDS_OPENGL3_WINDOWED),QVariant(sim_rendermode_opengl3windowed));
+        ui->qqRenderModeCombo->addItem(IDS_VISIBLE_COMPONENTS,QVariant(sim_rendermode_opengl));
+        ui->qqRenderModeCombo->addItem(IDS_AUXILIARY_CHANNELS,QVariant(sim_rendermode_auxchannels));
+        ui->qqRenderModeCombo->addItem(IDS_COLOR_CODED_IDS,QVariant(sim_rendermode_colorcoded));
+        ui->qqRenderModeCombo->addItem(IDS_RAY_TRACING,QVariant(sim_rendermode_povray));
+//        ui->qqRenderModeCombo->addItem(IDS_RAY_TRACING2,QVariant(4));
+        ui->qqRenderModeCombo->addItem(IDS_EXTERNAL_RENDERER,QVariant(sim_rendermode_extrenderer));
+        ui->qqRenderModeCombo->addItem(IDS_EXTERNAL_RENDERER_WINDOWED,QVariant(sim_rendermode_extrendererwindowed));
+        ui->qqRenderModeCombo->addItem(IDS_OPENGL3,QVariant(sim_rendermode_opengl3));
+        ui->qqRenderModeCombo->addItem(IDS_OPENGL3_WINDOWED,QVariant(sim_rendermode_opengl3windowed));
 
         // Select current item:
         for (int i=0;i<ui->qqRenderModeCombo->count();i++)
@@ -133,82 +133,6 @@ void CQDlgVisionSensors::refresh()
             if (ui->qqRenderModeCombo->itemData(i).toInt()==it->getRenderMode())
             {
                 ui->qqRenderModeCombo->setCurrentIndex(i);
-                break;
-            }
-        }
-
-        ui->qqEntityCombo->addItem(strTranslate(IDS_ALL_RENDERABLE_OBJECTS_IN_SCENE),QVariant(-1));
-
-        std::vector<std::string> names;
-        std::vector<int> ids;
-
-        // Now collections:
-        for (int i=0;i<int(App::ct->collections->allCollections.size());i++)
-        {
-            CRegCollection* it=App::ct->collections->allCollections[i];
-            std::string name(tt::decorateString("[",strTranslate(IDSN_COLLECTION),"] "));
-            name+=it->getCollectionName();
-            names.push_back(name);
-            ids.push_back(it->getCollectionID());
-        }
-        tt::orderStrings(names,ids);
-        for (int i=0;i<int(names.size());i++)
-            ui->qqEntityCombo->addItem(names[i].c_str(),QVariant(ids[i]));
-
-        names.clear();
-        ids.clear();
-
-        // Now shapes:
-        for (int i=0;i<int(App::ct->objCont->shapeList.size());i++)
-        {
-            CShape* it=App::ct->objCont->getShape(App::ct->objCont->shapeList[i]);
-            std::string name(tt::decorateString("[",strTranslate(IDSN_SHAPE),"] "));
-            name+=it->getObjectName();
-            names.push_back(name);
-            ids.push_back(it->getObjectHandle());
-        }
-        tt::orderStrings(names,ids);
-        for (int i=0;i<int(names.size());i++)
-            ui->qqEntityCombo->addItem(names[i].c_str(),QVariant(ids[i]));
-
-        names.clear();
-        ids.clear();
-
-        // Now paths:
-        for (int i=0;i<int(App::ct->objCont->pathList.size());i++)
-        {
-            CPath* it=App::ct->objCont->getPath(App::ct->objCont->pathList[i]);
-            std::string name(tt::decorateString("[",strTranslate(IDSN_PATH),"] "));
-            name+=it->getObjectName();
-            names.push_back(name);
-            ids.push_back(it->getObjectHandle());
-        }
-        tt::orderStrings(names,ids);
-        for (int i=0;i<int(names.size());i++)
-            ui->qqEntityCombo->addItem(names[i].c_str(),QVariant(ids[i]));
-
-        names.clear();
-        ids.clear();
-
-        // Now graphs:
-        for (int i=0;i<int(App::ct->objCont->graphList.size());i++)
-        {
-            CGraph* it=App::ct->objCont->getGraph(App::ct->objCont->graphList[i]);
-            std::string name(tt::decorateString("[",strTranslate(IDSN_GRAPH),"] "));
-            name+=it->getObjectName();
-            names.push_back(name);
-            ids.push_back(it->getObjectHandle());
-        }
-        tt::orderStrings(names,ids);
-        for (int i=0;i<int(names.size());i++)
-            ui->qqEntityCombo->addItem(names[i].c_str(),QVariant(ids[i]));
-
-        // Select current item:
-        for (int i=0;i<ui->qqEntityCombo->count();i++)
-        {
-            if (ui->qqEntityCombo->itemData(i).toInt()==it->getDetectableEntityID())
-            {
-                ui->qqEntityCombo->setCurrentIndex(i);
                 break;
             }
         }
@@ -259,7 +183,7 @@ void CQDlgVisionSensors::on_qqExplicitHandling_clicked()
 {
     IF_UI_EVENT_CAN_READ_DATA
     {
-        App::appendSimulationThreadCommand(TOGGLE_EXPLICITHANDLING_VISIONSENSORGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID());
+        App::appendSimulationThreadCommand(TOGGLE_EXPLICITHANDLING_VISIONSENSORGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle());
         App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
     }
@@ -269,7 +193,7 @@ void CQDlgVisionSensors::on_qqExternalInput_clicked()
 {
     IF_UI_EVENT_CAN_READ_DATA
     {
-        App::appendSimulationThreadCommand(TOGGLE_EXTERNALINPUT_VISIONSENSORGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID());
+        App::appendSimulationThreadCommand(TOGGLE_EXTERNALINPUT_VISIONSENSORGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle());
         App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
     }
@@ -279,7 +203,7 @@ void CQDlgVisionSensors::on_qqPerspective_clicked()
 {
     IF_UI_EVENT_CAN_READ_DATA
     {
-        App::appendSimulationThreadCommand(TOGGLE_PERSPECTIVE_VISIONSENSORGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID());
+        App::appendSimulationThreadCommand(TOGGLE_PERSPECTIVE_VISIONSENSORGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle());
         App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
     }
@@ -289,7 +213,7 @@ void CQDlgVisionSensors::on_qqLocalLights_clicked()
 {
     IF_UI_EVENT_CAN_READ_DATA
     {
-        App::appendSimulationThreadCommand(TOGGLE_LOCALLIGHTS_VISIONSENSORGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID());
+        App::appendSimulationThreadCommand(TOGGLE_LOCALLIGHTS_VISIONSENSORGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle());
         App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
     }
@@ -299,7 +223,7 @@ void CQDlgVisionSensors::on_qqShowNotDetecting_clicked()
 {
     IF_UI_EVENT_CAN_READ_DATA
     {
-        App::appendSimulationThreadCommand(TOGGLE_SHOWVOLUME_WHEN_NOT_DETECTING_VISIONSENSORGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID());
+        App::appendSimulationThreadCommand(TOGGLE_SHOWVOLUME_WHEN_NOT_DETECTING_VISIONSENSORGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle());
         App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
     }
@@ -309,7 +233,7 @@ void CQDlgVisionSensors::on_qqShowFog_clicked()
 {
     IF_UI_EVENT_CAN_READ_DATA
     {
-        App::appendSimulationThreadCommand(TOGGLE_SHOWFOG_VISIONSENSORGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID());
+        App::appendSimulationThreadCommand(TOGGLE_SHOWFOG_VISIONSENSORGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle());
         App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
     }
@@ -319,7 +243,7 @@ void CQDlgVisionSensors::on_qqShowDetecting_clicked()
 {
     IF_UI_EVENT_CAN_READ_DATA
     {
-        App::appendSimulationThreadCommand(TOGGLE_SHOWVOLUME_WHEN_DETECTING_VISIONSENSORGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID());
+        App::appendSimulationThreadCommand(TOGGLE_SHOWVOLUME_WHEN_DETECTING_VISIONSENSORGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle());
         App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
     }
@@ -335,7 +259,7 @@ void CQDlgVisionSensors::on_qqNearPlane_editingFinished()
         float newVal=ui->qqNearPlane->text().toFloat(&ok);
         if (ok)
         {
-            App::appendSimulationThreadCommand(SET_NEARCLIPPING_VISIONSENSORGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),-1,newVal);
+            App::appendSimulationThreadCommand(SET_NEARCLIPPING_VISIONSENSORGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),-1,newVal);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         }
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
@@ -352,7 +276,7 @@ void CQDlgVisionSensors::on_qqFarPlane_editingFinished()
         float newVal=ui->qqFarPlane->text().toFloat(&ok);
         if (ok)
         {
-            App::appendSimulationThreadCommand(SET_FARCLIPPING_VISIONSENSORGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),-1,newVal);
+            App::appendSimulationThreadCommand(SET_FARCLIPPING_VISIONSENSORGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),-1,newVal);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         }
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
@@ -369,10 +293,10 @@ void CQDlgVisionSensors::on_qqPerspectiveAngleOrOrthographicSize_editingFinished
         float newVal=ui->qqPerspectiveAngleOrOrthographicSize->text().toFloat(&ok);
         if (ok)
         {
-            CVisionSensor* it=App::ct->objCont->getLastSelection_visionSensor();
+            CVisionSensor* it=App::currentWorld->sceneObjects->getLastSelectionVisionSensor();
             if ((it!=nullptr)&&it->getPerspectiveOperation())
                 newVal*=gv::userToRad;
-            App::appendSimulationThreadCommand(SET_PERSPECTANGLE_OR_ORTHOSIZE_VISIONSENSORGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),-1,newVal);
+            App::appendSimulationThreadCommand(SET_PERSPECTANGLE_OR_ORTHOSIZE_VISIONSENSORGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),-1,newVal);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         }
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
@@ -385,7 +309,7 @@ void CQDlgVisionSensors::on_qqResX_editingFinished()
         return;
     IF_UI_EVENT_CAN_WRITE_DATA
     {
-        CVisionSensor* it=App::ct->objCont->getLastSelection_visionSensor();
+        CVisionSensor* it=App::currentWorld->sceneObjects->getLastSelectionVisionSensor();
         if (it!=nullptr)
         {
             bool ok;
@@ -407,7 +331,7 @@ void CQDlgVisionSensors::on_qqResX_editingFinished()
                         tmp/=2;
                     }
                     if (newVal!=r[0])
-                        App::uiThread->messageBox_warning(App::mainWindow,strTranslate("Vision sensor"),strTranslate(IDS_VISION_SENSOR_RESOLUTION_NOT_POWER_OF_TWO_WARNING),VMESSAGEBOX_OKELI);
+                        App::uiThread->messageBox_warning(App::mainWindow,"Vision sensor",IDS_VISION_SENSOR_RESOLUTION_NOT_POWER_OF_TWO_WARNING,VMESSAGEBOX_OKELI,VMESSAGEBOX_REPLY_OK);
                     SSimulationThreadCommand cmd;
                     cmd.cmdId=SET_RESOLUTION_VISIONSENSORGUITRIGGEREDCMD;
                     cmd.intParams.push_back(it->getObjectHandle());
@@ -428,7 +352,7 @@ void CQDlgVisionSensors::on_qqResY_editingFinished()
         return;
     IF_UI_EVENT_CAN_WRITE_DATA
     {
-        CVisionSensor* it=App::ct->objCont->getLastSelection_visionSensor();
+        CVisionSensor* it=App::currentWorld->sceneObjects->getLastSelectionVisionSensor();
         if (it!=nullptr)
         {
             bool ok;
@@ -450,7 +374,7 @@ void CQDlgVisionSensors::on_qqResY_editingFinished()
                         tmp/=2;
                     }
                     if (newVal!=r[1])
-                        App::uiThread->messageBox_warning(App::mainWindow,strTranslate("Vision sensor"),strTranslate(IDS_VISION_SENSOR_RESOLUTION_NOT_POWER_OF_TWO_WARNING),VMESSAGEBOX_OKELI);
+                        App::uiThread->messageBox_warning(App::mainWindow,"Vision sensor",IDS_VISION_SENSOR_RESOLUTION_NOT_POWER_OF_TWO_WARNING,VMESSAGEBOX_OKELI,VMESSAGEBOX_REPLY_OK);
                     SSimulationThreadCommand cmd;
                     cmd.cmdId=SET_RESOLUTION_VISIONSENSORGUITRIGGEREDCMD;
                     cmd.intParams.push_back(it->getObjectHandle());
@@ -471,7 +395,7 @@ void CQDlgVisionSensors::on_qqSizeX_editingFinished()
         return;
     IF_UI_EVENT_CAN_READ_DATA
     {
-        CVisionSensor* it=App::ct->objCont->getLastSelection_visionSensor();
+        CVisionSensor* it=App::currentWorld->sceneObjects->getLastSelectionVisionSensor();
         if (it!=nullptr)
         {
             bool ok;
@@ -500,7 +424,7 @@ void CQDlgVisionSensors::on_qqSizeY_editingFinished()
         return;
     IF_UI_EVENT_CAN_READ_DATA
     {
-        CVisionSensor* it=App::ct->objCont->getLastSelection_visionSensor();
+        CVisionSensor* it=App::currentWorld->sceneObjects->getLastSelectionVisionSensor();
         if (it!=nullptr)
         {
             bool ok;
@@ -529,7 +453,7 @@ void CQDlgVisionSensors::on_qqSizeZ_editingFinished()
         return;
     IF_UI_EVENT_CAN_READ_DATA
     {
-        CVisionSensor* it=App::ct->objCont->getLastSelection_visionSensor();
+        CVisionSensor* it=App::currentWorld->sceneObjects->getLastSelectionVisionSensor();
         if (it!=nullptr)
         {
             bool ok;
@@ -556,7 +480,7 @@ void CQDlgVisionSensors::on_qqAdjustImageColor_clicked()
 {
     IF_UI_EVENT_CAN_WRITE_DATA
     {
-        CVisionSensor* it=App::ct->objCont->getLastSelection_visionSensor();
+        CVisionSensor* it=App::currentWorld->sceneObjects->getLastSelectionVisionSensor();
         if (it!=nullptr)
         {
             CQDlgImageColor theDialog(this);
@@ -591,15 +515,15 @@ void CQDlgVisionSensors::on_qqApplyMainProperties_clicked()
 {
     IF_UI_EVENT_CAN_WRITE_DATA
     {
-        CVisionSensor* last=App::ct->objCont->getLastSelection_visionSensor();
+        CVisionSensor* last=App::currentWorld->sceneObjects->getLastSelectionVisionSensor();
         if (last!=nullptr)
         {
             SSimulationThreadCommand cmd;
             cmd.cmdId=APPLY_MAINPROP_TO_SELECTION_VISIONSENSORGUITRIGGEREDCMD;
             cmd.intParams.push_back(last->getObjectHandle());
-            for (int i=0;i<App::ct->objCont->getSelSize()-1;i++)
+            for (size_t i=0;i<App::currentWorld->sceneObjects->getSelectionCount()-1;i++)
             {
-                CVisionSensor* it=App::ct->objCont->getVisionSensor(App::ct->objCont->getSelID(i));
+                CVisionSensor* it=App::currentWorld->sceneObjects->getVisionSensorFromHandle(App::currentWorld->sceneObjects->getObjectHandleFromSelectionIndex(i));
                 if (it!=nullptr)
                     cmd.intParams.push_back(it->getObjectHandle());
             }
@@ -613,7 +537,7 @@ void CQDlgVisionSensors::on_qqCasingColorPassive_clicked()
 {
     IF_UI_EVENT_CAN_READ_DATA
     {
-        CQDlgMaterial::displayMaterialDlg(COLOR_ID_VISIONSENSOR_PASSIVE,App::ct->objCont->getLastSelectionID(),-1,App::mainWindow);
+        CQDlgMaterial::displayMaterialDlg(COLOR_ID_VISIONSENSOR_PASSIVE,App::currentWorld->sceneObjects->getLastSelectionHandle(),-1,App::mainWindow);
     }
 }
 
@@ -621,7 +545,7 @@ void CQDlgVisionSensors::on_qqCasingColorActive_clicked()
 {
     IF_UI_EVENT_CAN_READ_DATA
     {
-        CQDlgMaterial::displayMaterialDlg(COLOR_ID_VISIONSENSOR_ACTIVE,App::ct->objCont->getLastSelectionID(),-1,App::mainWindow);
+        CQDlgMaterial::displayMaterialDlg(COLOR_ID_VISIONSENSOR_ACTIVE,App::currentWorld->sceneObjects->getLastSelectionHandle(),-1,App::mainWindow);
     }
 }
 
@@ -629,15 +553,15 @@ void CQDlgVisionSensors::on_qqApplyColors_clicked()
 {
     IF_UI_EVENT_CAN_READ_DATA
     {
-        CVisionSensor* last=App::ct->objCont->getLastSelection_visionSensor();
+        CVisionSensor* last=App::currentWorld->sceneObjects->getLastSelectionVisionSensor();
         if (last!=nullptr)
         {
             SSimulationThreadCommand cmd;
             cmd.cmdId=APPLY_VISUALPROP_TO_SELECTION_VISIONSENSORGUITRIGGEREDCMD;
             cmd.intParams.push_back(last->getObjectHandle());
-            for (int i=0;i<App::ct->objCont->getSelSize()-1;i++)
+            for (size_t i=0;i<App::currentWorld->sceneObjects->getSelectionCount()-1;i++)
             {
-                CVisionSensor* it=App::ct->objCont->getVisionSensor(App::ct->objCont->getSelID(i));
+                CVisionSensor* it=App::currentWorld->sceneObjects->getVisionSensorFromHandle(App::currentWorld->sceneObjects->getObjectHandleFromSelectionIndex(i));
                 if (it!=nullptr)
                     cmd.intParams.push_back(it->getObjectHandle());
             }
@@ -647,38 +571,11 @@ void CQDlgVisionSensors::on_qqApplyColors_clicked()
     }
 }
 
-void CQDlgVisionSensors::on_qqEntityCombo_currentIndexChanged(int index)
-{
-    if (!inMainRefreshRoutine)
-    {
-        IF_UI_EVENT_CAN_WRITE_DATA
-        {
-            int objID=ui->qqEntityCombo->itemData(ui->qqEntityCombo->currentIndex()).toInt();
-            CVisionSensor* it=App::ct->objCont->getLastSelection_visionSensor();
-            if ( (it!=nullptr)&&(objID!=-1) )
-            {
-                bool displayWarning=false;
-                if ((objID<SIM_IDSTART_COLLECTION)&&(objID>=0))
-                {
-                    C3DObject* it2=App::ct->objCont->getObjectFromHandle(objID);
-                    if (it2!=nullptr)
-                        displayWarning|=((it2->getLocalObjectSpecialProperty()&sim_objectspecialproperty_renderable)==0);
-                }
-                if (displayWarning)
-                    App::uiThread->messageBox_warning(App::mainWindow,strTranslate("Scene object"),strTranslate(IDS_OBJECT_NOT_RENDERABLE_WARNING),VMESSAGEBOX_OKELI);
-            }
-            App::appendSimulationThreadCommand(SET_ENTITYTODETECT_VISIONSENSORGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),objID);
-            App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
-            App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
-        }
-    }
-}
-
 void CQDlgVisionSensors::on_qqIgnoreRGB_clicked()
 {
     IF_UI_EVENT_CAN_READ_DATA
     {
-        App::appendSimulationThreadCommand(TOGGLE_IGNORERGB_VISIONSENSORGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID());
+        App::appendSimulationThreadCommand(TOGGLE_IGNORERGB_VISIONSENSORGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle());
         App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
     }
@@ -688,7 +585,7 @@ void CQDlgVisionSensors::on_qqIgnoreDepth_clicked()
 {
     IF_UI_EVENT_CAN_READ_DATA
     {
-        App::appendSimulationThreadCommand(TOGGLE_IGNOREDEPTH_VISIONSENSORGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID());
+        App::appendSimulationThreadCommand(TOGGLE_IGNOREDEPTH_VISIONSENSORGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle());
         App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
     }
@@ -698,7 +595,7 @@ void CQDlgVisionSensors::on_qqIgnorePacket1_clicked()
 {
     IF_UI_EVENT_CAN_READ_DATA
     {
-        App::appendSimulationThreadCommand(TOGGLE_PACKET1BLANK_VISIONSENSORGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID());
+        App::appendSimulationThreadCommand(TOGGLE_PACKET1BLANK_VISIONSENSORGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle());
         App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
     }
@@ -711,7 +608,7 @@ void CQDlgVisionSensors::on_qqRenderModeCombo_currentIndexChanged(int index)
         IF_UI_EVENT_CAN_WRITE_DATA
         {
             int renderMode=ui->qqRenderModeCombo->itemData(ui->qqRenderModeCombo->currentIndex()).toInt();
-            App::appendSimulationThreadCommand(SET_RENDERMODE_VISIONSENSORGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),renderMode);
+            App::appendSimulationThreadCommand(SET_RENDERMODE_VISIONSENSORGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),renderMode);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
             App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
         }

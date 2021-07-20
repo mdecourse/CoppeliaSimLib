@@ -1,4 +1,3 @@
-
 #include "visionSensorRendering.h"
 
 #ifdef SIM_WITH_OPENGL
@@ -13,12 +12,12 @@ void displayVisionSensor(CVisionSensor* visionSensor,CViewableBase* renderingObj
     if (displayAttrib&sim_displayattribute_renderpass)
         _displayBoundingBox(visionSensor,displayAttrib,true,0.0);
 
-    C3Vector normalVectorForLinesAndPoints(visionSensor->getCumulativeTransformation().Q.getInverse()*C3Vector::unitZVector);
+    C3Vector normalVectorForLinesAndPoints(visionSensor->getFullCumulativeTransformation().Q.getInverse()*C3Vector::unitZVector);
 
     // Object display:
     if (visionSensor->getShouldObjectBeDisplayed(renderingObject->getObjectHandle(),displayAttrib))
     {
-        if ((App::getEditModeType()&SHAPE_OR_PATH_EDIT_MODE)==0)
+        if ((App::getEditModeType()&SHAPE_OR_PATH_EDIT_MODE_OLD)==0)
         {
             if (visionSensor->getLocalObjectProperty()&sim_objectproperty_selectmodelbaseinstead)
                 glLoadName(visionSensor->getModelSelectionHandle());

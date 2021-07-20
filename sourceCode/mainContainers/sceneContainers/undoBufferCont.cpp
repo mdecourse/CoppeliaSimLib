@@ -1,12 +1,9 @@
-
-#include "funcDebug.h"
 #include "simInternal.h"
 #include "undoBufferCont.h"
 #include "pluginContainer.h"
 #include "vDateTime.h"
 #include "app.h"
 #include "simStrings.h"
-//#include "vMessageBox.h"
 
 CUndoBufferCont::CUndoBufferCont()
 {
@@ -14,8 +11,8 @@ CUndoBufferCont::CUndoBufferCont()
 }
 
 CUndoBufferCont::~CUndoBufferCont()
-{
-    for (int i=0;i<int(_buffers.size());i++)
+{ // beware, the current world could be nullptr
+    for (size_t i=0;i<_buffers.size();i++)
         delete _buffers[i];
     undoBufferArrays.clearAll();
 }
@@ -28,18 +25,6 @@ int CUndoBufferCont::getNextBufferId()
 void CUndoBufferCont::emptySceneProcedure()
 {
     _commonInit();
-}
-
-void CUndoBufferCont::simulationAboutToStart()
-{
-}
-
-void CUndoBufferCont::simulationEnded()
-{
-}
-
-void CUndoBufferCont::renderYour3DStuff(CViewableBase* renderingObject,int displayAttrib)
-{
 }
 
 void CUndoBufferCont::_commonInit()
@@ -59,13 +44,17 @@ void CUndoBufferCont::_commonInit()
 
 bool CUndoBufferCont::isUndoSavingOrRestoringUnderWay()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     return(_undoPointSavingOrRestoringUnderWay);
 }
 
 bool CUndoBufferCont::isSceneSaveMaybeNeededFlagSet()
 {
-    return(_sceneSaveMightBeNeeded);
+    bool codeEditorChange=false;
+#ifdef SIM_WITH_GUI
+    codeEditorChange=( (App::mainWindow!=nullptr)&&App::mainWindow->codeEditorContainer->hasSomethingBeenModifiedInCurrentScene());
+#endif
+    return(_sceneSaveMightBeNeeded||codeEditorChange);
 }
 
 void CUndoBufferCont::clearSceneSaveMaybeNeededFlag()
@@ -75,7 +64,7 @@ void CUndoBufferCont::clearSceneSaveMaybeNeededFlag()
 
 bool CUndoBufferCont::announceChange()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     if (!_inUndoRoutineNow)
     {
         bool retVal=memorizeState();
@@ -87,14 +76,14 @@ bool CUndoBufferCont::announceChange()
 
 void CUndoBufferCont::announceChangeStart()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     if (!_inUndoRoutineNow)
         _announceChangeStartCalled=true;
 }
 
 void CUndoBufferCont::announceChangeEnd()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     if (!_inUndoRoutineNow)
     {
         if (_announceChangeStartCalled)
@@ -108,7 +97,7 @@ void CUndoBufferCont::announceChangeEnd()
 
 void CUndoBufferCont::announceChangeGradual()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     if (!_inUndoRoutineNow)
     {
         if (_announceChangeGradualCalledTime==-1)
@@ -118,7 +107,7 @@ void CUndoBufferCont::announceChangeGradual()
 
 void CUndoBufferCont::memorizeStateIfNeeded()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     if (!_inUndoRoutineNow)
     {
         if (_announceChangeGradualCalledTime==-1)
@@ -133,7 +122,7 @@ void CUndoBufferCont::memorizeStateIfNeeded()
 
 void CUndoBufferCont::emptyRedoBuffer()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     while (int(_buffers.size())>_currentStateIndex+1)
     {
         undoBufferArrays.removeDependenciesFromUndoBufferId(_buffers[_buffers.size()-1]->getBufferId());
@@ -145,11 +134,11 @@ void CUndoBufferCont::emptyRedoBuffer()
 
 bool CUndoBufferCont::memorizeState()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
 #ifdef SIM_WITH_GUI
     if (_inUndoRoutineNow)
         return(false);
-    if (!App::ct->simulation->isSimulationStopped())
+    if (!App::currentWorld->simulation->isSimulationStopped())
         return(false);
     if (App::mainWindow==nullptr)
         return(false); // we are in headless mode
@@ -162,6 +151,7 @@ bool CUndoBufferCont::memorizeState()
         return(false);
     }
 
+    App::currentWorld->setEnableRemoteWorldsSync(false);
     bool retVal=true; // means the scene changed.. we modify this variable accordingly later down
 
     static int tooLongExecutionCount=0;
@@ -178,8 +168,8 @@ bool CUndoBufferCont::memorizeState()
     _undoPointSavingOrRestoringUnderWay=true;
     CUndoBufferCameras* cameraBuffers=new CUndoBufferCameras();
     cameraBuffers->storeCameras();
-    App::ct->objCont->saveScene(serObj); // This takes the 90% of time of the whole routine
-    cameraBuffers->restoreCameras();
+    App::currentWorld->saveScene(serObj); // This takes the 90% of time of the whole routine
+    cameraBuffers->releaseCameras();
     _undoPointSavingOrRestoringUnderWay=false;
     serObj.writeClose();
 
@@ -235,7 +225,7 @@ bool CUndoBufferCont::memorizeState()
         static bool displayedMessage=false;
         if (!displayedMessage)
         {
-            if (VMESSAGEBOX_REPLY_YES==App::uiThread->messageBox_warning(App::mainWindow,strTranslate("Undo / redo"),strTranslate(IDS_INFO_UNDO_REDO_TAKES_TOO_LONG),VMESSAGEBOX_YES_NO))
+            if (VMESSAGEBOX_REPLY_YES==App::uiThread->messageBox_warning(App::mainWindow,"Undo / redo",IDS_INFO_UNDO_REDO_TAKES_TOO_LONG,VMESSAGEBOX_YES_NO,VMESSAGEBOX_REPLY_NO))
                 App::userSettings->setUndoRedoEnabled(false);
             displayedMessage=true;
         }
@@ -245,7 +235,7 @@ bool CUndoBufferCont::memorizeState()
     App::setToolbarRefreshFlag();
 
     _sceneSaveMightBeNeeded=_sceneSaveMightBeNeeded||retVal;
-
+    App::currentWorld->setEnableRemoteWorldsSync(true);
     return(retVal);
 #else
     return(false);
@@ -254,9 +244,9 @@ bool CUndoBufferCont::memorizeState()
 
 bool CUndoBufferCont::_isGoodToMemorizeUndoOrRedo()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
 #ifdef SIM_WITH_GUI
-    if (!App::ct->simulation->isSimulationStopped())
+    if (!App::currentWorld->simulation->isSimulationStopped())
         return(false);
     if (App::mainWindow==nullptr)
         return(false);
@@ -265,8 +255,6 @@ bool CUndoBufferCont::_isGoodToMemorizeUndoOrRedo()
     if (App::mainWindow->oglSurface->isPageSelectionActive())
         return(false);
     if (App::mainWindow->oglSurface->isViewSelectionActive())
-        return(false);
-    if (App::mainWindow->oglSurface->isSceneSelectionActive())
         return(false);
     if (!App::userSettings->getUndoRedoEnabled())
         return(false);
@@ -278,7 +266,7 @@ bool CUndoBufferCont::_isGoodToMemorizeUndoOrRedo()
 
 bool CUndoBufferCont::canUndo()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
 #ifdef SIM_WITH_GUI
     if (App::mainWindow==nullptr)
         return(false); // we are in headless mode
@@ -292,7 +280,7 @@ bool CUndoBufferCont::canUndo()
 
 bool CUndoBufferCont::canRedo()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
 #ifdef SIM_WITH_GUI
     if (App::mainWindow==nullptr)
         return(false); // we are in headless mode
@@ -306,7 +294,7 @@ bool CUndoBufferCont::canRedo()
 
 void CUndoBufferCont::undo()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
 #ifdef SIM_WITH_GUI
     if (_inUndoRoutineNow)
         return;
@@ -315,7 +303,7 @@ void CUndoBufferCont::undo()
 
     if (App::mainWindow->codeEditorContainer->areSceneEditorsOpen())
     {
-        App::uiThread->messageBox_information(App::mainWindow,strTranslate(IDSN_UNDO_REDO),strTranslate(IDS_UNDO_REDO_WITH_OPEN_SCRIPT_EDITOR_MESSAGE),VMESSAGEBOX_OKELI);
+        App::uiThread->messageBox_information(App::mainWindow,IDSN_UNDO_REDO,IDS_UNDO_REDO_WITH_OPEN_SCRIPT_EDITOR_MESSAGE,VMESSAGEBOX_OKELI,VMESSAGEBOX_REPLY_OK);
         return;
     }
     _inUndoRoutineNow=true;
@@ -343,9 +331,9 @@ void CUndoBufferCont::undo()
     _rememberSelectionState();
     cameraBuffers->preRestoreCameras();
 
-    App::ct->objCont->deselectObjects();
-    App::ct->simulation->stopSimulation(); // should be anyway stopped!
-    App::ct->emptyScene(false);
+    App::currentWorld->sceneObjects->deselectObjects();
+    App::currentWorld->simulation->stopSimulation(); // should be anyway stopped!
+    App::currentWorld->clearScene(false);
 
     CSer serObj(theBuff,CSer::filetype_csim_bin_scene_buff);
     int serializationVersion;
@@ -355,7 +343,7 @@ void CUndoBufferCont::undo()
     serObj.readOpenBinary(serializationVersion,dum0,dum1,dum2,false);
     _undoPointSavingOrRestoringUnderWay=true;
 
-    App::ct->objCont->loadScene(serObj,true);
+    App::currentWorld->loadScene(serObj,true);
     cameraBuffers->restoreCameras();
 
     _undoPointSavingOrRestoringUnderWay=false;
@@ -370,7 +358,7 @@ void CUndoBufferCont::undo()
     
     returnVal=CPluginContainer::sendEventCallbackMessageToAllPlugins(sim_message_eventcallback_undoperformed,nullptr,nullptr,nullptr);
     delete[] (char*)returnVal;
-    App::ct->setModificationFlag(16); // undo called
+    App::worldContainer->setModificationFlag(16); // undo called
 
     // 5. Dialog refresh:
     App::setFullDialogRefreshFlag();
@@ -380,7 +368,7 @@ void CUndoBufferCont::undo()
 
 void CUndoBufferCont::redo()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
 #ifdef SIM_WITH_GUI
     if (_currentStateIndex>(int(_buffers.size())-2))
         return; // nothing to redo
@@ -388,7 +376,7 @@ void CUndoBufferCont::redo()
         return; // we are in headless mode
     if (App::mainWindow->codeEditorContainer->areSceneEditorsOpen())
     {
-        App::uiThread->messageBox_information(App::mainWindow,strTranslate(IDSN_UNDO_REDO),strTranslate(IDS_UNDO_REDO_WITH_OPEN_SCRIPT_EDITOR_MESSAGE),VMESSAGEBOX_OKELI);
+        App::uiThread->messageBox_information(App::mainWindow,IDSN_UNDO_REDO,IDS_UNDO_REDO_WITH_OPEN_SCRIPT_EDITOR_MESSAGE,VMESSAGEBOX_OKELI,VMESSAGEBOX_REPLY_OK);
         return;
     }
     // 2. We go forward:
@@ -404,9 +392,9 @@ void CUndoBufferCont::redo()
     _rememberSelectionState();
     cameraBuffers->preRestoreCameras();
 
-    App::ct->objCont->deselectObjects();
-    App::ct->simulation->stopSimulation(); // should be anyway stopped!
-    App::ct->emptyScene(false);
+    App::currentWorld->sceneObjects->deselectObjects();
+    App::currentWorld->simulation->stopSimulation(); // should be anyway stopped!
+    App::currentWorld->clearScene(false);
 
     CSer serObj(theBuff,CSer::filetype_csim_bin_scene_buff);
     int serializationVersion;
@@ -416,7 +404,7 @@ void CUndoBufferCont::redo()
     serObj.readOpenBinary(serializationVersion,dum0,dum1,dum2,false);
     _undoPointSavingOrRestoringUnderWay=true;
 
-    App::ct->objCont->loadScene(serObj,true);
+    App::currentWorld->loadScene(serObj,true);
     cameraBuffers->restoreCameras();
 
     _undoPointSavingOrRestoringUnderWay=false;
@@ -430,7 +418,7 @@ void CUndoBufferCont::redo()
 
     returnVal=CPluginContainer::sendEventCallbackMessageToAllPlugins(sim_message_eventcallback_redoperformed,nullptr,nullptr,nullptr);
     delete[] (char*)returnVal;
-    App::ct->setModificationFlag(32); // redo called
+    App::worldContainer->setModificationFlag(32); // redo called
 
     // 5. Dialog refresh:
     App::setFullDialogRefreshFlag();
@@ -440,7 +428,7 @@ void CUndoBufferCont::redo()
 
 CUndoBufferCameras* CUndoBufferCont::_getFullBuffer(int index,std::vector<char>& fullBuff)
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     if ( (index>=int(_buffers.size()))||(index<0) )
     {
         fullBuff.clear();
@@ -464,31 +452,31 @@ CUndoBufferCameras* CUndoBufferCont::_getFullBuffer(int index,std::vector<char>&
 
 int CUndoBufferCont::_getUsedMemory()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     int retVal=0;
-    for (int i=0;i<int(_buffers.size());i++)
+    for (size_t i=0;i<_buffers.size();i++)
         retVal+=int(_buffers[i]->buffer.size());
     return (retVal);
 }
 
 void CUndoBufferCont::_rememberSelectionState()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     _selectionState.clear();
-    std::vector<C3DObject*> sel;
-    App::ct->objCont->getSelectedObjects(sel);
-    for (int i=0;i<int(sel.size());i++)
-        _selectionState.push_back(sel[i]->getObjectName());
+    std::vector<CSceneObject*> sel;
+    App::currentWorld->sceneObjects->getSelectedObjects(sel);
+    for (size_t i=0;i<sel.size();i++)
+        _selectionState.push_back(sel[i]->getObjectAlias_fullPath());
 }
 
 void CUndoBufferCont::_restoreSelectionState()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     for (size_t i=0;i<_selectionState.size();i++)
     {
-        C3DObject* obj=App::ct->objCont->getObjectFromName(_selectionState[i].c_str());
+        CSceneObject* obj=App::currentWorld->sceneObjects->getObjectFromPath(nullptr,_selectionState[i].c_str(),-1,nullptr);
         if (obj!=nullptr)
-            App::ct->objCont->addObjectToSelection(obj->getObjectHandle());
+            App::currentWorld->sceneObjects->addObjectToSelection(obj->getObjectHandle());
     }
     _selectionState.clear();
 }

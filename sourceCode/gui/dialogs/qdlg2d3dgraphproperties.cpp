@@ -2,7 +2,7 @@
 #include "ui_qdlg2d3dgraphproperties.h"
 #include "gV.h"
 #include "tt.h"
-#include "graphingRoutines.h"
+#include "graphingRoutines_old.h"
 #include <QShortcut>
 #include "editboxdelegate.h"
 #include "qdlgcolor.h"
@@ -66,22 +66,22 @@ void CQDlg2D3DGraphProperties::_initialize(int graphHandle,bool xyGraph)
 {
     _graphHandle=graphHandle;
     _xyGraph=xyGraph;
-    CGraph* graph=App::ct->objCont->getGraph(_graphHandle);
+    CGraph* graph=App::currentWorld->sceneObjects->getGraphFromHandle(_graphHandle);
     if (graph!=nullptr)
     {
         std::string txt;
         if (_xyGraph)
         {
-            ui->qqGroupBox->setTitle(strTranslate(IDSN_XY_CURVE_PROPERTIES));
+            ui->qqGroupBox->setTitle(IDSN_XY_CURVE_PROPERTIES);
             txt=IDSN_XY_CURVES;
         }
         else
         {
-            ui->qqGroupBox->setTitle(strTranslate(IDSN_3D_CURVE_PROPERTIES));
+            ui->qqGroupBox->setTitle(IDSN_3D_CURVE_PROPERTIES);
             txt=IDSN_3D_CURVES;
         }
         txt+=" (";
-        txt+=graph->getObjectName();
+        txt+=graph->getObjectAlias_printPath();
         txt+=")";
         setWindowTitle(txt.c_str());
     }
@@ -91,12 +91,12 @@ void CQDlg2D3DGraphProperties::_initialize(int graphHandle,bool xyGraph)
 
 bool CQDlg2D3DGraphProperties::isLinkedDataValid()
 {
-    if (!App::ct->simulation->isSimulationStopped())
+    if (!App::currentWorld->simulation->isSimulationStopped())
         return(false);
     if (App::getEditModeType()!=NO_EDIT_MODE)
         return(false);
-    if (App::ct->objCont->getGraph(_graphHandle)!=nullptr)
-        return(App::ct->objCont->getLastSelectionID()==_graphHandle);
+    if (App::currentWorld->sceneObjects->getGraphFromHandle(_graphHandle)!=nullptr)
+        return(App::currentWorld->sceneObjects->getLastSelectionHandle()==_graphHandle);
     return(false);
 }
 
@@ -143,8 +143,8 @@ void CQDlg2D3DGraphProperties::refresh()
     ui->qqAlwaysOnTop->setVisible(!_xyGraph);
 
 
-    CGraph* it=App::ct->objCont->getLastSelection_graph();
-    CGraphDataComb* graphData=nullptr;
+    CGraph* it=App::currentWorld->sceneObjects->getLastSelectionGraph();
+    CGraphDataComb_old* graphData=nullptr;
     int graphDataId=getSelectedObjectID();
     if (_xyGraph)
         graphData=it->getGraphData2D(graphDataId);
@@ -183,14 +183,14 @@ void CQDlg2D3DGraphProperties::refresh()
 void CQDlg2D3DGraphProperties::updateObjectsInList()
 {
     ui->qqList->clear();
-    if (!App::ct->objCont->isLastSelectionAGraph())
+    if (!App::currentWorld->sceneObjects->isLastSelectionAGraph())
         return;
-    CGraph* it=App::ct->objCont->getLastSelection_graph();
+    CGraph* it=App::currentWorld->sceneObjects->getLastSelectionGraph();
     if (_xyGraph)
     {
-        for (size_t i=0;i<it->twoDPartners.size();i++)
+        for (size_t i=0;i<it->curves2d_old.size();i++)
         {
-            CGraphDataComb* aa=it->twoDPartners[i];
+            CGraphDataComb_old* aa=it->curves2d_old[i];
             std::string tmp(aa->getName());
             tmp+=" [";
             if (aa->data[0]==-1)
@@ -210,9 +210,9 @@ void CQDlg2D3DGraphProperties::updateObjectsInList()
     }
     else
     {
-        for (size_t i=0;i<it->threeDPartners.size();i++)
+        for (size_t i=0;i<it->curves3d_old.size();i++)
         {
-            CGraphDataComb* aa=it->threeDPartners[i];
+            CGraphDataComb_old* aa=it->curves3d_old[i];
 
             std::string tmp(aa->getName());
             tmp+=" [";
@@ -288,9 +288,9 @@ void CQDlg2D3DGraphProperties::on_qqList_itemSelectionChanged()
 {
     IF_UI_EVENT_CAN_READ_DATA
     {
-        CGraph* it=App::ct->objCont->getLastSelection_graph();
+        CGraph* it=App::currentWorld->sceneObjects->getLastSelectionGraph();
         int objID=getSelectedObjectID();
-        CGraphDataComb* grData;
+        CGraphDataComb_old* grData;
         if (_xyGraph)
             grData=it->getGraphData2D(objID);
         else
@@ -374,9 +374,9 @@ void CQDlg2D3DGraphProperties::on_qqAdjustColor_clicked()
     IF_UI_EVENT_CAN_READ_DATA
     {
         if (_xyGraph)
-            CQDlgColor::displayDlg(COLOR_ID_GRAPH_2DCURVE,App::ct->objCont->getLastSelectionID(),getSelectedObjectID(),sim_colorcomponent_ambient_diffuse,App::mainWindow);
+            CQDlgColor::displayDlg(COLOR_ID_GRAPH_2DCURVE,App::currentWorld->sceneObjects->getLastSelectionHandle(),getSelectedObjectID(),sim_colorcomponent_ambient_diffuse,App::mainWindow);
         else
-            CQDlgMaterial::displayMaterialDlg(COLOR_ID_GRAPH_3DCURVE,App::ct->objCont->getLastSelectionID(),getSelectedObjectID(),App::mainWindow);
+            CQDlgMaterial::displayMaterialDlg(COLOR_ID_GRAPH_3DCURVE,App::currentWorld->sceneObjects->getLastSelectionHandle(),getSelectedObjectID(),App::mainWindow);
     }
 }
 

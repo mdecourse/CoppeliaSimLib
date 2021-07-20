@@ -1,4 +1,3 @@
-
 #include "rendering.h"
 
 #ifdef SIM_WITH_OPENGL
@@ -56,13 +55,21 @@ void initGl_ifNeeded()
     ogl::loadOutlineFont(SIMOUTLINEFONT_ARIAL_INT,SIMOUTLINEFONT_ARIAL_FLOAT);
 
     std::string glVer("OpenGL: ");
-    glVer+=(char*)glGetString(GL_VENDOR);
+    std::string tmp="(none given)";
+    if (glGetString(GL_VENDOR)!=nullptr)
+        tmp=(char*)glGetString(GL_VENDOR);
+    glVer+=tmp.c_str();
     glVer+=", Renderer: ";
-    glVer+=(char*)glGetString(GL_RENDERER);
+    tmp="(none given)";
+    if (glGetString(GL_RENDERER)!=nullptr)
+        tmp=(char*)glGetString(GL_RENDERER);
+    glVer+=tmp.c_str();
     glVer+=", Version: ";
-    glVer+=(char*)glGetString(GL_VERSION);
-    glVer+="\n";
-    printf(glVer.c_str());
+    tmp="(none given)";
+    if (glGetString(GL_VERSION)!=nullptr)
+        tmp=(char*)glGetString(GL_VERSION);
+    glVer+=tmp.c_str();
+    App::logMsg(sim_verbosity_loadinfos,glVer.c_str());
 }
 
 void deinitGl_ifNeeded()
@@ -131,53 +138,53 @@ void _drawColorCodedTriangles(const float* vertices,int verticesCnt,const int* i
         _glBufferObjects->drawColorCodedTriangles(vertices,verticesCnt,indices,indicesCnt,normals,vertexBufferId,normalBufferId);
 }
 
-void makeColorCurrent(const CVisualParam* visParam,bool forceNonTransparent,bool useAuxiliaryComponent)
+void makeColorCurrent(const CColorObject* visParam,bool forceNonTransparent,bool useAuxiliaryComponent)
 {
     if (useAuxiliaryComponent)
     { // temperature, etc. colors:
-        ogl::setMaterialColor(ogl::colorBlack,ogl::colorBlack,visParam->colors+12);
+        ogl::setMaterialColor(ogl::colorBlack,ogl::colorBlack,visParam->getColorsPtr()+12);
         ogl::setBlending(false);
     }
     else
     { // regular colors:
-        if (visParam->flash)
+        if (visParam->getFlash())
         {
             float t=0.0f;
-            if (visParam->useSimulationTime&&(!App::ct->simulation->isSimulationStopped()))
-                t=float(App::ct->simulation->getSimulationTime_ns())/1000000.0f;
-            if (!visParam->useSimulationTime)
+            if (visParam->getUseSimulationTime()&&(!App::currentWorld->simulation->isSimulationStopped()))
+                t=float(App::currentWorld->simulation->getSimulationTime_us())/1000000.0f;
+            if (!visParam->getUseSimulationTime())
                 t=float(VDateTime::getTimeInMs())/1000.0f;
-            t+=visParam->flashPhase/visParam->flashFrequency;
-            t=CMath::robustFmod(t,1.0f/visParam->flashFrequency)*visParam->flashFrequency;
-            if (t>(1.0f-visParam->flashRatio))
+            t+=visParam->getFlashPhase()/visParam->getFlashFrequency();
+            t=CMath::robustFmod(t,1.0f/visParam->getFlashFrequency())*visParam->getFlashFrequency();
+            if (t>(1.0f-visParam->getFlashRatio()))
             { // Flash is on
-                    t=t-1.0f+visParam->flashRatio;
-                    t/=visParam->flashRatio;
+                    t=t-1.0f+visParam->getFlashRatio();
+                    t/=visParam->getFlashRatio();
                     t=sin(t*piValue_f);
                     float l=0.0f;
-                    float col0[12]={visParam->colors[0],visParam->colors[1],visParam->colors[2],visParam->colors[3],visParam->colors[4],visParam->colors[5],visParam->colors[6],visParam->colors[7],visParam->colors[8],0.0f,0.0f,0.0f};
-                    float col1[12]={visParam->colors[0]*l,visParam->colors[1]*l,visParam->colors[2]*l,visParam->colors[3]*l,visParam->colors[4]*l,visParam->colors[5]*l,visParam->colors[6]*l,visParam->colors[7]*l,visParam->colors[8]*l,visParam->colors[9],visParam->colors[10],visParam->colors[11]};
+                    float col0[12]={visParam->getColorsPtr()[0],visParam->getColorsPtr()[1],visParam->getColorsPtr()[2],visParam->getColorsPtr()[3],visParam->getColorsPtr()[4],visParam->getColorsPtr()[5],visParam->getColorsPtr()[6],visParam->getColorsPtr()[7],visParam->getColorsPtr()[8],0.0f,0.0f,0.0f};
+                    float col1[12]={visParam->getColorsPtr()[0]*l,visParam->getColorsPtr()[1]*l,visParam->getColorsPtr()[2]*l,visParam->getColorsPtr()[3]*l,visParam->getColorsPtr()[4]*l,visParam->getColorsPtr()[5]*l,visParam->getColorsPtr()[6]*l,visParam->getColorsPtr()[7]*l,visParam->getColorsPtr()[8]*l,visParam->getColorsPtr()[9],visParam->getColorsPtr()[10],visParam->getColorsPtr()[11]};
                     for (int i=0;i<12;i++)
                         col0[i]=col0[i]*(1.0f-t)+col1[i]*t;
                     ogl::setMaterialColor(col0,col0+6,col0+9);
-                    ogl::setShininess(visParam->shininess);
-                    ogl::setAlpha(visParam->transparencyFactor);
+                    ogl::setShininess(visParam->getShininess());
+                    ogl::setAlpha(visParam->getTransparencyFactor());
             }
             else
             { // flash is off
-                ogl::setMaterialColor(visParam->colors,visParam->colors+6,ogl::colorBlack);
-                ogl::setShininess(visParam->shininess);
-                ogl::setAlpha(visParam->transparencyFactor);
+                ogl::setMaterialColor(visParam->getColorsPtr(),visParam->getColorsPtr()+6,ogl::colorBlack);
+                ogl::setShininess(visParam->getShininess());
+                ogl::setAlpha(visParam->getTransparencyFactor());
             }
         }
         else
         {
-            ogl::setMaterialColor(visParam->colors,visParam->colors+6,visParam->colors+9);
-            ogl::setShininess(visParam->shininess);
-            ogl::setAlpha(visParam->transparencyFactor);
+            ogl::setMaterialColor(visParam->getColorsPtr(),visParam->getColorsPtr()+6,visParam->getColorsPtr()+9);
+            ogl::setShininess(visParam->getShininess());
+            ogl::setAlpha(visParam->getTransparencyFactor());
         }
 
-        if (visParam->translucid&&(!forceNonTransparent))
+        if (visParam->getTranslucid()&&(!forceNonTransparent))
             ogl::setBlending(true,GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
         else
             ogl::setBlending(false);
@@ -189,11 +196,11 @@ void _activateNonAmbientLights(int lightHandle,CViewableBase* viewable)
     // First deactivate all:
     for (int i=0;i<CLight::getMaxAvailableOglLights();i++)
         glDisable(GL_LIGHT0+i);
-    App::ct->environment->setNonAmbientLightsActive(false);
+    App::currentWorld->environment->setNonAmbientLightsActive(false);
 
     if (lightHandle>-2)
     {
-        App::ct->environment->setNonAmbientLightsActive(true);
+        App::currentWorld->environment->setNonAmbientLightsActive(true);
         GLfloat lightPos[]={0.0f,0.0f,0.0f,1.0f};
         GLfloat lightDir[3];
         int activeLightCounter=0;
@@ -202,9 +209,9 @@ void _activateNonAmbientLights(int lightHandle,CViewableBase* viewable)
         std::vector<CLight*> lList;
         if (lightHandle==-1)
         {
-            for (size_t i=0;i<App::ct->objCont->lightList.size();i++)
+            for (size_t i=0;i<App::currentWorld->sceneObjects->getLightCount();i++)
             {
-                CLight* light=App::ct->objCont->getLight(App::ct->objCont->lightList[i]);
+                CLight* light=App::currentWorld->sceneObjects->getLightFromIndex(i);
                 lList.push_back(light);
             }
         }
@@ -212,18 +219,18 @@ void _activateNonAmbientLights(int lightHandle,CViewableBase* viewable)
         {
             if (lightHandle<SIM_IDSTART_COLLECTION)
             {
-                CLight* light=App::ct->objCont->getLight(lightHandle);
+                CLight* light=App::currentWorld->sceneObjects->getLightFromHandle(lightHandle);
                 if (light!=nullptr)
                     lList.push_back(light);
             }
             else
             {
-                CRegCollection* gr=App::ct->collections->getCollection(lightHandle);
+                CCollection* gr=App::currentWorld->collections->getObjectFromHandle(lightHandle);
                 if (gr!=nullptr)
                 {
-                    for (size_t i=0;i<gr->collectionObjects.size();i++)
+                    for (size_t i=0;i<gr->getSceneObjectCountInCollection();i++)
                     {
-                        CLight* light=App::ct->objCont->getLight(gr->collectionObjects[i]);
+                        CLight* light=App::currentWorld->sceneObjects->getLightFromHandle(gr->getSceneObjectHandleFromIndex(i));
                         if (light!=nullptr)
                             lList.push_back(light);
                     }
@@ -239,9 +246,7 @@ void _activateNonAmbientLights(int lightHandle,CViewableBase* viewable)
             {
                 if ((light->getLightActive())&&(activeLightCounter<CLight::getMaxAvailableOglLights()))
                 {
-//                  float m[4][4];
-//                  light->getCumulativeTransformationMatrix(m);
-                    C7Vector tr(light->getCumulativeTransformation_forDisplay(viewable->getObjectType()==sim_object_camera_type));
+                    C7Vector tr(light->getFullCumulativeTransformation());
                     C4X4Matrix m(tr.getMatrix());
                     if (light->getLightType()==sim_light_directional_subtype)
                     {
@@ -280,14 +285,14 @@ void _activateNonAmbientLights(int lightHandle,CViewableBase* viewable)
                     glLightfv(GL_LIGHT0+activeLightCounter,GL_AMBIENT,black);
                     if ((viewable->getDisabledColorComponents()&2)==0)
                     {
-                        float diffuseLight[4]={light->getColor(true)->colors[3],light->getColor(true)->colors[4],light->getColor(true)->colors[5],1.0f};
+                        float diffuseLight[4]={light->getColor(true)->getColorsPtr()[3],light->getColor(true)->getColorsPtr()[4],light->getColor(true)->getColorsPtr()[5],1.0f};
                         glLightfv(GL_LIGHT0+activeLightCounter,GL_DIFFUSE,diffuseLight);
                     }
                     else
                         glLightfv(GL_LIGHT0+activeLightCounter,GL_DIFFUSE,black);
                     if ((viewable->getDisabledColorComponents()&4)==0)
                     {
-                        float specularLight[4]={light->getColor(true)->colors[6],light->getColor(true)->colors[7],light->getColor(true)->colors[8],1.0f};
+                        float specularLight[4]={light->getColor(true)->getColorsPtr()[6],light->getColor(true)->getColorsPtr()[7],light->getColor(true)->getColorsPtr()[8],1.0f};
                         glLightfv(GL_LIGHT0+activeLightCounter,GL_SPECULAR,specularLight);
                     }
                     else
@@ -320,19 +325,19 @@ void _enableAuxClippingPlanes(int objID)
 
 void _prepareOrEnableAuxClippingPlanes(bool prepare,int objID)
 {
-    if (App::ct->mainSettings->clippingPlanesDisabled)
+    if (App::currentWorld->mainSettings->clippingPlanesDisabled)
         return;
     int cpi=0;
-    for (size_t i=0;i<App::ct->objCont->mirrorList.size();i++)
+    for (size_t i=0;i<App::currentWorld->sceneObjects->getMirrorCount();i++)
     {
         if (cpi<5)
         {
-            CMirror* it=App::ct->objCont->getMirror(App::ct->objCont->mirrorList[i]);
+            CMirror* it=App::currentWorld->sceneObjects->getMirrorFromIndex(i);
             if ( (!it->getIsMirror())&&it->getActive() )
             {
                 if (prepare)
                 {
-                    C7Vector mtr(it->getCumulativeTransformation());
+                    C7Vector mtr(it->getFullCumulativeTransformation());
                     C3Vector mtrN(mtr.Q.getMatrix().axis[2]);
                     float d=(mtrN*mtr.X);
                     double cpv[4]={-mtrN(0),-mtrN(1),-mtrN(2),d};
@@ -344,7 +349,7 @@ void _prepareOrEnableAuxClippingPlanes(bool prepare,int objID)
                     bool clipIt=false;
                     if ( (clipObj>=SIM_IDSTART_COLLECTION)&&(clipObj<=SIM_IDEND_COLLECTION) )
                     { // collection
-                        CRegCollection* coll=App::ct->collections->getCollection(clipObj);
+                        CCollection* coll=App::currentWorld->collections->getObjectFromHandle(clipObj);
                         clipIt=coll->isObjectInCollection(objID);
                     }
                     else
@@ -364,7 +369,7 @@ void _disableAuxClippingPlanes()
         glDisable(GL_CLIP_PLANE1+i);
 }
 
-void _drawReference(C3DObject* object,float refSize)
+void _drawReference(CSceneObject* object,float refSize)
 {   // refSize is 0.0f by default --> size depends on the bounding box
     float s;
     if (refSize!=0.0f)
@@ -382,7 +387,7 @@ void _drawReference(C3DObject* object,float refSize)
     glPopMatrix();
 }
 
-void _displayBoundingBox(C3DObject* object,int displayAttrib,bool displRef,float refSize)
+void _displayBoundingBox(CSceneObject* object,int displayAttrib,bool displRef,float refSize)
 {   // displRef is true by default, refSize is 0.0f by default
     if ((displayAttrib&sim_displayattribute_selected)==0)
         return;
@@ -394,7 +399,7 @@ void _displayBoundingBox(C3DObject* object,int displayAttrib,bool displRef,float
     bbMax.clear();
     if (object->getModelBase())
     {
-        C7Vector ctmi(object->getCumulativeTransformationPart1_forDisplay((displayAttrib&sim_displayattribute_forvisionsensor)==0).getInverse());
+        C7Vector ctmi(object->getCumulativeTransformation().getInverse());
         bool b=true;
         if (!object->getGlobalMarkingBoundingBox(ctmi,bbMin,bbMax,b,true,(displayAttrib&sim_displayattribute_forvisionsensor)==0))
             return; // no boundingbox to display!
@@ -425,7 +430,7 @@ void _displayBoundingBox(C3DObject* object,int displayAttrib,bool displRef,float
 
     if (!avail)
     {
-        App::ct->environment->temporarilyDeactivateFog();
+        App::currentWorld->environment->temporarilyDeactivateFog();
 
         ogl::buffer.clear();
         ogl::addBuffer3DPoints(bbMin(0)-dx(0),bbMin(1)-dx(1),bbMax(2)+dx(2));
@@ -449,10 +454,10 @@ void _displayBoundingBox(C3DObject* object,int displayAttrib,bool displRef,float
         ogl::addBuffer3DPoints(bbMax(0)+dx(0),bbMax(1)+dx(1),bbMax(2)+dx(2));
         ogl::drawRandom3dLines(&ogl::buffer[0],(int)ogl::buffer.size()/3,false,nullptr);
         ogl::buffer.clear();
-        App::ct->environment->reactivateFogThatWasTemporarilyDisabled();
+        App::currentWorld->environment->reactivateFogThatWasTemporarilyDisabled();
         if (true)
         {
-            C4Vector r(object->getCumulativeTransformation_forDisplay((displayAttrib&sim_displayattribute_forvisionsensor)==0).Q);
+            C4Vector r(object->getFullCumulativeTransformation().Q);
             C3Vector absV;
             float maxH=0.0f;
             int highestIndex[3];
@@ -496,10 +501,10 @@ void _displayBoundingBox(C3DObject* object,int displayAttrib,bool displRef,float
                     corner(i)=bbMax(i)+dx(i);
                 corner2(i)=corner(i)*(1.1f+0.15f*float((object->getObjectHandle()>>((2-i)*2))%4));
             }
-            App::ct->environment->temporarilyDeactivateFog();
+            App::currentWorld->environment->temporarilyDeactivateFog();
             ogl::drawSingle3dLine(corner.data,corner2.data,nullptr);
-            ogl::drawBitmapTextTo3dPosition(corner2.data,object->getDisplayName(),nullptr);
-            App::ct->environment->reactivateFogThatWasTemporarilyDisabled();
+            ogl::drawBitmapTextTo3dPosition(corner2.data,object->getDisplayName().c_str(),nullptr);
+            App::currentWorld->environment->reactivateFogThatWasTemporarilyDisabled();
         }
         glLineWidth(1.0f);
         if (displRef)
@@ -508,17 +513,12 @@ void _displayBoundingBox(C3DObject* object,int displayAttrib,bool displRef,float
 
     glDisable(GL_LINE_STIPPLE);
     avail=true;
-    if ((displayAttrib&sim_displayattribute_groupselection)&&avail)
-    {
-        App::userSettings->groupSelectionColor.makeCurrentColor((displayAttrib&sim_displayattribute_useauxcomponent)!=0);
-        avail=false;
-    }
 }
 
-void _selectLights(C3DObject* object,CViewableBase* viewable)
+void _selectLights(CSceneObject* object,CViewableBase* viewable)
 {
     object->setRestoreToDefaultLights(false);
-    if (App::ct->environment->areNonAmbientLightsActive())
+    if (App::currentWorld->environment->areNonAmbientLightsActive())
     {
         if (object->getSpecificLight()!=-1)
         {
@@ -528,25 +528,25 @@ void _selectLights(C3DObject* object,CViewableBase* viewable)
     }
 }
 
-void _restoreDefaultLights(C3DObject* object,CViewableBase* viewable)
+void _restoreDefaultLights(CSceneObject* object,CViewableBase* viewable)
 {
     if (object->getRestoreToDefaultLights())
         _activateNonAmbientLights(-1,viewable);
 }
 
-void _commonStart(C3DObject* object,CViewableBase* viewable,int displayAttrib)
+void _commonStart(CSceneObject* object,CViewableBase* viewable,int displayAttrib)
 {
     _selectLights(object,viewable);
     glPushMatrix();
     glPushAttrib(GL_POLYGON_BIT);
 
-    C7Vector tr=object->getCumulativeTransformationPart1_forDisplay((displayAttrib&sim_displayattribute_forvisionsensor)==0);
+    C7Vector tr=object->getCumulativeTransformation();
     glTranslatef(tr.X(0),tr.X(1),tr.X(2));
     C4Vector axis=tr.Q.getAngleAndAxisNoChecking();
     glRotatef(axis(0)*radToDeg_f,axis(1),axis(2),axis(3));
 }
 
-void _commonFinish(C3DObject* object,CViewableBase* viewable)
+void _commonFinish(CSceneObject* object,CViewableBase* viewable)
 {
     glPopAttrib();
     glPopMatrix();
@@ -562,11 +562,11 @@ bool _start3DTextureDisplay(CTextureProperty* tp)
         return(false);
     CTextureObject* it=nullptr;
     if ((_textureOrVisionSensorObjectID>=SIM_IDSTART_TEXTURE)&&(_textureOrVisionSensorObjectID<=SIM_IDEND_TEXTURE))
-        it=App::ct->textureCont->getObject(_textureOrVisionSensorObjectID);
+        it=App::currentWorld->textureContainer->getObject(_textureOrVisionSensorObjectID);
     CVisionSensor* rs=nullptr;
-    if ((_textureOrVisionSensorObjectID>=SIM_IDSTART_3DOBJECT)&&(_textureOrVisionSensorObjectID<=SIM_IDEND_3DOBJECT))
+    if ((_textureOrVisionSensorObjectID>=SIM_IDSTART_SCENEOBJECT)&&(_textureOrVisionSensorObjectID<=SIM_IDEND_SCENEOBJECT))
     {
-        rs=App::ct->objCont->getVisionSensor(_textureOrVisionSensorObjectID);
+        rs=App::currentWorld->sceneObjects->getVisionSensorFromHandle(_textureOrVisionSensorObjectID);
         if (rs!=nullptr)
             it=rs->getTextureObject();
     }
@@ -593,11 +593,11 @@ bool _start2DTextureDisplay(CTextureProperty* tp)
         return(false);
     CTextureObject* it=nullptr;
     if ((_textureOrVisionSensorObjectID>=SIM_IDSTART_TEXTURE)&&(_textureOrVisionSensorObjectID<=SIM_IDEND_TEXTURE))
-        it=App::ct->textureCont->getObject(_textureOrVisionSensorObjectID);
+        it=App::currentWorld->textureContainer->getObject(_textureOrVisionSensorObjectID);
     CVisionSensor* rs=nullptr;
-    if ((_textureOrVisionSensorObjectID>=SIM_IDSTART_3DOBJECT)&&(_textureOrVisionSensorObjectID<=SIM_IDEND_3DOBJECT))
+    if ((_textureOrVisionSensorObjectID>=SIM_IDSTART_SCENEOBJECT)&&(_textureOrVisionSensorObjectID<=SIM_IDEND_SCENEOBJECT))
     {
-        rs=App::ct->objCont->getVisionSensor(_textureOrVisionSensorObjectID);
+        rs=App::currentWorld->sceneObjects->getVisionSensorFromHandle(_textureOrVisionSensorObjectID);
         if (rs!=nullptr)
             it=rs->getTextureObject();
     }
@@ -633,7 +633,7 @@ void _startTextureDisplay(CTextureObject* to,bool interpolateColor,int applyMode
     if (to->getOglTextureName()==(unsigned int)-1)
     {
         unsigned int tn;
-        glGenTextures(1,&tn);
+        tn=ogl::genTexture();//glGenTextures(1,&tn);
         glBindTexture(GL_TEXTURE_2D,tn);
         to->setOglTextureName(tn);
         glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,sx,sy,0,GL_RGBA,GL_UNSIGNED_BYTE,to->getTextureBufferPointer());
@@ -681,12 +681,12 @@ void _endTextureDisplay()
 
 void destroyGlTexture(unsigned int texName)
 {
-    glDeleteTextures(1,&texName);
+    ogl::delTexture(texName);//glDeleteTextures(1,&texName);
 }
 
 #else
 
-void makeColorCurrent(const CVisualParam* visParam,bool forceNonTransparent,bool useAuxiliaryComponent)
+void makeColorCurrent(const CColorObject* visParam,bool forceNonTransparent,bool useAuxiliaryComponent)
 {
 
 }

@@ -33,18 +33,18 @@ void CQDlgDetectionVolume::refresh()
     inMainRefreshRoutine=true;
     QLineEdit* lineEditToSelect=getSelectedLineEdit();
 
-    bool noEditModeNoSim=(App::getEditModeType()==NO_EDIT_MODE)&&App::ct->simulation->isSimulationStopped();
+    bool noEditModeNoSim=(App::getEditModeType()==NO_EDIT_MODE)&&App::currentWorld->simulation->isSimulationStopped();
 
-    bool prox=App::ct->objCont->isLastSelectionAProxSensor();
-    bool mill=App::ct->objCont->isLastSelectionAMill();
+    bool prox=App::currentWorld->sceneObjects->isLastSelectionAProxSensor();
+    bool mill=App::currentWorld->sceneObjects->isLastSelectionAMill();
     bool ssel=false;
     if (prox)
-        ssel=(App::ct->objCont->getProxSensorNumberInSelection()>1);
+        ssel=(App::currentWorld->sceneObjects->getProxSensorCountInSelection()>1);
     if (mill)
-        ssel=(App::ct->objCont->getMillNumberInSelection()>1);
+        ssel=(App::currentWorld->sceneObjects->getMillCountInSelection()>1);
     CConvexVolume* cv=nullptr;
-    CProxSensor* proxIt=App::ct->objCont->getLastSelection_proxSensor();
-    CMill* millIt=App::ct->objCont->getLastSelection_mill();
+    CProxSensor* proxIt=App::currentWorld->sceneObjects->getLastSelectionProxSensor();
+    CMill* millIt=App::currentWorld->sceneObjects->getLastSelectionMill();
     if (prox)
         cv=proxIt->convexVolume;
     if (mill)
@@ -60,13 +60,13 @@ void CQDlgDetectionVolume::refresh()
         // The combo first:
         if (prox)
         {
-            ui->qqType->addItem(strTranslate(IDSN_RAY),QVariant(0));
-            ui->qqType->addItem(strTranslate(IDSN_RANDOMIZED_RAY),QVariant(1));
+            ui->qqType->addItem(IDSN_RAY,QVariant(0));
+            ui->qqType->addItem(IDSN_RANDOMIZED_RAY,QVariant(1));
         }
-        ui->qqType->addItem(strTranslate(IDSN_PYRAMID),QVariant(2));
-        ui->qqType->addItem(strTranslate(IDSN_CYLINDER),QVariant(3));
-        ui->qqType->addItem(strTranslate(IDSN_DISC),QVariant(4));
-        ui->qqType->addItem(strTranslate(IDSN_CONE),QVariant(5));
+        ui->qqType->addItem(IDSN_PYRAMID,QVariant(2));
+        ui->qqType->addItem(IDSN_CYLINDER,QVariant(3));
+        ui->qqType->addItem(IDSN_DISC,QVariant(4));
+        ui->qqType->addItem(IDSN_CONE,QVariant(5));
         // Select the current item:
         if (prox)
         {
@@ -100,7 +100,7 @@ void CQDlgDetectionVolume::refresh()
 
         if (prox)
         {
-            setWindowTitle(strTranslate(IDSN_DETECTION_VOLUME_PROPERTIES));
+            setWindowTitle(IDSN_DETECTION_VOLUME_PROPERTIES);
 
             ui->qqOffset->setEnabled(noEditModeNoSim);
             if ( (proxIt->getSensorType()==sim_proximitysensor_ray_subtype)&&proxIt->getRandomizedDetection() )
@@ -272,7 +272,7 @@ void CQDlgDetectionVolume::refresh()
 
         if (mill)
         {
-            setWindowTitle(strTranslate(IDSN_CUTTING_VOLUME_PROPERTIES));
+            setWindowTitle(IDSN_CUTTING_VOLUME_PROPERTIES);
             ui->qqInsideGap->setEnabled(false);
             ui->qqInsideGap->setText("");
             ui->qqSubdivisions->setEnabled(false);
@@ -417,7 +417,7 @@ void CQDlgDetectionVolume::refresh()
     }
     else
     {
-        setWindowTitle(strTranslate(IDSN_VOLUME_PROPERTIES));
+        setWindowTitle(IDSN_VOLUME_PROPERTIES);
         ui->qqOffset->setEnabled(false);
         ui->qqOffset->setText("");
         ui->qqRange->setEnabled(false);
@@ -461,8 +461,8 @@ void CQDlgDetectionVolume::refresh()
 CConvexVolume* CQDlgDetectionVolume::getCurrentConvexVolume()
 {
     CConvexVolume* cv=nullptr;
-    CProxSensor* proxIt=App::ct->objCont->getLastSelection_proxSensor();
-    CMill* millIt=App::ct->objCont->getLastSelection_mill();
+    CProxSensor* proxIt=App::currentWorld->sceneObjects->getLastSelectionProxSensor();
+    CMill* millIt=App::currentWorld->sceneObjects->getLastSelectionMill();
     if (proxIt!=nullptr)
         cv=proxIt->convexVolume;
     if (millIt!=nullptr)
@@ -480,8 +480,8 @@ void CQDlgDetectionVolume::on_qqType_currentIndexChanged(int index)
             if (cv!=nullptr)
             {
                 int index=ui->qqType->currentIndex();
-                CProxSensor* proxIt=App::ct->objCont->getLastSelection_proxSensor();
-                CMill* millIt=App::ct->objCont->getLastSelection_mill();
+                CProxSensor* proxIt=App::currentWorld->sceneObjects->getLastSelectionProxSensor();
+                CMill* millIt=App::currentWorld->sceneObjects->getLastSelectionMill();
                 int theType=-1;
                 bool randomized=false;
                 if (proxIt!=nullptr)
@@ -513,7 +513,7 @@ void CQDlgDetectionVolume::on_qqType_currentIndexChanged(int index)
                 }
                 SSimulationThreadCommand cmd;
                 cmd.cmdId=SET_TYPE_DETECTIONVOLUMEGUITRIGGEREDCMD;
-                cmd.intParams.push_back(App::ct->objCont->getLastSelectionID());
+                cmd.intParams.push_back(App::currentWorld->sceneObjects->getLastSelectionHandle());
                 cmd.intParams.push_back(theType);
                 cmd.boolParams.push_back(randomized);
                 App::appendSimulationThreadCommand(cmd);
@@ -530,8 +530,8 @@ void CQDlgDetectionVolume::on_qqOffset_editingFinished()
         return;
     IF_UI_EVENT_CAN_WRITE_DATA
     {
-        CProxSensor* proxSensor=App::ct->objCont->getLastSelection_proxSensor();
-        CMill* mill=App::ct->objCont->getLastSelection_mill();
+        CProxSensor* proxSensor=App::currentWorld->sceneObjects->getLastSelectionProxSensor();
+        CMill* mill=App::currentWorld->sceneObjects->getLastSelectionMill();
         CConvexVolume* cv=getCurrentConvexVolume();
         bool ok;
         float newVal=ui->qqOffset->text().toFloat(&ok);
@@ -539,14 +539,14 @@ void CQDlgDetectionVolume::on_qqOffset_editingFinished()
         {
             // special here:
             if ( (proxSensor->getSensorType()==sim_proximitysensor_ray_subtype)&&proxSensor->getRandomizedDetection() )
-                App::appendSimulationThreadCommand(SET_RADIUS_DETECTIONVOLUMEGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),-1,newVal);
+                App::appendSimulationThreadCommand(SET_RADIUS_DETECTIONVOLUMEGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),-1,newVal);
             else
-                App::appendSimulationThreadCommand(SET_OFFSET_DETECTIONVOLUMEGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),-1,newVal);
+                App::appendSimulationThreadCommand(SET_OFFSET_DETECTIONVOLUMEGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),-1,newVal);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         }
         if (ok&&cv&&(mill!=nullptr))
         {
-            App::appendSimulationThreadCommand(SET_OFFSET_DETECTIONVOLUMEGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),-1,newVal);
+            App::appendSimulationThreadCommand(SET_OFFSET_DETECTIONVOLUMEGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),-1,newVal);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         }
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
@@ -564,7 +564,7 @@ void CQDlgDetectionVolume::on_qqRadius_editingFinished()
         float newVal=ui->qqRadius->text().toFloat(&ok);
         if (ok&&cv)
         {
-            App::appendSimulationThreadCommand(SET_RADIUS_DETECTIONVOLUMEGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),-1,newVal);
+            App::appendSimulationThreadCommand(SET_RADIUS_DETECTIONVOLUMEGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),-1,newVal);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         }
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
@@ -582,7 +582,7 @@ void CQDlgDetectionVolume::on_qqRange_editingFinished()
         float newVal=ui->qqRange->text().toFloat(&ok);
         if (ok&&cv)
         {
-            App::appendSimulationThreadCommand(SET_RANGE_DETECTIONVOLUMEGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),-1,newVal);
+            App::appendSimulationThreadCommand(SET_RANGE_DETECTIONVOLUMEGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),-1,newVal);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         }
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
@@ -600,7 +600,7 @@ void CQDlgDetectionVolume::on_qqRadiusFar_editingFinished()
         float newVal=ui->qqRadiusFar->text().toFloat(&ok);
         if (ok&&cv)
         {
-            App::appendSimulationThreadCommand(SET_RADIUSFAR_DETECTIONVOLUMEGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),-1,newVal);
+            App::appendSimulationThreadCommand(SET_RADIUSFAR_DETECTIONVOLUMEGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),-1,newVal);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         }
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
@@ -618,7 +618,7 @@ void CQDlgDetectionVolume::on_qqSizeX_editingFinished()
         float newVal=ui->qqSizeX->text().toFloat(&ok);
         if (ok&&cv)
         {
-            App::appendSimulationThreadCommand(SET_XSIZE_DETECTIONVOLUMEGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),-1,newVal);
+            App::appendSimulationThreadCommand(SET_XSIZE_DETECTIONVOLUMEGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),-1,newVal);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         }
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
@@ -636,7 +636,7 @@ void CQDlgDetectionVolume::on_qqAngle_editingFinished()
         float newVal=ui->qqAngle->text().toFloat(&ok);
         if (ok&&cv)
         {
-            App::appendSimulationThreadCommand(SET_ANGLE_DETECTIONVOLUMEGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),-1,newVal*gv::userToRad);
+            App::appendSimulationThreadCommand(SET_ANGLE_DETECTIONVOLUMEGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),-1,newVal*gv::userToRad);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         }
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
@@ -654,7 +654,7 @@ void CQDlgDetectionVolume::on_qqSizeY_editingFinished()
         float newVal=ui->qqSizeY->text().toFloat(&ok);
         if (ok&&cv)
         {
-            App::appendSimulationThreadCommand(SET_YSIZE_DETECTIONVOLUMEGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),-1,newVal);
+            App::appendSimulationThreadCommand(SET_YSIZE_DETECTIONVOLUMEGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),-1,newVal);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         }
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
@@ -672,7 +672,7 @@ void CQDlgDetectionVolume::on_qqFaceCount_editingFinished()
         int newVal=ui->qqFaceCount->text().toInt(&ok);
         if (ok&&cv)
         {
-            App::appendSimulationThreadCommand(SET_FACECOUNT_DETECTIONVOLUMEGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),newVal);
+            App::appendSimulationThreadCommand(SET_FACECOUNT_DETECTIONVOLUMEGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),newVal);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         }
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
@@ -690,7 +690,7 @@ void CQDlgDetectionVolume::on_qqSizeFarX_editingFinished()
         float newVal=ui->qqSizeFarX->text().toFloat(&ok);
         if (ok&&cv)
         {
-            App::appendSimulationThreadCommand(SET_XSIZEFAR_DETECTIONVOLUMEGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),-1,newVal);
+            App::appendSimulationThreadCommand(SET_XSIZEFAR_DETECTIONVOLUMEGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),-1,newVal);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         }
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
@@ -708,7 +708,7 @@ void CQDlgDetectionVolume::on_qqFaceCountFar_editingFinished()
         int newVal=ui->qqFaceCountFar->text().toInt(&ok);
         if (ok&&cv)
         {
-            App::appendSimulationThreadCommand(SET_FACECOUNTFAR_DETECTIONVOLUMEGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),newVal);
+            App::appendSimulationThreadCommand(SET_FACECOUNTFAR_DETECTIONVOLUMEGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),newVal);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         }
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
@@ -726,7 +726,7 @@ void CQDlgDetectionVolume::on_qqSizeFarY_editingFinished()
         float newVal=ui->qqSizeFarY->text().toFloat(&ok);
         if (ok&&cv)
         {
-            App::appendSimulationThreadCommand(SET_YSIZEFAR_DETECTIONVOLUMEGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),-1,newVal);
+            App::appendSimulationThreadCommand(SET_YSIZEFAR_DETECTIONVOLUMEGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),-1,newVal);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         }
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
@@ -739,13 +739,13 @@ void CQDlgDetectionVolume::on_qqSubdivisions_editingFinished()
         return;
     IF_UI_EVENT_CAN_WRITE_DATA
     {
-        CProxSensor* proxSensor=App::ct->objCont->getLastSelection_proxSensor();
+        CProxSensor* proxSensor=App::currentWorld->sceneObjects->getLastSelectionProxSensor();
         CConvexVolume* cv=getCurrentConvexVolume();
         bool ok;
         int newVal=ui->qqSubdivisions->text().toInt(&ok);
         if (ok&&cv&&(proxSensor!=nullptr))
         {
-            App::appendSimulationThreadCommand(SET_SUBDIVISIONS_DETECTIONVOLUMEGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),newVal);
+            App::appendSimulationThreadCommand(SET_SUBDIVISIONS_DETECTIONVOLUMEGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),newVal);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         }
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
@@ -758,13 +758,13 @@ void CQDlgDetectionVolume::on_qqInsideGap_editingFinished()
         return;
     IF_UI_EVENT_CAN_WRITE_DATA
     {
-        CProxSensor* proxSensor=App::ct->objCont->getLastSelection_proxSensor();
+        CProxSensor* proxSensor=App::currentWorld->sceneObjects->getLastSelectionProxSensor();
         CConvexVolume* cv=getCurrentConvexVolume();
         bool ok;
         float newVal=ui->qqInsideGap->text().toFloat(&ok);
         if (ok&&cv&&(proxSensor!=nullptr))
         {
-            App::appendSimulationThreadCommand(SET_INSIDEGAP_DETECTIONVOLUMEGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),-1,newVal);
+            App::appendSimulationThreadCommand(SET_INSIDEGAP_DETECTIONVOLUMEGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),-1,newVal);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         }
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
@@ -782,7 +782,7 @@ void CQDlgDetectionVolume::on_qqSubdivisionsFar_editingFinished()
         int newVal=ui->qqSubdivisionsFar->text().toInt(&ok);
         if (ok&&cv)
         {
-            App::appendSimulationThreadCommand(SET_SUBDIVISIONSFAR_DETECTIONVOLUMEGUITRIGGEREDCMD,App::ct->objCont->getLastSelectionID(),newVal);
+            App::appendSimulationThreadCommand(SET_SUBDIVISIONSFAR_DETECTIONVOLUMEGUITRIGGEREDCMD,App::currentWorld->sceneObjects->getLastSelectionHandle(),newVal);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         }
         App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
@@ -793,15 +793,15 @@ void CQDlgDetectionVolume::on_qqApplyAll_clicked()
 {
     IF_UI_EVENT_CAN_WRITE_DATA
     {
-        CProxSensor* proxSensor=App::ct->objCont->getLastSelection_proxSensor();
-        CMill* mill=App::ct->objCont->getLastSelection_mill();
+        CProxSensor* proxSensor=App::currentWorld->sceneObjects->getLastSelectionProxSensor();
+        CMill* mill=App::currentWorld->sceneObjects->getLastSelectionMill();
         if ( (proxSensor!=nullptr)||(mill!=nullptr) )
         {
             SSimulationThreadCommand cmd;
             cmd.cmdId=APPLY_DETECTIONVOLUMEGUITRIGGEREDCMD;
-            cmd.intParams.push_back(App::ct->objCont->getLastSelectionID());
-            for (int i=0;i<App::ct->objCont->getSelSize()-1;i++)
-                cmd.intParams.push_back(App::ct->objCont->getSelID(i));
+            cmd.intParams.push_back(App::currentWorld->sceneObjects->getLastSelectionHandle());
+            for (size_t i=0;i<App::currentWorld->sceneObjects->getSelectionCount()-1;i++)
+                cmd.intParams.push_back(App::currentWorld->sceneObjects->getObjectHandleFromSelectionIndex(i));
             App::appendSimulationThreadCommand(cmd);
             App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
         }

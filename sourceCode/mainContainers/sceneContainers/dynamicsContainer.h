@@ -1,10 +1,8 @@
-
 #pragma once
 
-#include "mainCont.h"
 #include "3Vector.h"
 #include "ser.h"
-#include "visualParam.h"
+#include "colorObject.h"
 
 enum { /* Bullet global float params */
     simi_bullet_global_stepsize=0,
@@ -77,7 +75,21 @@ enum { /* Newton global bit params */
     simi_newton_global_highjointaccuracy=4,
 };
 
-class CDynamicsContainer : public CMainCont 
+enum {
+    dynset_first        =0,
+    dynset_veryprecise  =dynset_first,
+    dynset_precise      =1,
+    dynset_balanced     =2,
+    dynset_fast         =3,
+    dynset_veryfast     =4,
+    dynset_custom       =5,
+    dynset_default      =dynset_balanced,
+    dynset_last         =dynset_custom
+};
+
+class CViewableBase;
+
+class CDynamicsContainer 
 {
 public:
     CDynamicsContainer();
@@ -89,7 +101,7 @@ public:
     void renderYour3DStuff_overlay(CViewableBase* renderingObject,int displayAttrib);
 
     void handleDynamics(float dt);
-    bool getContactForce(int dynamicPass,int objectHandle,int index,int objectHandles[2],float contactInfo[6]);
+    bool getContactForce(int dynamicPass,int objectHandle,int index,int objectHandles[2],float* contactInfo);
 
     void reportDynamicWorldConfiguration();
 
@@ -123,8 +135,9 @@ public:
     void setGravity(const C3Vector& gr);
     C3Vector getGravity();
 
-    void setUseDynamicDefaultCalculationParameters(int defType); // 0=default very precise, 1=default precise, 2=default fast, 3=default very fast, 4=custom
-    int getUseDynamicDefaultCalculationParameters();
+    void setDynamicsSettingsMode(int dynSetMode);
+    int getDynamicsSettingsMode();
+    static std::string getDynamicsSettingsModeStr(int dynSetMode);
 
     float getPositionScalingFactorDyn();
     float getLinearVelocityScalingFactorDyn();
@@ -178,7 +191,7 @@ public:
     void getNewtonDefaultFloatParams(std::vector<float>& p,int defType);
     void getNewtonDefaultIntParams(std::vector<int>& p,int defType);
 
-    CVisualParam contactPointColor;
+    CColorObject contactPointColor;
 
 protected:
     void _resetWarningFlags();
@@ -203,7 +216,7 @@ protected:
     int _dynamicEngineToUse;
     int _dynamicEngineVersionToUse;
     C3Vector _gravity;
-    int _dynamicDefaultTypeCalculationParameters;
+    int _dynamicsSettingsMode;
     bool _displayContactPoints;
 
 

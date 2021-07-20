@@ -33,30 +33,30 @@ void CQDlgTextureSelection::refresh()
 {
     ui->qqTextureList->clear();
     int itemCount=0;
-    while (App::ct->textureCont->getObjectAtIndex(itemCount)!=nullptr)
+    while (App::currentWorld->textureContainer->getObjectAtIndex(itemCount)!=nullptr)
     {
-        CTextureObject* it=App::ct->textureCont->getObjectAtIndex(itemCount);
+        CTextureObject* it=App::currentWorld->textureContainer->getObjectAtIndex(itemCount);
         std::string txt(it->getObjectName());
         int sx,sy;
         it->getTextureSize(sx,sy);
         txt+=" [";
         txt+=boost::lexical_cast<std::string>(sx)+"x"+boost::lexical_cast<std::string>(sy)+"] ";
-        txt+=tt::decorateString(" (",strTranslate(IDSN_STATIC_TEXTURE),")");
+        txt+=tt::decorateString(" (",IDSN_STATIC_TEXTURE,")");
         QListWidgetItem* itm=new QListWidgetItem(txt.c_str());
         itm->setData(Qt::UserRole,QVariant(it->getObjectID()));
         itm->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);
         ui->qqTextureList->addItem(itm);
         itemCount++;
     }
-    for (int i=0;i<int(App::ct->objCont->visionSensorList.size());i++)
+    for (size_t i=0;i<App::currentWorld->sceneObjects->getVisionSensorCount();i++)
     {
-        CVisionSensor* rs=App::ct->objCont->getVisionSensor(App::ct->objCont->visionSensorList[i]);
-        std::string txt(rs->getObjectName());
+        CVisionSensor* rs=App::currentWorld->sceneObjects->getVisionSensorFromIndex(i);
+        std::string txt(rs->getObjectAlias_printPath());
         int s[2];
         rs->getRealResolution(s);
         txt+=" [";
         txt+=boost::lexical_cast<std::string>(s[0])+"x"+boost::lexical_cast<std::string>(s[1])+"] ";
-        txt+=tt::decorateString(" (",strTranslate(IDSN_DYNAMIC_TEXTURE),")");
+        txt+=tt::decorateString(" (",IDSN_DYNAMIC_TEXTURE,")");
         QListWidgetItem* itm=new QListWidgetItem(txt.c_str());
         itm->setData(Qt::UserRole,QVariant(rs->getObjectHandle()));
         itm->setFlags(Qt::ItemIsSelectable|Qt::ItemIsEnabled);

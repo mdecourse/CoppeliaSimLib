@@ -1,4 +1,3 @@
-
 #include "octreeRendering.h"
 
 #ifdef SIM_WITH_OPENGL
@@ -64,12 +63,12 @@ void displayOctree(COctree* octree,CViewableBase* renderingObject,int displayAtt
     if (displayAttrib&sim_displayattribute_renderpass)
         _displayBoundingBox(octree,displayAttrib,true,cbrt(d(0)*d(1)*d(2))*0.6f);
 
-    C3Vector normalVectorForLinesAndPoints(octree->getCumulativeTransformation().Q.getInverse()*C3Vector::unitZVector);
+    C3Vector normalVectorForLinesAndPoints(octree->getFullCumulativeTransformation().Q.getInverse()*C3Vector::unitZVector);
 
     // Object display:
     if (octree->getShouldObjectBeDisplayed(renderingObject->getObjectHandle(),displayAttrib))
     {
-        if ((App::getEditModeType()&SHAPE_OR_PATH_EDIT_MODE)==0)
+        if ((App::getEditModeType()&SHAPE_OR_PATH_EDIT_MODE_OLD)==0)
         {
             if (octree->getLocalObjectProperty()&sim_objectproperty_selectmodelbaseinstead)
                 glLoadName(octree->getModelSelectionHandle());
@@ -90,18 +89,18 @@ void displayOctree(COctree* octree,CViewableBase* renderingObject,int displayAtt
         {
             std::vector<float>& _voxelPositions=octree->getCubePositions()[0];
             float* _cubeVertices=octree->getCubeVertices();
-            bool setOtherColor=(App::ct->collisions->getCollisionColor(octree->getObjectHandle())!=0);
-            for (size_t i=0;i<App::ct->collections->allCollections.size();i++)
+            bool setOtherColor=(App::currentWorld->collisions->getCollisionColor(octree->getObjectHandle())!=0);
+            for (size_t i=0;i<App::currentWorld->collections->getObjectCount();i++)
             {
-                if (App::ct->collections->allCollections[i]->isObjectInCollection(octree->getObjectHandle()))
-                    setOtherColor|=(App::ct->collisions->getCollisionColor(App::ct->collections->allCollections[i]->getCollectionID())!=0);
+                if (App::currentWorld->collections->getObjectFromIndex(i)->isObjectInCollection(octree->getObjectHandle()))
+                    setOtherColor|=(App::currentWorld->collisions->getCollisionColor(App::currentWorld->collections->getObjectFromIndex(i)->getCollectionHandle())!=0);
             }
             if (displayAttrib&sim_displayattribute_forvisionsensor)
                 setOtherColor=false;
             if (!setOtherColor)
                 octree->getColor()->makeCurrentColor(false);
             else
-                App::ct->mainSettings->collisionColor.makeCurrentColor(false);
+                App::currentWorld->mainSettings->collisionColor.makeCurrentColor(false);
 
             if (octree->getShowOctree()&&((displayAttrib&sim_displayattribute_forvisionsensor)==0))
             {

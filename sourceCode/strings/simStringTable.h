@@ -1,10 +1,6 @@
 #pragma once
 
 #define IDSN_DEBUG_MENU_ITEM "Debug"
-#define IDSN_SHOW_INTERNAL_FUNCTION_ACCESS_DEBUG_MENU_ITEM "Debug internal function access (will heavily slow down CoppeliaSim)"
-#define IDSN_SHOW_C_API_ACCESS_DEBUG_MENU_ITEM "Debug C API access (will drastically slow down CoppeliaSim)"
-#define IDSN_SHOW_LUA_API_ACCESS_DEBUG_MENU_ITEM "Debug Lua API access (will slow down CoppeliaSim)"
-#define IDSN_SEND_DEBUG_INFO_TO_FILE_MENU_ITEM "Send debug info to file (debugLog.txt)"
 #define IDSN_DISABLE_FRUSTUM_CULLING_DEBUG_MENU_ITEM "Disable frustum culling"
 #define IDSN_DISABLE_DISTANCE_CACHING_DEBUG_MENU_ITEM "Disable distance caching"
 #define IDSN_VISUALIZE_OBB_STRUCTURE_DEBUG_MENU_ITEM "Visualize prepared OBB calculation structures"
@@ -14,7 +10,6 @@
 #define IDSN_INERTIA_FRAME_RELATIVE_TO_WORLD "The inertia frame is now expressed relative to the absolute reference frame. Clicking 'Apply to selection' will from now on apply the same absolute position/orientation of the inertia frames."
 #define IDSN_MOTION_PLANNING "Motion planning"
 #define IDSN_MOTION_PLANNING_SELECTION_INVALID "Make sure that you have selected only the joints (revolute or prismatic) involved in the motion planning task."
-#define IDSN_JOINT_NAME "Joint name"
 #define IDSN_RANGE_SUBDIVISIONS "Range subdivisions"
 #define IDSN_METRIC_WEIGHT "Metric weight"
 #define IDSN_DONE "Done."
@@ -38,12 +33,6 @@
 #define IDSN_PHYSICS_ENGINE "Physics engine"
 
 
-#define IDSNS_STARTING_ADDON_FUNCTION "Starting add-on function"
-#define IDSNS_ENDED_ADDON_FUNCTION "Ended add-on function"
-#define IDSNS_STARTED_ADDON_SCRIPT "Started add-on script"
-#define IDSNS_PAUSED_ADDON_SCRIPT "Suspended add-on script"
-#define IDSNS_RESUMED_ADDON_SCRIPT "Resumed add-on script"
-
 #define IDSN_MAP_COORD_IMPORTED "imported"
 #define IDSN_MAP_COORD_PROJECTION "projection"
 #define IDSN_MAP_COORD_CYLINDER "cylinder"
@@ -59,8 +48,6 @@
 #define IDSN_EXTERNAL_SCRIPT_EDITOR "External script editor"
 
 #define IDSN_TOGGLE_VISUALIZATION "Toggle visualization"
-#define IDSN_THREADED_RENDERING "Threaded rendering"
-#define IDSN_THREADED_RENDERING_WARNING "You have enabled the threaded rendering during simulation. It is recommended to keep this disabled for most situations, but you can always temporarily enable it via its dedicated toolbar button."
 
 #define IDSN_HIERARCHY_COLORING_MENU_ITEM "Hierarchy coloring"
 #define IDSN_HIERARCHY_COLORING_NONE_MENU_ITEM "None"
@@ -83,18 +70,16 @@
 #define IDSNS_AN_ERROR_OCCURRED_DURING_THE_IMPORT_OPERATION "An error occurred during the import operation."
 #define IDSNS_AN_ERROR_OCCURRED_DURING_THE_EXPORT_OPERATION "An error occurred during the export operation."
 #define IDSNS_ABORTED_FILE_DOES_NOT_EXIST "Aborted (file does not exist)."
-#define IDSNS_CANNOT_EXPORT_AN_EMPTY_PATH "Cannot export an empty path."
-#define IDSNS_LAST_SELECTION_IS_NOT_A_PATH "Last selection is not a path."
 #define IDSNS_CANNOT_PROCEED_NO_DYNAMIC_CONTENT_AVAILABLE "Cannot proceed, no dynamic content available!"
 #define IDSNS_FAILED_IS_THE_QHULL_PLUGIN_LOADED "Operation failed: is the Qhull plugin loaded?"
-#define IDSNS_OPERATION_FAILED "Operation failed."
+#define IDSNS_EXPORT_OPERATION_FAILED "Export operation failed."
 
 
 #define IDSNS_STARTING_TRIANGLE_EDIT_MODE "Starting triangle edit mode..."
 #define IDSNS_STARTING_COMPOUND_SHAPE_EDIT_MODE "Starting edit mode of compound shape..."
 #define IDSNS_ENDING_EDIT_MODE_AND_APPLYING_CHANGES "Ending edit mode and applying changes..."
 #define IDSNS_ENDING_EDIT_MODE_AND_CANCELLING_CHANGES "Ending edit mode and canceling changes..."
-#define IDSNS_STARTING_PATH_EDIT_MODE "Starting path edit mode..."
+#define IDSNS_STARTING_PATH_EDIT_MODE_OLD "Starting path edit mode..."
 #define IDSNS_COPYING_SELECTION "Copying selection..."
 #define IDSNS_PASTING_BUFFER "Pasting buffer..."
 #define IDSNS_DELETING_SELECTION "Deleting selection..."
@@ -107,8 +92,6 @@
 
 #define IDSNS_TOGGLED_TO_REAL_TIME_MODE "Toggled to real-time simulation mode."
 #define IDSNS_TOGGLED_TO_NON_REAL_TIME_MODE "Toggled to non real-time simulation mode."
-#define IDSNS_TOGGLED_TO_ONLINE_MODE "Toggled to online mode."
-#define IDSNS_TOGGLED_TO_OFFLINE_MODE "Toggled to offline mode."
 #define IDSNS_CREATED_VIEWS "Created View(s)."
 #define IDSNS_REMOVED_VIEW "Removed view."
 
@@ -155,15 +138,13 @@
 #define IDSNS_KEEPING_CONTROL_POINT_X_AXIS_AND_ALIGNING_CONTROL_POINT_Z_AXIS_WITH_LAST_SELECTION "Keeping control point's x axis and aligning control point's z axis with last selection..."
 #define IDSNS_GENERATING_NEW_PATH "Generating new path..."
 #define IDSNS_ADDING_A_PRIMITIVE_SHAPE "Adding a primitive shape..."
-#define IDSNS_ADDING_STATIC_DUPLICATE_OF_CURVE "Adding static duplicate of curve..."
-#define IDSNS_CURVE_DATA_COPIED_TO_CLIPBOARD "Copying curve data to clipboard..."
 #define IDSNS_ADDING_A_FLOATING_VIEW "Adding a floating view..."
 
 #define IDSNS_ADDING_A_JOINT "Adding a joint..."
 #define IDSNS_ADDING_A_CAMERA "Adding a camera..."
 #define IDSNS_ADDING_A_LIGHT "Adding a light..."
 #define IDSNS_ADDING_A_DUMMY "Adding a dummy..."
-#define IDSNS_ADDING_AN_OCTREE "Adding an octree..."
+#define IDSNS_ADDING_AN_OCTREE "Adding an OC tree..."
 #define IDSNS_ADDING_A_POINTCLOUD "Adding a point cloud..."
 #define IDSNS_ADDING_A_MIRROR "Adding a mirror..."
 #define IDSNS_ADDING_A_PATH "Adding a path..."
@@ -175,13 +156,10 @@
 #define IDSNS_ADDING_CONVEX_HULL "Adding the convex hull of selected shapes and dummies..."
 #define IDSNS_ADDING_CONVEX_DECOMPOSITION "Adding the convex decomposition of selected shapes..."
 
-#define IDSNS_IMPORTING_PATH_FROM_CSV_FILE "Importing path from *.csv file..."
 #define IDSNS_IMPORTING_HEIGHTFIELD_SHAPE "Importing heightfield shape..."
 
 #define IDSNS_EXPORTING_SHAPES "Exporting shapes..."
 #define IDSNS_EXPORTING_GRAPH_DATA "Exporting graph data..."
-#define IDSNS_EXPORTING_PATH "Exporting path..."
-#define IDSNS_EXPORTING_PATHS_BEZIER_CURVE "Exporting path's Bezier curve..."
 #define IDSNS_EXPORTING_DYNAMIC_CONTENT "Exporting dynamic content..."
 #define IDSNS_EXPORTING_IK_CONTENT "Exporting kinematics content..."
 
@@ -204,16 +182,13 @@
 #define IDSNS_MORPHING_INTO_CONVEX_DECOMPOSITION "Morphing selected shapes into convex decomposition..."
 #define IDSNS_DECIMATING_MESH "Decimating mesh..."
 #define IDSNS_EXTRACTING_INSIDE_PART "Extracting inside part..."
-#define IDSNS_DELETING_SELECTED_PATH_POINTS "Deleting selected path points..."
 
 #define IDSNS_MEMORIZING_OBJECT_CONFIGURATION "Memorizing object configuration (object position/orientation, joint parameter)..."
 #define IDSNS_RESTORING_OBJECT_CONFIGURATION "Restoring object configuration (object position/orientation, joint parameter)..."
-#define IDSNS_INITIALIZING_USER_INTERFACE_EDIT_MODE "Initializing OpenGl-based custom UI edit mode..."
 #define IDSNS_GROUPING_SELECTED_SHAPES "Grouping selected shapes..."
 #define IDSNS_UNGROUPING_SELECTED_SHAPES "Ungrouping selected shapes..."
 #define IDSNS_MERGING_SELECTED_SHAPES "Merging selected shapes..."
 #define IDSNS_DIVIDING_SELECTED_SHAPES "Dividing selected shapes..."
-#define IDSNS_MERGING_SELECTED_PATHS "Merging selected paths..."
 
 #define IDSNS_LOADING_MODEL "Loading model"
 #define IDSNS_LOADING_UI "Loading OpenGl-based custom UI"
@@ -232,7 +207,6 @@
 #define IDSNS_SCENE_WAS_EXPORTED "Scene was exported."
 #define IDSNS_SAVING_MODEL "Saving model"
 #define IDSNS_MODEL_WAS_SAVED "Model was saved."
-#define IDSNS_PATH_WAS_EMPTIED "Path was emptied."
 #define IDSNS_FORWARD_ROLL_PERFORMED "Forward roll performed."
 #define IDSNS_BACKWARD_ROLL_PERFORMED "Backward roll performed."
 #define IDSNS_EXECUTING_UNDO "Executing undo... "
@@ -241,8 +215,8 @@
 #define IDSNS_MAKING_ORPHANS "Making orphan(s)..."
 #define IDSN_ASSEMBLING_2_OBJECTS "Assembling 2 objects..."
 #define IDSN_DISASSEMBLING_OBJECT "Disassembling object..."
-#define IDSN_TRANSFERING_DNA_TO_SIBLINGS "Transferring DNA to siblings..."
-#define IDSN_X_SIBLINGS_WERE_UPDATED " siblings were updated."
+#define IDSN_TRANSFERRING_DNA_TO_CLONES "Transferring DNA to clones..."
+#define IDSN_X_CLONES_WERE_UPDATED " clones were updated."
 
 
 #define IDSNS_SCENE_WAS_RESTORED_FROM_AUTO_SAVED_SCENE "Scene was restored from auto-saved scene."
@@ -258,7 +232,6 @@
 
 
 #define IDSN_PAGE_SELECTOR "Page selector"      //addedOn 8/3/2012
-#define IDSN_SCENE_SELECTOR "Scene selector"    //addedOn 8/3/2012
 #define IDSN_SELECT_VIEWABLE_OBJECT "View selector..." //addedOn 9/3/2012
 #define IDSN_MODEL_SAVE_POSITION_OFFSET_INFO "Remember that the current X/Y position of your model will be the horizontal offset to the drop position during a drag-and-drop operation later."//addedOn 7/3/2012
 #define IDSN_DYNAMIC_CONTENT "Dynamics content" //addedOn 24/02/2012
@@ -269,12 +242,11 @@
 #define IDS_CLOSE_SCENE_MENU_ITEM "Close scene" //addedOn 4/3/2012
 #define IDS_SHAPE_EDITION_TOOLBAR_TIP "Toggle shape edit mode (make sure to have a single shape object selected)" //addedOn 11/3/2012
 #define IDS_PATH_EDITION_TOOLBAR_TIP "Toggle path edit mode (make sure to have a single path object selected)" //addedOn 11/3/2012
-#define IDS_2D_ELEMENTS_TIP         "Toggle OpenGl-based custom UI edit mode" //addedOn 11/3/2012
 #define IDSN_SHAPE_EDITION_MENU_ITEM "Shape edition" //addedOn 11/3/2012
 #define IDSN_PATH_EDITION_MENU_ITEM "Path edition" //addedOn 11/3/2012
 #define IDS_SHAPE_IS_NOT_SIMPLE_FOR_EDITION_INFO_MESSAGE "The shape you wish to edit is not a simple shape. Make sure you ungroup it before proceeding." //addedOn 11/3/2012
 #define IDSN_SHAPE_EDIT_MODE "Shape edit mode" //addedOn 11/3/2012
-#define IDSN_PATH_EDIT_MODE "Path edit mode" //addedOn 11/3/2012
+#define IDSN_PATH_EDIT_MODE_OLD "Path edit mode" //addedOn 11/3/2012
 #define IDSN_DO_YOU_WANT_TO_APPLY_THE_CHANGES "Do you wish to apply the changes? (clicking no will however still preserve extracted objects)" //addedOn 11/3/2012
 #define IDSN_CUSTOM_USER_INTERFACES         "OpenGl-based custom UIs" //addedOn 14/3/2012
 #define IDSN_SHAPE_EDIT_MODE_START_MENU_ITEM "Enter shape edit mode"
@@ -290,8 +262,6 @@
 #define IDS_MAINSCRIPT_EDITION_WARNING "You are about to edit the main script. This is not recommended for compatibility reasons since loaded models, or models copied from a different scene might not operate as expected anymore in this scene. We rather recomend that you adjust a child script for the behaviour you wish to achieve. Do you want to proceed anyway?" //modifiedOn 5/3/2012
 #define IDS_TOOLBAR_TOOLTIP_VISUALIZE_DYNAMIC_CONTENT "Visualize and verify dynamic content (during simulation only)" //modifiedOn 23/02/2012
 #define IDS_ANOTHER_INSTANCE_STILL_NOT_SAVED_WANNA_LEAVE_ANYWAY_MESSAGE "One or more scenes have not yet been saved. Do you wish to leave anyway?" //modifiedOn 5/3/2012
-#define IDS_LAYOUT_MENU_ITEM "Layout"
-#define IDS_JOBS_MENU_ITEM "Jobs"
 
 //#define IDS_LOOK_AT_SELECTED_GRAPH_MENU_ITEM "Associate view with selected graph" //modifiedOn 10/3/2012
 #define IDS_LOOK_THROUGH_SELECTED_CAMERA_MENU_ITEM "Associate view with selected camera" //modifiedOn 10/3/2012
@@ -329,14 +299,6 @@
 #define IDSN_FORWARD_TRAVERSAL "forward"
 #define IDSN_PARENT_TRAVERSAL "same as parent"
 
-// Script debug modes:
-#define IDSN_SCRIPTDEBUG_NONE "none"
-#define IDSN_SCRIPTDEBUG_SYSCALLS "watch system calls"
-#define IDSN_SCRIPTDEBUG_VARS_1SEC  "watch variables, ~1 sec. interv."
-#define IDSN_SCRIPTDEBUG_ALLCALLS "watch all calls (slow)"
-#define IDSN_SCRIPTDEBUG_VARS "watch variables (slow)"
-#define IDSN_SCRIPTDEBUG_FULL "watch calls and variables (slow)"
-
 // Help menu item
 #define IDS_ABOUT_SIM         "About CoppeliaSim"
 
@@ -372,7 +334,7 @@
 #define IDSN_CONE "Cone"
 
 #define IDSN_OBJECT_PROPERTIES_MENU_ITEM "Scene object properties"
-#define IDSN_CALCULATION_MODULE_PROPERTIES_MENU_ITEM "Calculation module properties"
+#define IDSN_DYNAMICS_PROPERTIES_MENU_ITEM "Dynamics properties"
 #define IDSN_ALL_CUTTABLE_OBJECTS_IN_SCENE "all cuttable objects in the scene"
 #define IDSN_ALL_DETECTABLE_OBJECTS_IN_SCENE "all detectable objects in the scene"
 #define IDSN_NONE "none"
@@ -389,10 +351,14 @@
 
 // Joint functionality:
 #define IDSN_JOINT_IS_IN_PASSIVE_MODE "Passive mode"
-#define IDSN_JOINT_IS_IN_IK_MODE "Inverse kinematics mode"
 #define IDSN_JOINT_IS_IN_DEPENDENT_MODE "Dependent mode"
-#define IDSN_JOINT_IS_IN_MOTION_MODE "Motion mode (DEPRECATED)"
 #define IDSN_JOINT_IS_IN_TORQUE_FORCE_MODE "Torque/force mode"
+#define IDSN_JOINT_IS_IN_HYBRID_PASSIVE_MODE "Hybrid passive mode (deprecated)"
+#define IDSN_JOINT_IS_IN_IK_MODE "IK mode (deprecated)"
+#define IDSN_JOINT_IS_IN_HYBRID_IK_MODE "Hybrid IK mode (deprecated)"
+#define IDSN_JOINT_IS_IN_HYBRID_DEPENDENT_MODE "Hybrid dependent mode (deprecated)"
+#define IDSN_JOINT_IS_IN_MOTION_MODE "Motion mode (deprecated)"
+#define IDSN_JOINT_IS_IN_HYBRID_MOTION_MODE "Hybrid motion mode (deprecated)"
 
 // Entities:
 #define IDSN_COLLECTION "Collection"
@@ -404,11 +370,10 @@
 #define IDSN_PROXIMITY_SENSOR "Proximity sensor"
 #define IDSN_PATH "Path"
 #define IDSN_VISION_SENSOR "Vision sensor"
-#define IDSN_MILL "Mill"
 #define IDSN_FORCE_SENSOR "Force sensor"
 #define IDSN_LIGHT "Light"
 #define IDSN_MIRROR "Mirror"
-#define IDSN_OCTREE "Octree"
+#define IDSN_OCTREE "OC tree"
 #define IDSN_POINTCLOUD "Point cloud"
 #define IDSN_GRAPH "Graph"
 
@@ -431,7 +396,7 @@
 #define IDS_PATHS               "Paths"
 #define IDS_MILLS               "Mills"
 #define IDS_MIRRORS             "Mirrors"
-#define IDS_OCTREES             "Octrees"
+#define IDS_OCTREES             "OC trees"
 #define IDS_POINTCLOUDS         "Point clouds"
 #define IDS_TOTAL_SELECTED_OBJECTS       "Total selected objects"
 #define IDS_TOTAL_VERTICES      "Total vertices"
@@ -440,7 +405,9 @@
 
 // IK functionality:
 #define IDS_PSEUDO_INVERSE      "Pseudo inverse"
-#define IDS_DLS                 "DLS"
+#define IDS_DLS                 "Damped least squares"
+#define IDS_UNDAMPED_PSEUDO_INVERSE      "Undamped pseudo inverse"
+#define IDS_JACOBIAN_TRANSPOSE  "Jacobian transpose"
 #define IDSN_WORLD "World"
 #define IDSN_SAME_AS_BASE "Same as base"
 #define IDSN_PERFORM_ALWAYS "Perform always"
@@ -460,13 +427,6 @@
 #define IDSN_CHECK_ROBOT_OBSTACLE_COLLISION "Check robot - obstacle collision"
 #define IDSN_CHECK_ROBOT_OBSTACLE_MINIMUM_DISTANCE "Check robot - obstacle minimum distance"
 #define IDSN_CHECK_ROBOT_OBSTACLE_MINIMUM_AND_MAXIMUM_DISTANCE "Check robot - obstacle minimum & maximum distance"
-
-// Physics engine preconfigured settings:
-#define IDSN_ENGINE_VERY_PRECISE "Very accurate"
-#define IDSN_ENGINE_PRECISE "Accurate (default)"
-#define IDSN_ENGINE_FAST "Fast"
-#define IDSN_ENGINE_VERY_FAST "Very fast"
-#define IDSN_ENGINE_CUSTOM "Customized"
 
 // Preconfigured simulation step sizes:
 #define IDSN_TIME_STEP_CONFIG_200 "dt=200 ms"
@@ -502,7 +462,6 @@
 
 
 #define IDSN_SCRIPTS   "Scripts"
-#define IDSN_SELECTION "Selection"
 
 #define IDSN_ENVIRONMENT "Environment"
 #define IDSN_SHAPE_TEXTURES_ENABLED "Shape textures enabled"
@@ -526,7 +485,6 @@
 #define IDS_FILE_MENU_ITEM      "File"
 #define IDS_SIMULATION_MENU_ITEM "Simulation"
 #define IDS_TOOLS_MENU_ITEM     "Tools"
-#define IDS_ADDON_MENU_ITEM     "Add-ons"
 #define IDS_HELP_MENU_ITEM      "Help"
 
 #define IDS_UNLINK_SELECTED_DUMMIES_MENU_ITEM "Unlink selected dummies"
@@ -551,8 +509,7 @@
 #define IDS____TRIANGLE_EDIT_MODE " - TRIANGLE EDIT MODE"
 #define IDS____VERTEX_EDIT_MODE " - VERTEX EDIT MODE"
 #define IDS____EDGE_EDIT_MODE   " - EDGE EDIT MODE"
-#define IDS____2D_ELEMENT_EDIT_MODE " - OPENGL-BASED CUSTOM UI EDIT MODE"
-#define IDS____PATH_EDIT_MODE   " - PATH EDIT MODE"
+#define IDS____PATH_EDIT_MODE_OLD   " - PATH EDIT MODE"
 #define IDS____SIMULATION_RUNNING " - SIMULATION RUNNING"
 #define IDS____SIMULATION_PAUSED " - SIMULATION SUSPENDED"
 #define IDS____SIMULATION_STOPPED " - SIMULATION STOPPED"
@@ -595,7 +552,7 @@
 #define IDS_DIRECTIONAL_MENU_ITEM "Directional"
 
 #define IDS_DUMMY_MENU_ITEM     "Dummy"
-#define IDS_OCTREE_MENU_ITEM     "Octree"
+#define IDS_OCTREE_MENU_ITEM     "OC tree"
 #define IDS_POINTCLOUD_MENU_ITEM     "Point cloud"
 
 #define IDS_GRAPH_MENU_ITEM     "Graph"
@@ -608,7 +565,6 @@
 #define IDS_RAY_TYPE_MENU_ITEM  "Ray type"
 #define IDS_RANDOMIZED_RAY_TYPE_MENU_ITEM  "Randomized ray type"
 
-#define IDS_SEGMENT_TYPE_MENU_ITEM "Segment type"
 
 #define IDS_CONVEX_HULL_OF_SELECTION_MENU_ITEM "Convex hull of selection"
 #define IDS_GROWN_CONVEX_HULL_OF_SELECTED_SHAPE_MENU_ITEM "Inflated convex hull of selection..."
@@ -616,7 +572,7 @@
 #define IDS_CONVEX_MORPH_MENU_ITEM "Morph selection into convex shapes"
 #define IDS_CONVEX_DECOMPOSITION_MORPH_MENU_ITEM "Morph selection into its convex decomposition..."
 #define IDS_MESH_DECIMATION_MENU_ITEM "Decimate selected shape..."
-#define IDS_REMOVE_SHAPE_INSIDE_MENU_ITEM "Extract inside of selected shape..."
+//#define IDS_REMOVE_SHAPE_INSIDE_MENU_ITEM "Extract inside of selected shape..."
 
 // ****************************************************************************
 
@@ -635,12 +591,10 @@
 #define IDS_SAVE_SCENE_MENU_ITEM "Save scene"
 #define IDS_SAVE_SCENE_AS_MENU_ITEM "Save scene as"
 #define IDS_SCENE_AS_CSIM___MENU_ITEM "CoppeliaSim scene..."
-#define IDS_SCENE_AS_XR___MENU_ITEM "XReality scene..."
 #define IDS_SAVE_SCENE_AS___MENU_ITEM "Save scene as..."
 
 #define IDS_SAVE_MODEL_AS_MENU_ITEM "Save model as"
 #define IDS_MODEL_AS_CSIM___MENU_ITEM "CoppeliaSim model..."
-#define IDS_MODEL_AS_XR___MENU_ITEM "XReality model..."
 #define IDS_SAVE_SCENE_AS_XML_MENU_ITEM "CoppeliaSim XML scene"
 #define IDS_SCENE_AS_XML___MENU_ITEM "Exhaustive (lossless, non-editable)..."
 #define IDS_SCENE_AS_SIMPLEXML___MENU_ITEM "Simple (lossy, editable)..."
@@ -651,12 +605,9 @@
 #define IDS_SAVING_MODEL___ "Saving model..."
 #define IDS_IMPORT_MESH___MENU_ITEM "Mesh..."
 #define IDS_IMPORTING_MESH___ "Importing mesh..."
-#define IDS_EXPORT_SHAPE_MENU_ITEM "Selected shapes..."
-#define IDS_EXPORT_SELECTED_GRAPHS_MENU_ITEM "Selected graphs as CSV..."
+#define IDS_EXPORT_SELECTION_SHAPES_MENU_ITEM "Selection (shapes)..."
+#define IDS_EXPORT_SELECTION_GRAPHS_MENU_ITEM "Selection (graphs)..."
 #define IDS_SAVING_GRAPHS___ "Saving graphs..."
-#define IDS_IMPORTING_PATH_FROM_CSV_FILE "Importing path from CSV file..."
-#define IDS_EXPORTING_PATH___ "Exporting path..."
-#define IDS_EXPORTING_PATH_BEZIER_CURVE___ "Exporting path's Bezier curve..."
 #define IDS_IMPORTING_HEIGHTFIELD___ "Importing heightfield..."
 #define IDS_EXPORTING_DYNAMIC_CONTENT___ "Exporting dynamic content..."
 #define IDS_EXPORT_IK_CONTENT_MENU_ITEM "Kinematics content..."
@@ -680,7 +631,7 @@
 
 
 #define IDSN_STATIC_TEXTURE    "static texture"
-#define IDS_HELP_TOPICS_MENU_ITEM "Help topics"
+#define IDS_HELP_TOPICS_MENU_ITEM "User manual"
 #define IDS_BUSY____PLEASE_WAIT "Busy... please wait"
 
 #define IDS_VISIBLE_COMPONENTS  "OpenGL"
@@ -708,9 +659,6 @@
 #define IDS_INVALID_COLLISION_ITEM_COMBINATION "The item combination is invalid (i.e. cannot collide)"
 #define IDS_INVALID_DISTANCE_ITEM_COMBINATION "The item combination is invalid (i.e. cannot be measured)"
 
-#define IDS_SCENE_CONTENT_ACKNOWLEDGMENTS "Scene content acknowledgments / information"
-#define IDS_MODEL_CONTENT_ACKNOWLEDGMENTS "Model content acknowledgments / information"
-
 #define IDS_COPY_SELECTED_OBJECTS_MENU_ITEM "Copy selected objects"
 #define IDS_PASTE_BUFFER_MENU_ITEM "Paste buffer"
 //#define IDS_CLEAR_COPY_BUFFER_MENU_ITEM "Clear copy buffer"
@@ -722,8 +670,6 @@
 #define IDSN_SELECT_ALL_MENU_ITEM "Select all"
 
 #define IDSN_REMOVE_MENU_ITEM "Remove"
-#define IDSN_ASSOCIATED_CHILD_SCRIPT_MENU_ITEM "Associated child script"
-#define IDSN_ASSOCIATED_CUSTOMIZATION_SCRIPT_MENU_ITEM "Associated customization script"
 
 #define IDSNS_SELECTING_ALL_OBJECTS "Selecting all objects..."
 #define IDSNS_SELECTING_ALL_TRIANGLES "Selecting all triangles..."
@@ -802,7 +748,6 @@
 #define IDS_VIEW_TYPE_EIGHT_MENU_ITEM "Set up page with 1+7 views"
 
 #define IDS_OVERALL_CUT_SURFACE "Overall cut surface"
-#define IDS_MODULES_MENU_ITEM   "Plugins"
 #define IDS_DETECTABLE_ULTRASONIC "Ultrasonic"
 #define IDS_DETECTABLE_INFRARED "Infrared"
 #define IDS_DETECTABLE_LASER    "Laser"
@@ -811,7 +756,7 @@
 #define IDS_SCRIPT_PARAMETERS   "Script parameters"
 #define IDS_OVERALL_CUT_VOLUME  "Overall cut volume"
 
-#define IDS_PATH_EDIT_MODE_START_MENU_ITEM "Enter path edit mode"
+#define IDS_PATH_EDIT_MODE_OLD_START_MENU_ITEM "Enter path edit mode"
 #define IDS_COPY_SELECTED_PATH_POINTS_MENU_ITEM "Copy selected path points"
 #define IDS_PASTE_PATH_POINTS_MENU_ITEM "Paste path points after selection"
 #define IDS_PASTE_PATH_POINTS_AT_BEGINNING_MENU_ITEM "Paste path points at beginning of path"
@@ -824,43 +769,21 @@
 #define IDS_INVERSE_ORDER_OF_SELECTED_PATH_CTRL_POINTS_MENU_ITEM "Invert order of selected control points"
 #define IDS_LARGE_QUANTITY_OF_PATH_POINTS_WARNING "The operation you are about to perform will generate a path with a large quantity of path points. This is not recommended and might take a while. Do you still want to proceed?"
 #define IDS_TOTAL_PATH_POINTS   "Total path points"
-#define IDS_IMPORT_PATH___MENU_ITEM "Path from CSV..."
-#define IDS_EXPORT_SELECTED_PATH_MENU_ITEM "Selected path as CSV..."
-#define IDS_EXPORT_SELECTED_PATH_BEZIER_CURVE_MENU_ITEM "Selected path's bezier curve as CSV..."
-#define IDS_MAKE_PATH_WITH_SELECTED_EDGES_MENU_ITEM "Make path with selected edges"
-#define IDS_CIRCLE_TYPE_MENU_ITEM "Circle type"
+#define IDS_CIRCLE_TYPE_MENU_ITEM "Closed"
+#define IDS_SEGMENT_TYPE_MENU_ITEM "Open"
 
-
-#define IDS_ENTER_2D_ELEMENT_EDIT_MODE_MENU_ITEM "Enter OpenGl-based custom UI edit mode"
-#define IDS_COPY_SELECTED_2D_ELEMENT_MENU_ITEM "Copy selected OpenGl-based custom UI"
-#define IDS_DELETE_SELECTED_2D_ELEMENT_MENU_ITEM "Delete selected OpenGl-based custom UI"
-#define IDS_CUT_SELECTED_2D_ELEMENT_MENU_ITEM "Cut selected OpenGl-based custom UI"
 
 #define IDS_EXECUTION_TIME      "Execution time"
 #define IDS_EDIT_MODES_MENU_ITEM "Edit modes"
 #define IDS_OVERALL_COLLISION_COUNT "Overall collision count"
 #define IDS_SIMULATION_TIME     "Simulation time"
 #define IDS_USER_DATA           "User data"
-#define IDS_MAIN_SCRIPT         "Main script"
-#define IDS_CHILD_SCRIPT_UNTHREADED "Child script (non-threaded)"
-#define IDS_CHILD_SCRIPT_THREADED "Child script (threaded)"
-#define IDS_CUSTOMIZATION_SCRIPT "Customization script"
 
 #define IDS_SIMULATION_SCRIPTS         "Simulation scripts"
 #define IDS_CUSTOMIZATION_SCRIPTS "Customization scripts"
 
 
-#define IDS_PROVIDE_MORE_INFO_AND_VALID_EMAIL "Please provide more information and a valid email address."
-#define IDS_IF_BEHIND_PROXY_REQUEST_KEY_AT "If you are behind a proxy server, you can request the license key at "
-#define IDS_INFO_NO_MORE_THAN_ONE_MAIN_SCRIPT "There can't be more than one main script. Replace current main script?"
-#define IDS_INFO_NO_MORE_THAN_ONE_CONTACT_CALLBACK_SCRIPT "There can't be more than one contact callback script. Replace current contact callback script?"
-#define IDS_INFO_NO_MORE_THAN_ONE_GENERAL_CALLBACK_SCRIPT "There can't be more than one general callback script. Replace current general callback script?"
-#define IDS_DONT_FORGET_CORRESPONDING_INFO "(don't forget to provide the corresponding information like hardware ID, name, institution, and other information)"
-#define IDS_KEY_WAS_SENT_PER_EMAIL "The license key was sent to the indicated email address. Should you not receive the license key via email within 2 hours, then try to request the key via email instead."
 #define IDS_VISION_SENSOR_ORTHOGONAL_TYPE_MENU_ITEM "Orthographic type"
-#define IDS_VISION_SENSORS   "Vision sensors"
-
-
 
 #define IDS_DONT_TRACK_OBJECT__MENU_ITEM "Don't track object '"
 
@@ -869,11 +792,6 @@
 #define IDS_PARTIAL_PATH_WAS_FOUND_ "Partial path was found!"
 
 #define IDSN_REAL_TIME_SIMULATION "Real-time simulation"
-#define IDSN_ONLINE_MODE "Online mode"
-
-
-
-
 
 #define IDS_SHAPING_USER_DEFINED "user defined"
 #define IDS_SHAPING_CIRCLE      "circle"
@@ -922,32 +840,18 @@
 #define IDS_THUMBNAILS_REQUIRE_128X128_RESOLUTION "Thumbnail images should have a resolution of 128X128 pixels"
 
 
-#define IDS_ASSOCIATED_CHILD_SCRIPT_MENU_ITEM "Associated child script"
-#define IDS_NON_THREADED_MENU_ITEM "Non threaded"
-#define IDS_THREADED_MENU_ITEM  "Threaded"
-#define IDS_ASSOCIATED_CUSTOMIZATION_SCRIPT_MENU_ITEM "Associated customization script"
-
 #define IDS_APPEND_NEW_PATH_POINT_FROM_CAMERA_MENU_ITEM "Append new control point from camera configuration"
-#define IDS_MAKE_CURVE_STATIC_MENU_ITEM "Static duplicate of curve"
-#define IDS_COPY_CURVE_TO_CLIPBOARD "Curve to clipboard"
-#define IDS_EMPTY_LAST_SELECTED_PATH_MENU_ITEM "Empty path"
-
 
 #define IDS_XY_GRAPH_AUTO_MODE_DURING_SIMULATION_MENU_ITEM "Auto-size during simulation"
 #define IDS_TIME_GRAPH_X_AUTO_MODE_DURING_SIMULATION_MENU_ITEM "X-axis auto-size during simulation"
 #define IDS_TIME_GRAPH_Y_AUTO_MODE_DURING_SIMULATION_MENU_ITEM "Y-axis auto-size during simulation"
 #define IDS_XY_GRAPH_ONE_ONE_PROPORTION_MENU_ITEM "Keep proportions at 1:1"
 
-
-#define IDS_MERGE_SELECTED_PATHS_MENU_ITEM "Merge selected paths"
-#define IDS_ROLL_PATH_POINTS_FORWARD_MENU_ITEM "Roll path points forward"
-#define IDS_ROLL_PATH_POINTS_BACKWARD_MENU_ITEM "Roll path points backward"
-
 #define IDSN_UNDO_REDO "Undo / Redo"
 #define IDSN_UNDO "Undo"
 #define IDSN_REDO "Redo"
 #define IDSN_ASSEMBLE "Assemble / Disassemble"
-#define IDSN_TRANSFER_DNA "Transfer DNA to siblings"
+#define IDSN_TRANSFER_DNA "Transfer DNA to clones"
 
 
 #define IDSN_SLOW_DOWN_SIMULATION "Slow down simulation"
@@ -969,7 +873,6 @@
 #define IDS_VORTEX              "Vortex"
 #define IDS_NEWTON              "Newton"
 #define IDS_WARNING_WHEN_SELECTING_PURE_CONE "Pure cones are currently only supported by the Bullet and Newton engines."
-#define IDS_WARNING_WHEN_SELECTING_NEGATIVE_VOLUME "Negative volumes are only supported by the Vortex engine."
 
 #define IDS_TOOLBAR_TOOLTIP_CAMERA_SHIFT "Camera pan"
 #define IDS_TOOLBAR_TOOLTIP_CAMERA_FIT_TO_SCREEN "Fit to view"
@@ -979,7 +882,6 @@
 #define IDS_TOOLBAR_TOOLTIP_CAMERA_ZOOM "Camera shift"
 #define IDS_TOOLBAR_TOOLTIP_OBJECT_SHIFT "Object/item shift"
 #define IDS_TOOLBAR_TOOLTIP_OBJECT_ROTATE "Object/item rotate"
-#define IDS_TOOLBAR_TOOLTIP_CAMERA_FLY "Camera fly"
 
 #define IDS_TOOLBAR_TOOLTIP_DYNAMICS_ENGINE "Dynamics engine"
 #define IDS_TOOLBAR_TOOLTIP_DYNAMICS_SETTINGS "Dynamics settings"
@@ -991,10 +893,7 @@
 #define IDS_TOOLBAR_TOOLTIP_CLEAR_SELECTION "Clear selection"
 #define IDS_TOOLBAR_TOOLTIP_SIMULATION_START "Start/resume simulation"
 #define IDS_TOOLBAR_TOOLTIP_REALTIMESIMULATION "Toggle real-time mode"
-#define IDS_TOOLBAR_TOOLTIP_ONLINE "Toggle online mode"
-#define IDS_TOOLBAR_TOOLTIP_VERIFY "Verify layout"
 #define IDS_TOOLBAR_TOOLTIP_SWITCH_TO_PAGE "Switch to a different page"
-#define IDSN_SELECTION_DIALOG "Selection"
 
 #define IDSN_PURE_SPHEROID "Pure spheroid"
 #define IDSN_PURE_CONE "Pure cone"
@@ -1061,7 +960,7 @@
 #define IDS_READING_NEWER_SERIALIZATION_FILE_WARNING "The file you are about to read was created with a newer version of CoppeliaSim. Some functionality might not be available or not working properly."
 #define IDS_MAKING_NON_PURE_CONCAVE_SHAPE_RESPONDABLE_WARNING "The shape you made respondable is not a pure shape, nor a convex shape. It is a random non-convex shape that will perform much worse than pure shapes or convex shapes. Additionally, calculations with non-pure non-convex respondable shapes are much more time-consuming. For collision response calculations, it is recomended to use pure shapes whenever possible, or if that is not possible, convex shapes."
 #define IDS_SCENE_LOCKING_INFO "Next scene save will be final: after that, this scene cannot anymore be saved, exported, or script content viewed."
-#define IDS_SCENE_IS_LOCKED_WARNING "Save/export operation unavailable (scene is locked)"
+#define IDS_SCENE_IS_LOCKED_WARNING "Operation unavailable (scene is locked)"
 #define IDS_SCENE_IS_LOCKED_CANNOT_PASTE_WARNING "Paste operation unavailable (buffer is locked)"
 #define IDS_FINAL_SCENE_SAVE_WARNING "The save operation you are about to perform will be final: the scene will be locked and you will not be able to save changes anymore. Are you sure you want to proceed?"
 #define IDS_INCLUDE_SCRIPT_FILES_QUESTION "Some scripts include code from external files, via the 'include' function. Do you wish to replace those scripts with their actual include code? In case of doubt, click 'No'."
@@ -1071,14 +970,12 @@
 #define IDSN_SURE_TO_REMOVE_GENERAL_CALLBACK_WARNING "The operation you are about to perform will remove the general callback script. Are you sure you want to proceed?"
 #define IDSN_SURE_TO_REMOVE_CUSTOMIZATION_SCRIPT_WARNING "The operation you are about to perform will remove the customization script. Are you sure you want to proceed?"
 #define IDSN_CUSTOM_CONTACT_IS_SLOW_AND_NOT_RECOMENDED_WARNING "Performing custom collision/contact response handling is not recomended for compatibility reasons (e.g. models created by others will perform differently in this scene). Remember also that this mechanism will slow down the simulation."
-#define IDSN_SURE_TO_DISABLE_UPDATABLE_WARNING "The operation you are about to perform will definitely disassociate this object/model from its siblings (i.e. this object/model will be independent, and you won't be able to re-associate it with its former siblings). Are you sure you want to proceed?"
 
 #define IDS_DUMMY_LINK_TYPE_DYNAMICS_LOOP_CLOSURE "Dynamics, overlap constraint"
-#define IDS_DUMMY_LINK_TYPE_DYNAMICS_FORCE_CONSTRAINT "Dynamics, force constraint"
 #define IDS_DUMMY_LINK_TYPE_GCS_LOOP_CLOSURE "GCS, overlap constraint (deprecated)"
 #define IDS_DUMMY_LINK_TYPE_GCS_TIP "GCS, tip (deprecated)"
 #define IDS_DUMMY_LINK_TYPE_GCS_TARGET "GCS, target (deprecated)"
-#define IDS_DUMMY_LINK_TYPE_IK_TIP_TARGET "IK, tip-target"
+#define IDS_DUMMY_LINK_TYPE_IK_TIP_TARGET "IK, tip-target (deprecated)"
 #define IDS_WARNING_TIP_DUMMY_NOT_LINKED "tip dummy is not linked!"
 #define IDS_WARNING_WRONG_DUMMY_LINK_TYPE "wrong dummy link type!"
 
@@ -1087,20 +984,15 @@
 
 #define IDS_OBJECTS_NOT_COLLIDABLE_WARNING "One or more selected objects have their 'collidable' property disabled. Make sure you enable that property (in the object common properties dialog) in order for this collision object to be operational."
 #define IDS_OBJECTS_NOT_MEASURABLE_WARNING "One or more selected objects have their 'measurable' property disabled. Make sure you enable that property (in the object common properties dialog) in order for this distance object to be operational."
-#define IDS_OBJECT_NOT_DETECTABLE_WARNING "The selected object has its 'detectable' properties disabled. Make sure you enable those properties (in the object common properties dialog) in order for this proximity sensor to be operational."
-#define IDS_OBJECT_NOT_RENDERABLE_WARNING "The selected object has its 'renderable' property disabled. Make sure you enable this property (in the object common properties dialog) in order for this vision sensor to be operational."
-#define IDS_OBJECT_NOT_CUTTABLE_WARNING "The selected object has its 'cuttable' property disabled. Make sure you enable this property (in the object common properties dialog) in order for this mill to be operational."
-
-#define IDS_CUTTABLE_PROP       "Cuttable"
-#define IDS_CUTTABLE_BUT_NOT_SIMPLE_NON_PURE_SHAPE "Cuttable (shape must be simple && non-pure)"
 
 #define IDS_WARNING_WHEN_PURE_CONE_NOT_SUPPORTED "The scene contains one or several pure cones that cannot be simulated with currently selected dynamics engine. The cone(s) will be approximated by cylinders for this simulation."
 #define IDS_WARNING_ODE_NOT_USING_QUICKSTEP "You selected not to use the 'quickstep' method. This is only recommended for scenes with very little dynamic content, otherwise you might experience sudden crashes."
 #define IDS_WARNING_WHEN_PURE_HOLLOW_SHAPE_NOT_SUPPORTED "The scene contains one or several pure hollow shapes that cannot be simulated with currently selected dynamics engine. The pure shape(s) will be filled (i.e. non-hollow) for this simulation."
 #define IDS_WARNING_WHEN_PHYSICS_ENGINE_NOT_SUPPORTED "The physics engine currently selected is not supported (you might be missing a required plugin). Simulation will not run correctly."
+#define IDS_WARNING_WHEN_VORTEX_PLUGIN_NOT_FOUND "The Vortex plugin was not found. Copy files from CoppeliaSim/vortexPlugin/ to CoppeliaSim/ to enable the plugin."
 #define IDS_WARNING_WHEN_VORTEX_NOT_YET_SUPPORTED "The Vortex engine is not yet supported on this platform.\n\nThe Vortex engine is currently supported on Windows and Linux."
-#define IDS_WARNING_WITH_VORTEX_DEMO_PLUGIN_WINDOWS "You are running an unregistered version of the Vortex engine: dynamic is disabled.\nYou may obtain a free license for the Vortex engine by downloading Vortex Studio (2019a) here:\n\nwww.cm-labs.com\n\nOnce Vortex Studio is installed and registered, you will be able to run\nCoppeliaSim simulations with the Vortex engine."
-#define IDS_WARNING_WITH_VORTEX_DEMO_PLUGIN_LINUX "You are running an unregistered version of the Vortex engine: dynamic is disabled.\nYou may obtain a free license for the Vortex engine by downloading Vortex Studio (2019a) here:\n\nwww.cm-labs.com\n\nOnce Vortex Studio is installed and registered, you will be able to run\nCoppeliaSim simulations with the Vortex engine."
+#define IDS_WARNING_WITH_VORTEX_DEMO_PLUGIN_WINDOWS "You are running an unregistered version of the Vortex engine: dynamic is disabled.\nYou may obtain a free license for the Vortex engine by downloading Vortex Studio Academic (2020a) here:\n\nwww.cm-labs.com\n\nOnce Vortex Studio is installed and registered, you will be able to run\nCoppeliaSim simulations with the Vortex engine."
+#define IDS_WARNING_WITH_VORTEX_DEMO_PLUGIN_LINUX "You are running an unregistered version of the Vortex engine: dynamic is disabled.\nYou may obtain a free license for the Vortex engine by downloading Vortex Studio Academic (2020a) here:\n\nwww.cm-labs.com\n\nOnce Vortex Studio is installed and registered, you will be able to run\nCoppeliaSim simulations with the Vortex engine."
 
 #define IDS_SWITCH_TO_BULLET_2_78_ENGINE_MENU_ITEM "Using the Bullet physics engine (V2.78)"
 #define IDS_SWITCH_TO_BULLET_2_83_ENGINE_MENU_ITEM "Using the Bullet physics engine (V2.83)"
@@ -1232,9 +1124,6 @@
 #define IDS_IK_CALCULATION_TIME "Inverse kinematics: calculation time"
 #define IDS_IK_OVERALL_CALCULATION_TIME "Inverse kinematics: overall calculation time"
 
-#define IDS_GCS_CALCULATION_TIME "Constraint solver (deprecated): calculation time"
-#define IDS_GCS_OVERALL_CALCULATION_TIME "Constraint solver (deprecated): overall calculation time"
-
 #define IDS_MILL_CUT_SURFACE    "Mill (deprecated): cut surface"
 #define IDS_MILL_CUT_VOLUME     "Mill (deprecated): cut volume"
 #define IDS_MILL_OVERALL_CUT_SURFACE "Mill (deprecated): overall cut surface"
@@ -1250,6 +1139,6 @@
 
 #define IDS_SIMULATION__TIME    "Simulation: time"
 #define IDS_SIMULATION_PASS_EXECUTION_TIME "Simulation pass: execution time"
-#define IDS_CHILD_SCRIPT_EXECUTION_TIME "Child scripts: execution time"
+#define IDS_MAIN_SCRIPT_EXECUTION_TIME "Main script: execution time"
 #define IDS_VARIOUS__USER_DEFINED "Various: user-defined"
 // ***********************************************************************************************

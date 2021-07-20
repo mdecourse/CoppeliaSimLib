@@ -1,15 +1,13 @@
-#include "funcDebug.h"
 #include "confReaderAndWriter.h"
 #include "simInternal.h"
 #include "userSettings.h"
 #include "global.h"
-#include "threadPool.h"
-#include "debugLogFile.h"
+#include "threadPool_old.h"
 #include "tt.h"
 #include "easyLock.h"
 #include "vVarious.h"
 #include "app.h"
-#include "libLic.h"
+#include "simFlavor.h"
 #ifdef SIM_WITH_GUI
     #include "vDialog.h"
 #endif
@@ -50,11 +48,8 @@
 #define _USR_TEST1 "test1"
 #define _USR_ORDER_HIERARCHY_ALPHABETICALLY "orderHierarchyAlphabetically"
 #define _USR_MAC_CHILD_DIALOG_TYPE "macChildDialogType"
-#define _USR_USE_EXTERNAL_LUA_LIBRARY "useExternalLuaLibrary"
-#define _USR_RAISE_ERROR_WITH_API_SCRIPT_FUNCTIONS "raiseErrorWithApiScriptFunctions"
 #define _USR_DESKTOP_RECORDING_INDEX "desktopRecordingIndex"
 #define _USR_DESKTOP_RECORDING_WIDTH "desktopRecordingWidth"
-#define _USR_DIRECTORY_FOR_SCRIPT_EDITOR "defaultDirectoryForExternalScriptEditor"
 #define _USR_EXTERNAL_SCRIPT_EDITOR "externalScriptEditor"
 #define _USR_XML_EXPORT_SPLIT_SIZE "xmlExportSplitSize"
 #define _USR_XML_EXPORT_KNOWN_FORMATS "xmlExportKnownFormats"
@@ -63,10 +58,12 @@
 #define _USR_IDLE_FPS "idleFps"
 #define _USR_UNDO_REDO_MAX_BUFFER_SIZE "undoRedoMaxBufferSize"
 #define _USR_ALWAYS_SHOW_CONSOLE "alwaysShowConsole"
-#define _USR_DEBUG_INTERNAL_FUNCTION_ACCESS "debugInternalFunctionAccess"
-#define _USR_DEBUG_C_API_ACCESS "debugCApiAccess"
-#define _USR_DEBUG_LUA_API_ACCESS "debugLuaApiAccess"
-#define _USR_DEBUG_TO_FILE "sendDebugInformationToFile"
+#define _USR_VERBOSITY "verbosity"
+#define _USR_STATUSBAR_VERBOSITY "statusbarVerbosity"
+#define _USR_DIALOG_VERBOSITY "dialogVerbosity"
+#define _USR_LOG_FILTER "logFilter"
+#define _USR_UNDECORATED_STATUSBAR_MSGS "undecoratedStatusbarMessages"
+#define _USR_CONSOLE_MSGS_TO_FILE "consoleMsgsToFile"
 #define _USR_FORCE_BUG_FIX_REL_30002 "forceBugFix_rel30002"
 #define _USR_STATUSBAR_INITIALLY_VISIBLE "statusbarInitiallyVisible"
 #define _USR_MODELBROWSER_INITIALLY_VISIBLE "modelBrowserInitiallyVisible"
@@ -79,16 +76,20 @@
 #define _USR_NAVIGATION_BACKWARD_COMPATIBILITY_MODE "navigationBackwardCompatibility"
 #define _USR_COLOR_ADJUST_BACK_COMPATIBILITY "colorAdjust_backCompatibility"
 #define _USR_SPECIFIC_GPU_TWEAK "specificGpuTweak"
-#define _USR_ENABLE_OLD_CALC_MODULE_GUIS "enableOldCalcModuleGuis"
 #define _USR_USE_ALTERNATE_SERIAL_PORT_ROUTINES "useAlternateSerialPortRoutines"
-#define _USR_ENABLE_OPENGL_BASED_CUSTOM_UI_EDITOR "enableOpenGlBasedCustomUiEditor"
-#define _USR_CHANGE_SCRIPT_CODE_NEW_API_NOTATION "changeScriptCodeForNewApiNotation"
-#define _USR_SUPPORT_OLD_API_NOTATION "supportOldApiNotation"
-#define _USR_ENABLE_OLD_MILL_OBJECTS "enableOldMillObjects"
-#define _USR_ENABLE_OLD_MIRROR_OBJECTS "enableOldMirrorObjects"
-
+#define _USR_DISABLED_OPENGL_BASED_CUSTOM_UI "disableOpenGlBasedCustomUi"
+#define _USR_SHOW_old_DLGS "showOldDlgs"
+#define _USR_ENABLE_OLD_RENDERABLE "enableOldRenderableBehaviour"
+#define _USR_BUGFIX1 "bugFix1"
+#define _USR_COMPATIBILITYFIX1 "compatibilityFix1"
+#define _USR_SUPPORT_old_THREADED_SCRIPTS "keepOldThreadedScripts"
+#define _USR_SUPPORT_old_API_NOTATION "supportOldApiNotation"
+#define _USR_ENABLE_old_MIRROR_OBJECTS "enableOldMirrorObjects"
+#define _USR_ALLOW_old_EDU_RELEASE "allowOldEduRelease"
+#define _USR_THREADED_SCRIPTS_GRACE_TIME "threadedScriptsStoppingGraceTime"
 
 #define _USR_ABORT_SCRIPT_EXECUTION_BUTTON "abortScriptExecutionButton"
+#define _USR_DARK_MODE "darkMode"
 #define _USR_RENDERING_SURFACE_VERTICAL_SHIFT "renderingSurfaceVShift"
 #define _USR_RENDERING_SURFACE_VERTICAL_RESIZE "renderingSurfaceVResize"
 #define _USR_ADDITIONAL_LUA_PATH "additionalLuaPath"
@@ -97,10 +98,8 @@
 #define _USR_DIRECTORY_FOR_MODELS "defaultDirectoryForModels"
 #define _USR_DIRECTORY_FOR_CAD "defaultDirectoryForCadFiles"
 #define _USR_DIRECTORY_FOR_MISC "defaultDirectoryForMiscFiles"
-#define _USR_DIRECTORY_FOR_REMOTE_API "defaultDirectoryForRemoteApiFiles"
 
 
-#define _USR_THREADED_RENDERING_DURING_SIMULATION "threadedRenderingDuringSimulation"
 #define _USR_OFFSCREEN_CONTEXT_TYPE "offscreenContextType"
 #define _USR_FBO_TYPE "fboType"
 #define _USR_FORCE_FBO_VIA_EXT "forceFboViaExt"
@@ -178,18 +177,15 @@
 #define _USR_DO_NOT_WRITE_PERSISTENT_DATA "doNotWritePersistentData"
 #define _USR_DO_NOT_SHOW_CRASH_RECOVERY_MESSAGE "doNotShowCrashRecoveryMessage"
 #define _USR_DO_NOT_SHOW_UPDATE_CHECK_MESSAGE "doNotShowUpdateCheckMessage"
-#define _USR_DO_NOT_SHOW_SCENE_SELECTION_THUMBNAILS "doNotShowSceneSelectionThumbnails"
 #define _USR_DO_NOT_SHOW_PROGRESS_BARS "doNotShowProgressBars"
 #define _USR_DO_NOT_SHOW_ACKNOWLEDGMENT_MESSAGES "doNotShowAcknowledgmentMessages"
 #define _USR_DO_NOT_SHOW_VIDEO_COMPRESSION_LIBRARY_LOAD_ERROR "doNotShowVideoCompressionLibraryLoadError"
-#define _USR_REDIRECT_STATUSBAR_MSG_TO_CONSOLE_IN_HEADLESS_MODE "redirectStatusbarMsgToConsoleInHeadlessMode"
 #define _USR_SUPPRESS_STARTUP_DIALOG "suppressStartupDialogs"
 #define _USR_SUPPRESS_XML_OVERWRITE_MSG "suppressXmlOverwriteMsg"
 
 #define _USR_SCRIPT_EDITOR_FONT "scriptEditorFont"
 #define _USR_SCRIPT_EDITOR_FONT_SIZE "scriptEditorFontSize"
-#define _USR_AUX_CONSOLE_FONT "auxConsoleFont"
-#define _USR_AUX_CONSOLE_FONT_SIZE "auxConsoleFontSize"
+#define _USR_SCRIPT_EDITOR_BOLDFONT "scriptEditorBoldFont"
 
 #define _USR_CONNECTION_ADDRESS "conParam1"
 #define _USR_CONNECTION_PORT "conParam2"
@@ -205,11 +201,15 @@ CUserSettings::CUserSettings()
     // Debugging section:
     // *****************************
     alwaysShowConsole=false;
+    _overrideConsoleVerbosity="default";
+    _overrideStatusbarVerbosity="default";
+    _overrideDialogVerbosity="default";
+    _consoleLogFilter="";
+    undecoratedStatusbarMessages=false;
 
     // Rendering section:
     // *****************************
     _idleFps=8;
-    threadedRenderingDuringSimulation=0; // keep 0, will otherwise lead to very frequent crashes!!
     desiredOpenGlMajor=-1; // default
     desiredOpenGlMinor=-1; // default
     offscreenContextType=-1; // default type
@@ -229,19 +229,20 @@ CUserSettings::CUserSettings()
 
     // Visual section:
     // *****************************
+    darkMode=false;
     renderingSurfaceVShift=0;
     renderingSurfaceVResize=0;
     scriptEditorFont=""; // default
     scriptEditorFontSize=-1; // default
-    auxConsoleFont=""; // default
-    auxConsoleFontSize=-1; // default
+    scriptEditorBoldFont=false;
+
     displayWorldReference=true;
     antiAliasing=false;
     displayBoundingBoxeWhenObjectSelected=true;
     guiFontSize_Win=13; // 11-14 ok
     guiFontSize_Mac=-1; // 10-13 ok
     guiFontSize_Linux=13; // 11-14 ok, default is quite large
-    statusbarInitiallyVisible=CLibLic::getBoolVal(10);
+    statusbarInitiallyVisible=CSimFlavor::getBoolVal(10);
     modelBrowserInitiallyVisible=true;
     sceneHierarchyInitiallyVisible=true;
     sceneHierarchyHiddenDuringSimulation=false;
@@ -315,8 +316,6 @@ CUserSettings::CUserSettings()
     defaultDirectoryForModels="";
     defaultDirectoryForCadFiles="";
     defaultDirectoryForMiscFiles="";
-    defaultDirectoryForExternalScriptEditor="";
-    defaultDirectoryForRemoteApiFiles="";
 
 
     // Serialization section:
@@ -344,11 +343,9 @@ CUserSettings::CUserSettings()
     // *****************************
     doNotShowCrashRecoveryMessage=false;
     doNotShowUpdateCheckMessage=false;
-    doNotShowSceneSelectionThumbnails=false;
     doNotShowProgressBars=false;
     doNotShowAcknowledgmentMessages=false;
     doNotShowVideoCompressionLibraryLoadError=false;
-    redirectStatusbarMsgToConsoleInHeadlessMode=false;
     suppressStartupDialogs=false;
     suppressXmlOverwriteMsg=false;
 
@@ -359,15 +356,17 @@ CUserSettings::CUserSettings()
     navigationBackwardCompatibility=false;
     colorAdjust_backCompatibility=1.0f; // default
     specificGpuTweak=false; // default
-    enableOldCalcModuleGuis=false; // default
     useAlternateSerialPortRoutines=false;
-    enableOpenGlBasedCustomUiEditor=false;
-    changeScriptCodeForNewApiNotation=1;
+    disableOpenGlBasedCustomUi=false;
+    showOldDlgs=false;
+    enableOldRenderableBehaviour=false;
+    keepOldThreadedScripts=false;
     _supportOldApiNotation=true;
-    enableOldMillObjects=false;
     enableOldMirrorObjects=false;
-
-
+    allowOldEduRelease=-1;
+    threadedScriptsStoppingGraceTime=0;
+    bugFix1=1000;
+    compatibilityFix1=false;
 
 
     // Various section:
@@ -389,8 +388,6 @@ CUserSettings::CUserSettings()
     test1=false;
     orderHierarchyAlphabetically=false;
     macChildDialogType=-1; // default
-    useExternalLuaLibrary=false; //when using the LUA JIT, we get crashes because of other Lua modules (e.g. LuaSocket). Probably those other modules too need to be recompiled
-    raiseErrorWithApiScriptFunctions=true;
     additionalLuaPath="";
     desktopRecordingIndex=0;
     desktopRecordingWidth=-1;
@@ -405,11 +402,6 @@ CUserSettings::CUserSettings()
     floatingLicensePort=20249;
     keepDongleOpen=false;
     xrTest=0;
-
-    // Other, not serialized:
-    groupSelectionColor.setDefaultValues();
-    groupSelectionColor.setColor(0.75f,0.0f,0.4f,sim_colorcomponent_ambient_diffuse);
-    groupSelectionColor.setColor(0.2f,0.0f,0.1f,sim_colorcomponent_emission);
 
     loadUserSettings();
 }
@@ -488,8 +480,8 @@ float CUserSettings::getRotationStepSize()
 void CUserSettings::setUndoRedoEnabled(bool isEnabled)
 {
     _undoRedoEnabled=isEnabled;
-    if (App::ct->undoBufferContainer!=nullptr)
-        App::ct->undoBufferContainer->emptySceneProcedure();
+    if (App::currentWorld->undoBufferContainer!=nullptr)
+        App::currentWorld->undoBufferContainer->emptySceneProcedure();
 }
 
 bool CUserSettings::getUndoRedoEnabled()
@@ -514,7 +506,7 @@ void CUserSettings::setIdleFps(int fps)
 
 int CUserSettings::getAbortScriptExecutionTiming()
 {
-    if (!CLibLic::getBoolVal(11))
+    if (!CSimFlavor::getBoolVal(11))
         return(0);
     return(_abortScriptExecutionButton);
 }
@@ -537,7 +529,7 @@ bool CUserSettings::getSupportOldApiNotation()
         for (int i=0;i<9;i++)
         {
             std::string s(App::getApplicationArgument(i));
-            if (s.compare("NO_OLD_API_SUPPORT")==0)
+            if (s.compare("NO_old_API_SUPPORT")==0)
             {
                 support=-1;
                 break;
@@ -563,10 +555,12 @@ void CUserSettings::saveUserSettings()
     c.addRandomLine("// Debugging");
     c.addRandomLine("// =================================================");
     c.addBoolean(_USR_ALWAYS_SHOW_CONSOLE,alwaysShowConsole,"");
-    c.addBoolean(_USR_DEBUG_INTERNAL_FUNCTION_ACCESS,(CFuncDebug::getDebugMask()&1)!=0,"will also heavily slow down CoppeliaSim");
-    c.addBoolean(_USR_DEBUG_C_API_ACCESS,(CFuncDebug::getDebugMask()&2)!=0,"will also drastically slow down CoppeliaSim");
-    c.addBoolean(_USR_DEBUG_LUA_API_ACCESS,(CFuncDebug::getDebugMask()&4)!=0,"will also slow down CoppeliaSim");
-    c.addBoolean(_USR_DEBUG_TO_FILE,CDebugLogFile::getDebugToFile(),"if true, debug info is sent to debugLog.txt");
+    c.addString(_USR_VERBOSITY,_overrideConsoleVerbosity,"to override console verbosity setting, use any of: default (do not override), none, errors, warnings, loadinfos, scripterrors, scriptwarnings, msgs, infos, debug, trace, tracelua or traceall");
+    c.addString(_USR_STATUSBAR_VERBOSITY,_overrideStatusbarVerbosity,"to override statusbar verbosity setting, use any of: default (do not override), none, errors, warnings, loadinfos, scripterrors, scriptwarnings, msgs, infos, debug, trace, tracelua or traceall");
+    c.addString(_USR_LOG_FILTER,_consoleLogFilter,"leave empty for no filter. Filter format: txta1&txta2&...&txtaN|txtb1&txtb2&...&txtbN|...");
+    c.addString(_USR_DIALOG_VERBOSITY,_overrideDialogVerbosity,"to override dialog verbosity setting, use any of: default (do not override), none, errors, warnings, questions or infos");
+    c.addBoolean(_USR_UNDECORATED_STATUSBAR_MSGS,undecoratedStatusbarMessages,"");
+    c.addBoolean(_USR_CONSOLE_MSGS_TO_FILE,App::getConsoleMsgToFile(),"if true, console messages are sent to debugLog.txt");
     c.addRandomLine("");
     c.addRandomLine("");
 
@@ -574,7 +568,6 @@ void CUserSettings::saveUserSettings()
     c.addRandomLine("// Rendering");
     c.addRandomLine("// =================================================");
     c.addInteger(_USR_IDLE_FPS,_idleFps,"");
-    c.addInteger(_USR_THREADED_RENDERING_DURING_SIMULATION,threadedRenderingDuringSimulation,"recommended to keep 0 (-1=disabled, 0=pre-enabled, 1=enabled).");
     c.addInteger(_USR_DESIRED_OPENGL_MAJOR,desiredOpenGlMajor,"recommended to keep -1.");
     c.addInteger(_USR_DESIRED_OPENGL_MINOR,desiredOpenGlMinor,"recommended to keep -1.");
     c.addInteger(_USR_OFFSCREEN_CONTEXT_TYPE,offscreenContextType,"recommended to keep -1 (-1=default, 0=Qt offscreen, 1=QGLWidget/QOpenGLWidget visible, 2=QGLWidget/QOpenGLWidget invisible).");
@@ -590,7 +583,7 @@ void CUserSettings::saveUserSettings()
     c.addInteger(_USR_VSYNC,vsync,"recommended to keep at 0. Graphic card dependent.");
     c.addBoolean(_USR_DEBUG_OPENGL,debugOpenGl,"");
     c.addFloat(_USR_STEREO_DIST,stereoDist,"0=no stereo, otherwise the intra occular distance (0.0635 for the human eyes).");
-    c.addInteger(_USR_HIGH_RES_DISPLAY,highResDisplay,"-1=automatic, 0=disabled, 1=enabled.");
+    c.addInteger(_USR_HIGH_RES_DISPLAY,highResDisplay,"-1=none, 2=enabled, 1=special.");
     c.addBoolean(_USR_NO_EDGES_WHEN_MOUSE_DOWN,noEdgesWhenMouseDownInCameraView,"if true, rendering is faster during mouse/view interaction");
     c.addBoolean(_USR_NO_TEXTURES_WHEN_MOUSE_DOWN,noTexturesWhenMouseDownInCameraView,"if true, rendering is faster during mouse/view interaction");
     c.addBoolean(_USR_NO_CUSTOM_UIS_WHEN_MOUSE_DOWN,noCustomUisWhenMouseDownInCameraView,"if true, rendering is faster during mouse/view interaction");
@@ -603,6 +596,7 @@ void CUserSettings::saveUserSettings()
 
     c.addRandomLine("// Visual");
     c.addRandomLine("// =================================================");
+    c.addBoolean(_USR_DARK_MODE,darkMode,"");
     c.addInteger(_USR_RENDERING_SURFACE_VERTICAL_SHIFT,renderingSurfaceVShift,"");
     c.addInteger(_USR_RENDERING_SURFACE_VERTICAL_RESIZE,renderingSurfaceVResize,"");
     c.addBoolean(_USR_DISPLAY_WORLD_REF,displayWorldReference,"");
@@ -617,9 +611,8 @@ void CUserSettings::saveUserSettings()
     c.addBoolean(_USR_SCENEHIERARCHY_HIDDEN_DURING_SIMULATION,sceneHierarchyHiddenDuringSimulation,"");
 
     c.addString(_USR_SCRIPT_EDITOR_FONT,scriptEditorFont,"empty=default.");
+    c.addBoolean(_USR_SCRIPT_EDITOR_BOLDFONT,scriptEditorBoldFont,"");
     c.addInteger(_USR_SCRIPT_EDITOR_FONT_SIZE,scriptEditorFontSize,"-1=default.");
-    c.addString(_USR_AUX_CONSOLE_FONT,auxConsoleFont,"empty=default");
-    c.addInteger(_USR_AUX_CONSOLE_FONT_SIZE,auxConsoleFontSize,"-1=default.");
 
     c.addIntVector3(_USR_MAIN_SCRIPT_COLOR_BACKGROUND,mainScriptColor_background,"");
     c.addIntVector3(_USR_MAIN_SCRIPT_COLOR_SELECTION,mainScriptColor_selection,"");
@@ -687,8 +680,6 @@ void CUserSettings::saveUserSettings()
     c.addString(_USR_DIRECTORY_FOR_MODELS,defaultDirectoryForModels,"absolute path, e.g. d:/myModels (or leave empty for default path)");
     c.addString(_USR_DIRECTORY_FOR_CAD,defaultDirectoryForCadFiles,"absolute path, e.g. d:/myCadFiles (or leave empty for default path)");
     c.addString(_USR_DIRECTORY_FOR_MISC,defaultDirectoryForMiscFiles,"absolute path, e.g. d:/myMiscFiles (or leave empty for default path)");
-    c.addString(_USR_DIRECTORY_FOR_SCRIPT_EDITOR,defaultDirectoryForExternalScriptEditor,"absolute path, e.g. d:/myScriptTempFiles (or leave empty for default path)");
-    c.addString(_USR_DIRECTORY_FOR_REMOTE_API,defaultDirectoryForRemoteApiFiles,"absolute path, e.g. d:/myRemoteApiTransfers (or leave empty for default path)");
 
 
     c.addRandomLine("");
@@ -725,11 +716,9 @@ void CUserSettings::saveUserSettings()
     c.addRandomLine("// =================================================");
     c.addBoolean(_USR_DO_NOT_SHOW_CRASH_RECOVERY_MESSAGE,doNotShowCrashRecoveryMessage,"");
     c.addBoolean(_USR_DO_NOT_SHOW_UPDATE_CHECK_MESSAGE,doNotShowUpdateCheckMessage,"");
-    c.addBoolean(_USR_DO_NOT_SHOW_SCENE_SELECTION_THUMBNAILS,doNotShowSceneSelectionThumbnails,"");
     c.addBoolean(_USR_DO_NOT_SHOW_PROGRESS_BARS,doNotShowProgressBars,"");
     c.addBoolean(_USR_DO_NOT_SHOW_ACKNOWLEDGMENT_MESSAGES,doNotShowAcknowledgmentMessages,"");
     c.addBoolean(_USR_DO_NOT_SHOW_VIDEO_COMPRESSION_LIBRARY_LOAD_ERROR,doNotShowVideoCompressionLibraryLoadError,"");
-    c.addBoolean(_USR_REDIRECT_STATUSBAR_MSG_TO_CONSOLE_IN_HEADLESS_MODE,redirectStatusbarMsgToConsoleInHeadlessMode,"");
     c.addBoolean(_USR_SUPPRESS_STARTUP_DIALOG,suppressStartupDialogs,"");
     c.addBoolean(_USR_SUPPRESS_XML_OVERWRITE_MSG,suppressXmlOverwriteMsg,"");
 
@@ -745,13 +734,15 @@ void CUserSettings::saveUserSettings()
     c.addBoolean(_USR_NAVIGATION_BACKWARD_COMPATIBILITY_MODE,navigationBackwardCompatibility,"recommended to keep false.");
     c.addFloat(_USR_COLOR_ADJUST_BACK_COMPATIBILITY,colorAdjust_backCompatibility,"recommended to keep 1.0");
     c.addBoolean(_USR_SPECIFIC_GPU_TWEAK,specificGpuTweak,"");
-    c.addBoolean(_USR_ENABLE_OLD_CALC_MODULE_GUIS,enableOldCalcModuleGuis,"");
     c.addBoolean(_USR_USE_ALTERNATE_SERIAL_PORT_ROUTINES,useAlternateSerialPortRoutines,"");
-    c.addBoolean(_USR_ENABLE_OPENGL_BASED_CUSTOM_UI_EDITOR,enableOpenGlBasedCustomUiEditor,"");
-    c.addInteger(_USR_CHANGE_SCRIPT_CODE_NEW_API_NOTATION,changeScriptCodeForNewApiNotation,"1=enabled, 0=disabled.");
-    c.addBoolean(_USR_SUPPORT_OLD_API_NOTATION,_supportOldApiNotation,"");
-    c.addBoolean(_USR_ENABLE_OLD_MILL_OBJECTS,enableOldMillObjects,"");
-    c.addBoolean(_USR_ENABLE_OLD_MIRROR_OBJECTS,enableOldMirrorObjects,"");
+    c.addBoolean(_USR_DISABLED_OPENGL_BASED_CUSTOM_UI,disableOpenGlBasedCustomUi,"");
+    c.addBoolean(_USR_SHOW_old_DLGS,showOldDlgs,"");
+    c.addBoolean(_USR_ENABLE_OLD_RENDERABLE,enableOldRenderableBehaviour,"");
+    c.addBoolean(_USR_SUPPORT_old_THREADED_SCRIPTS,keepOldThreadedScripts,"");
+    c.addBoolean(_USR_ENABLE_old_MIRROR_OBJECTS,enableOldMirrorObjects,"");
+    c.addInteger(_USR_THREADED_SCRIPTS_GRACE_TIME,threadedScriptsStoppingGraceTime,"");
+
+
 
 
     c.addRandomLine("");
@@ -763,7 +754,7 @@ void CUserSettings::saveUserSettings()
     c.addFloat(_USR_DYNAMIC_ACTIVITY_RANGE,dynamicActivityRange,"");
     c.addFloat(_USR_TRANSLATION_STEP_SIZE,_translationStepSize,"");
     c.addFloat(_USR_ROTATION_STEP_SIZE,_rotationStepSize*radToDeg_f,"");
-    c.addInteger(_USR_PROCESSOR_CORE_AFFINITY,CThreadPool::getProcessorCoreAffinity(),"recommended to keep 0 (-1:os default, 0:all threads on same core, m: affinity mask (bit1=core1, bit2=core2, etc.))");
+    c.addInteger(_USR_PROCESSOR_CORE_AFFINITY,CThreadPool_old::getProcessorCoreAffinity(),"recommended to keep 0 (-1:os default, 0:all threads on same core, m: affinity mask (bit1=core1, bit2=core2, etc.))");
     c.addInteger(_USR_FREE_SERVER_PORT_START,freeServerPortStart,"");
     c.addInteger(_USR_FREE_SERVER_PORT_RANGE,freeServerPortRange,"");
     c.addInteger(_USR_ABORT_SCRIPT_EXECUTION_BUTTON,_abortScriptExecutionButton,"in seconds. Zero to disable.");
@@ -776,8 +767,6 @@ void CUserSettings::saveUserSettings()
     c.addBoolean(_USR_TEST1,test1,"recommended to keep false.");
     c.addBoolean(_USR_ORDER_HIERARCHY_ALPHABETICALLY,orderHierarchyAlphabetically,"");
     c.addInteger(_USR_MAC_CHILD_DIALOG_TYPE,macChildDialogType,"-1=default.");
-    c.addBoolean(_USR_USE_EXTERNAL_LUA_LIBRARY,useExternalLuaLibrary,"if true, will call all Lua functions via the simLua library ('simLua.dll', 'libsimLua.so' or 'libsimLua.dylib')");
-// do not advertise this option anymore... c.addBoolean(_USR_RAISE_ERROR_WITH_API_SCRIPT_FUNCTIONS,raiseErrorWithApiScriptFunctions,"");
     c.addString(_USR_ADDITIONAL_LUA_PATH,additionalLuaPath,"e.g. d:/myLuaRoutines");
     c.addInteger(_USR_DESKTOP_RECORDING_INDEX,desktopRecordingIndex,"");
     c.addInteger(_USR_DESKTOP_RECORDING_WIDTH,desktopRecordingWidth,"-1=default.");
@@ -804,7 +793,7 @@ bool CUserSettings::getBooleanFromFileDirectly(const char* varName,bool& varValu
 { // static function
     bool result=false;
     CConfReaderAndWriter c;
-    std::string filenameAndPath(VVarious::getModulePath()+"/"+SIM_SYSTEM_DIRECTORY_NAME+"/"+USER_SETTINGS_FILENAME); // The CDirectoryPaths object might not yet be set-up
+    std::string filenameAndPath(VVarious::getModulePath()+"/"+SIM_SYSTEM_DIRECTORY_NAME+"/"+USER_SETTINGS_FILENAME); // The CFolderSystem object might not yet be set-up
     if (c.readConfiguration(filenameAndPath.c_str()))
         result=c.getBoolean(varName,varValue);
     return(result);
@@ -814,7 +803,7 @@ bool CUserSettings::getIntegerFromFileDirectly(const char* varName,int& varValue
 { // static function
     bool result=false;
     CConfReaderAndWriter c;
-    std::string filenameAndPath(VVarious::getModulePath()+"/"+SIM_SYSTEM_DIRECTORY_NAME+"/"+USER_SETTINGS_FILENAME); // The CDirectoryPaths object might not yet be set-up
+    std::string filenameAndPath(VVarious::getModulePath()+"/"+SIM_SYSTEM_DIRECTORY_NAME+"/"+USER_SETTINGS_FILENAME); // The CFolderSystem object might not yet be set-up
     if (c.readConfiguration(filenameAndPath.c_str()))
         result=c.getInteger(varName,varValue);
     return(result);
@@ -824,7 +813,7 @@ bool CUserSettings::getFloatFromFileDirectly(const char* varName,float& varValue
 { // static function
     bool result=false;
     CConfReaderAndWriter c;
-    std::string filenameAndPath(VVarious::getModulePath()+"/"+SIM_SYSTEM_DIRECTORY_NAME+"/"+USER_SETTINGS_FILENAME); // The CDirectoryPaths object might not yet be set-up
+    std::string filenameAndPath(VVarious::getModulePath()+"/"+SIM_SYSTEM_DIRECTORY_NAME+"/"+USER_SETTINGS_FILENAME); // The CFolderSystem object might not yet be set-up
     if (c.readConfiguration(filenameAndPath.c_str()))
         result=c.getFloat(varName,varValue);
     return(result);
@@ -834,7 +823,7 @@ bool CUserSettings::getStringFromFileDirectly(const char* varName,std::string& v
 { // static function
     bool result=false;
     CConfReaderAndWriter c;
-    std::string filenameAndPath(VVarious::getModulePath()+"/"+SIM_SYSTEM_DIRECTORY_NAME+"/"+USER_SETTINGS_FILENAME); // The CDirectoryPaths object might not yet be set-up
+    std::string filenameAndPath(VVarious::getModulePath()+"/"+SIM_SYSTEM_DIRECTORY_NAME+"/"+USER_SETTINGS_FILENAME); // The CFolderSystem object might not yet be set-up
     if (c.readConfiguration(filenameAndPath.c_str()))
         result=c.getString(varName,varValue);
     return(result);
@@ -845,7 +834,7 @@ void CUserSettings::loadUserSettings()
 {
     CConfReaderAndWriter c;
 
-    // The CDirectoryPaths object might not yet be set-up
+    // The CFolderSystem object might not yet be set-up
     std::string filenameAndPath(VVarious::getModulePath()+"/"+SIM_SYSTEM_DIRECTORY_NAME+"/"+USER_SETTINGS_FILENAME);
     // Following call might fail.
     if (!c.readConfiguration(filenameAndPath.c_str()))
@@ -854,33 +843,55 @@ void CUserSettings::loadUserSettings()
     // Debugging section:
     // *****************************
     c.getBoolean(_USR_ALWAYS_SHOW_CONSOLE,alwaysShowConsole);
-    bool dummyBool=false;
-    int dummyInt=0;
-    if (c.getBoolean(_USR_DEBUG_INTERNAL_FUNCTION_ACCESS,dummyBool))
+    c.getString(_USR_VERBOSITY,_overrideConsoleVerbosity);
+    if (_overrideConsoleVerbosity.compare("default")!=0)
     {
-        if (dummyBool)
-            dummyInt+=1;
+        int l=App::getVerbosityLevelFromString(_overrideConsoleVerbosity.c_str());
+        if (l>=sim_verbosity_none)
+        {
+            App::setConsoleVerbosity(l);
+            App::logMsg(sim_verbosity_warnings,"console verbosity overridden to '%s' via system/usrset.txt.",_overrideConsoleVerbosity.c_str());
+        }
+        else
+            App::logMsg(sim_verbosity_errors,"unrecognized verbosity value in system/usrset.txt: %s.",_overrideConsoleVerbosity.c_str());
     }
-    if (c.getBoolean(_USR_DEBUG_C_API_ACCESS,dummyBool))
+    c.getString(_USR_STATUSBAR_VERBOSITY,_overrideStatusbarVerbosity);
+    if (_overrideStatusbarVerbosity.compare("default")!=0)
     {
-        if (dummyBool)
-            dummyInt+=2;
+        int l=App::getVerbosityLevelFromString(_overrideStatusbarVerbosity.c_str());
+        if (l>=sim_verbosity_none)
+        {
+            App::setStatusbarVerbosity(l);
+            App::logMsg(sim_verbosity_warnings,"statusbar verbosity overridden to '%s' via system/usrset.txt.",_overrideStatusbarVerbosity.c_str());
+        }
+        else
+            App::logMsg(sim_verbosity_errors,"unrecognized verbosity value in system/usrset.txt: %s.",_overrideStatusbarVerbosity.c_str());
     }
-    if (c.getBoolean(_USR_DEBUG_LUA_API_ACCESS,dummyBool))
-    {
-        if (dummyBool)
-            dummyInt+=4;
-    }
-    CFuncDebug::setDebugMask(dummyInt);
-    if (c.getBoolean(_USR_DEBUG_TO_FILE,dummyBool))
-        CDebugLogFile::setDebugToFile(dummyBool);
+    c.getString(_USR_LOG_FILTER,_consoleLogFilter);
+    App::setConsoleLogFilter(_consoleLogFilter.c_str());
 
+    c.getString(_USR_DIALOG_VERBOSITY,_overrideDialogVerbosity);
+    if (_overrideDialogVerbosity.compare("default")!=0)
+    {
+        int l=App::getVerbosityLevelFromString(_overrideDialogVerbosity.c_str());
+        if (l>=sim_verbosity_none)
+        {
+            App::setDlgVerbosity(l);
+            App::logMsg(sim_verbosity_warnings,"dialog verbosity overridden to '%s' via system/usrset.txt.",_overrideDialogVerbosity.c_str());
+        }
+        else
+            App::logMsg(sim_verbosity_errors,"unrecognized verbosity value in system/usrset.txt: %s.",_overrideDialogVerbosity.c_str());
+    }
+
+    c.getBoolean(_USR_UNDECORATED_STATUSBAR_MSGS,undecoratedStatusbarMessages);
+    bool dummyBool=false;
+    if (c.getBoolean(_USR_CONSOLE_MSGS_TO_FILE,dummyBool))
+        App::setConsoleMsgToFile(dummyBool);
 
     // Rendering section:
     // *****************************
     c.getInteger(_USR_IDLE_FPS,_idleFps);
     setIdleFps(_idleFps);
-    c.getInteger(_USR_THREADED_RENDERING_DURING_SIMULATION,threadedRenderingDuringSimulation);
     c.getInteger(_USR_DESIRED_OPENGL_MAJOR,desiredOpenGlMajor);
     c.getInteger(_USR_DESIRED_OPENGL_MINOR,desiredOpenGlMinor);
     c.getInteger(_USR_OFFSCREEN_CONTEXT_TYPE,offscreenContextType);
@@ -904,6 +915,7 @@ void CUserSettings::loadUserSettings()
 
     // Visual section:
     // *****************************
+    c.getBoolean(_USR_DARK_MODE,darkMode);
     c.getInteger(_USR_RENDERING_SURFACE_VERTICAL_SHIFT,renderingSurfaceVShift);
     c.getInteger(_USR_RENDERING_SURFACE_VERTICAL_RESIZE,renderingSurfaceVResize);
     c.getBoolean(_USR_DISPLAY_WORLD_REF,displayWorldReference);
@@ -925,9 +937,8 @@ void CUserSettings::loadUserSettings()
     c.getBoolean(_USR_SCENEHIERARCHY_HIDDEN_DURING_SIMULATION,sceneHierarchyHiddenDuringSimulation);
 
     c.getString(_USR_SCRIPT_EDITOR_FONT,scriptEditorFont);
+    c.getBoolean(_USR_SCRIPT_EDITOR_BOLDFONT,scriptEditorBoldFont);
     c.getInteger(_USR_SCRIPT_EDITOR_FONT_SIZE,scriptEditorFontSize);
-    c.getString(_USR_AUX_CONSOLE_FONT,auxConsoleFont);
-    c.getInteger(_USR_AUX_CONSOLE_FONT_SIZE,auxConsoleFontSize);
 
     c.getIntVector3(_USR_MAIN_SCRIPT_COLOR_BACKGROUND,mainScriptColor_background);
     c.getIntVector3(_USR_MAIN_SCRIPT_COLOR_SELECTION,mainScriptColor_selection);
@@ -991,8 +1002,6 @@ void CUserSettings::loadUserSettings()
     c.getString(_USR_DIRECTORY_FOR_MODELS,defaultDirectoryForModels);
     c.getString(_USR_DIRECTORY_FOR_CAD,defaultDirectoryForCadFiles);
     c.getString(_USR_DIRECTORY_FOR_MISC,defaultDirectoryForMiscFiles);
-    c.getString(_USR_DIRECTORY_FOR_SCRIPT_EDITOR,defaultDirectoryForExternalScriptEditor);
-    c.getString(_USR_DIRECTORY_FOR_REMOTE_API,defaultDirectoryForRemoteApiFiles);
 
     // Serialization section:
     // *****************************
@@ -1020,11 +1029,9 @@ void CUserSettings::loadUserSettings()
     // *****************************
     c.getBoolean(_USR_DO_NOT_SHOW_CRASH_RECOVERY_MESSAGE,doNotShowCrashRecoveryMessage);
     c.getBoolean(_USR_DO_NOT_SHOW_UPDATE_CHECK_MESSAGE,doNotShowUpdateCheckMessage);
-    c.getBoolean(_USR_DO_NOT_SHOW_SCENE_SELECTION_THUMBNAILS,doNotShowSceneSelectionThumbnails);
     c.getBoolean(_USR_DO_NOT_SHOW_PROGRESS_BARS,doNotShowProgressBars);
     c.getBoolean(_USR_DO_NOT_SHOW_ACKNOWLEDGMENT_MESSAGES,doNotShowAcknowledgmentMessages);
     c.getBoolean(_USR_DO_NOT_SHOW_VIDEO_COMPRESSION_LIBRARY_LOAD_ERROR,doNotShowVideoCompressionLibraryLoadError);
-    c.getBoolean(_USR_REDIRECT_STATUSBAR_MSG_TO_CONSOLE_IN_HEADLESS_MODE,redirectStatusbarMsgToConsoleInHeadlessMode);
     c.getBoolean(_USR_SUPPRESS_STARTUP_DIALOG,suppressStartupDialogs);
     c.getBoolean(_USR_SUPPRESS_XML_OVERWRITE_MSG,suppressXmlOverwriteMsg);
 
@@ -1035,13 +1042,19 @@ void CUserSettings::loadUserSettings()
     c.getBoolean(_USR_NAVIGATION_BACKWARD_COMPATIBILITY_MODE,navigationBackwardCompatibility);
     c.getFloat(_USR_COLOR_ADJUST_BACK_COMPATIBILITY,colorAdjust_backCompatibility);
     c.getBoolean(_USR_SPECIFIC_GPU_TWEAK,specificGpuTweak);
-    c.getBoolean(_USR_ENABLE_OLD_CALC_MODULE_GUIS,enableOldCalcModuleGuis);
     c.getBoolean(_USR_USE_ALTERNATE_SERIAL_PORT_ROUTINES,useAlternateSerialPortRoutines);
-    c.getBoolean(_USR_ENABLE_OPENGL_BASED_CUSTOM_UI_EDITOR,enableOpenGlBasedCustomUiEditor);
-    c.getInteger(_USR_CHANGE_SCRIPT_CODE_NEW_API_NOTATION,changeScriptCodeForNewApiNotation);
-    c.getBoolean(_USR_SUPPORT_OLD_API_NOTATION,_supportOldApiNotation);
-    c.getBoolean(_USR_ENABLE_OLD_MILL_OBJECTS,enableOldMillObjects);
-    c.getBoolean(_USR_ENABLE_OLD_MIRROR_OBJECTS,enableOldMirrorObjects);
+    c.getBoolean(_USR_DISABLED_OPENGL_BASED_CUSTOM_UI,disableOpenGlBasedCustomUi);
+    c.getBoolean(_USR_SHOW_old_DLGS,showOldDlgs);
+    c.getBoolean(_USR_ENABLE_OLD_RENDERABLE,enableOldRenderableBehaviour);
+    c.getBoolean(_USR_SUPPORT_old_THREADED_SCRIPTS,keepOldThreadedScripts);
+    c.getBoolean(_USR_SUPPORT_old_API_NOTATION,_supportOldApiNotation);
+    c.getBoolean(_USR_ENABLE_old_MIRROR_OBJECTS,enableOldMirrorObjects);
+    c.getInteger(_USR_ALLOW_old_EDU_RELEASE,allowOldEduRelease);
+    c.getInteger(_USR_THREADED_SCRIPTS_GRACE_TIME,threadedScriptsStoppingGraceTime);
+    c.getInteger(_USR_BUGFIX1,bugFix1);
+    c.getBoolean(_USR_COMPATIBILITYFIX1,compatibilityFix1);
+
+
 
     // Various section:
     // *****************************
@@ -1053,7 +1066,7 @@ void CUserSettings::loadUserSettings()
         setRotationStepSize(_rotationStepSize*degToRad_f);
     int processorCoreAffinity=0;
     if (c.getInteger(_USR_PROCESSOR_CORE_AFFINITY,processorCoreAffinity))
-        CThreadPool::setProcessorCoreAffinity(processorCoreAffinity);
+        CThreadPool_old::setProcessorCoreAffinity(processorCoreAffinity);
     c.getInteger(_USR_FREE_SERVER_PORT_START,freeServerPortStart);
     _nextfreeServerPortToUse=freeServerPortStart;
     c.getInteger(_USR_FREE_SERVER_PORT_RANGE,freeServerPortRange);
@@ -1081,8 +1094,6 @@ void CUserSettings::loadUserSettings()
         VDialog::dialogStyle=QT_MODELESS_DLG_STYLE;
     #endif
 #endif
-    c.getBoolean(_USR_USE_EXTERNAL_LUA_LIBRARY,useExternalLuaLibrary);
-    c.getBoolean(_USR_RAISE_ERROR_WITH_API_SCRIPT_FUNCTIONS,raiseErrorWithApiScriptFunctions);
     c.getString(_USR_ADDITIONAL_LUA_PATH,additionalLuaPath);
     c.getInteger(_USR_DESKTOP_RECORDING_INDEX,desktopRecordingIndex);
     c.getInteger(_USR_DESKTOP_RECORDING_WIDTH,desktopRecordingWidth);

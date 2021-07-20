@@ -1,7 +1,6 @@
 
 // This file requires some serious refactoring!
 
-#include "funcDebug.h"
 #include "simInternal.h"
 #include "sPage.h"
 #include "global.h"
@@ -47,41 +46,38 @@ bool CSPage::isViewValid(CSView* v) const
     return(false);
 }
 
-void CSPage::initializeInitialValues(bool simulationIsRunning,int initializeOnlyForThisNewObject)
+void CSPage::initializeInitialValues(bool simulationAlreadyRunning,int initializeOnlyForThisNewObject)
 { // is called at simulation start, but also after object(s) have been copied into a scene!
     for (size_t i=0;i<_allViews.size();i++)
     {
         int loID=_allViews[i]->getLinkedObjectID();
         if ((initializeOnlyForThisNewObject==-1)||((loID!=-1)&&(loID==initializeOnlyForThisNewObject)))
-            _allViews[i]->initializeInitialValues(simulationIsRunning);
+            _allViews[i]->initializeInitialValues(simulationAlreadyRunning);
     }
     if (initializeOnlyForThisNewObject==-1)
     {
-        _initialValuesInitialized=simulationIsRunning;
-        if (simulationIsRunning)
+        _initialValuesInitialized=true;
+        // make sure we memorize the floating view sizes and positions:
+        _initialAuxViewSizesAndPos.clear();
+        _initialAuxViewUniqueIDs.clear();
+        for (int i=getRegularViewCount();i<int(_allViews.size());i++)
         {
-            // make sure we memorize the floating view sizes and positions:
-            _initialAuxViewSizesAndPos.clear();
-            _initialAuxViewUniqueIDs.clear();
-            for (int i=getRegularViewCount();i<int(_allViews.size());i++)
-            {
-                _initialAuxViewSizesAndPos.push_back(_allViewAuxSizesAndPos[4*i+0]);
-                _initialAuxViewSizesAndPos.push_back(_allViewAuxSizesAndPos[4*i+1]);
-                _initialAuxViewSizesAndPos.push_back(_allViewAuxSizesAndPos[4*i+2]);
-                _initialAuxViewSizesAndPos.push_back(_allViewAuxSizesAndPos[4*i+3]);
-                _initialAuxViewUniqueIDs.push_back(_allViews[i]->getUniqueID());
-            }
+            _initialAuxViewSizesAndPos.push_back(_allViewAuxSizesAndPos[4*i+0]);
+            _initialAuxViewSizesAndPos.push_back(_allViewAuxSizesAndPos[4*i+1]);
+            _initialAuxViewSizesAndPos.push_back(_allViewAuxSizesAndPos[4*i+2]);
+            _initialAuxViewSizesAndPos.push_back(_allViewAuxSizesAndPos[4*i+3]);
+            _initialAuxViewUniqueIDs.push_back(_allViews[i]->getUniqueID());
         }
     }
     else
     { // this was called for a specific object!
-        if (_initialValuesInitialized&&simulationIsRunning)
+        if (_initialValuesInitialized)
         {
             for (int i=getRegularViewCount();i<int(_allViews.size());i++)
             {
                 if (_allViews[i]->getLinkedObjectID()==initializeOnlyForThisNewObject)
                 {
-                    _allViews[i]->initializeInitialValues(simulationIsRunning);
+                    _allViews[i]->initializeInitialValues(simulationAlreadyRunning);
                     _initialAuxViewSizesAndPos.push_back(_allViewAuxSizesAndPos[4*i+0]);
                     _initialAuxViewSizesAndPos.push_back(_allViewAuxSizesAndPos[4*i+1]);
                     _initialAuxViewSizesAndPos.push_back(_allViewAuxSizesAndPos[4*i+2]);
@@ -105,7 +101,7 @@ void CSPage::simulationEnded()
         }
     }
 
-    if (_initialValuesInitialized&&App::ct->simulation->getResetSceneAtSimulationEnd())
+    if (_initialValuesInitialized&&App::currentWorld->simulation->getResetSceneAtSimulationEnd())
     {
         // Make sure we restore floating view's initial positions and sizes:
         for (int i=getRegularViewCount();i<int(_allViews.size());i++)
@@ -185,7 +181,7 @@ void CSPage::announceObjectWillBeErased(int objectID)
             i++;
     }
 }
-void CSPage::performObjectLoadingMapping(std::vector<int>* map)
+void CSPage::performObjectLoadingMapping(const std::vector<int>* map)
 {
     for (int i=0;i<int(_allViews.size());i++)
         _allViews[i]->performObjectLoadingMapping(map);
@@ -232,7 +228,7 @@ void CSPage::getViewSizeAndPosition(int sViewSize[2],int sViewPos[2],int subView
         else
             sViewPos[1]=_pagePosition[1]+_pageSize[1]/2;
     }
-    if (_pageType==SIX_VIEWS_OLD)
+    if (_pageType==SIX_VIEWS_old)
     {
         if (subViewIndex==0)
         {
@@ -607,7 +603,7 @@ int CSPage::getRegularViewCount() const
         return(1);
     if (_pageType==FOUR_VIEWS)
         return(4);
-    if ((_pageType==SIX_VIEWS_OLD)||(_pageType==SIX_VIEWS))
+    if ((_pageType==SIX_VIEWS_old)||(_pageType==SIX_VIEWS))
         return(6);
     if (_pageType==EIGHT_VIEWS)
         return(8);
@@ -811,7 +807,7 @@ void CSPage::serialize(CSer& ar)
 
 void CSPage::render()
 {
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     displayPage(this,auxViewResizingAction,viewIndexOfResizingAction);
 }
 
@@ -822,7 +818,7 @@ bool CSPage::viewIsPassive(int viewIndex) const
         return(viewIndex>0);
     if (_pageType==FOUR_VIEWS)
         return(viewIndex>3);
-    if ((_pageType==SIX_VIEWS_OLD)||(_pageType==SIX_VIEWS))
+    if ((_pageType==SIX_VIEWS_old)||(_pageType==SIX_VIEWS))
         return(viewIndex>5);
     if (_pageType==EIGHT_VIEWS)
         return(viewIndex>7);
@@ -877,7 +873,7 @@ bool CSPage::doubleClickActionForView(int viewIndex)
         {
             SSimulationThreadCommand cmd;
             cmd.cmdId=SWAP_VIEWS_CMD;
-            cmd.intParams.push_back(App::ct->pageContainer->getActivePageIndex());
+            cmd.intParams.push_back(App::currentWorld->pageContainer->getActivePageIndex());
             cmd.intParams.push_back(viewIndex);
             cmd.intParams.push_back(0);
             cmd.boolParams.push_back(false);
@@ -887,11 +883,11 @@ bool CSPage::doubleClickActionForView(int viewIndex)
         // We can now also swap some of the regular views with the main view (since 1/11/2014):
         if ( (viewIndex<getRegularViewCount())&&(viewIndex>0) )
         {
-            if ( (_pageType==SIX_VIEWS_OLD)||(_pageType==SIX_VIEWS)||(_pageType==EIGHT_VIEWS)||(_pageType==HORIZONTALLY_DIVIDED_3)||(_pageType==VERTICALLY_DIVIDED_3)||(_pageType==HORIZONTAL_1_PLUS_3_VIEWS)||(_pageType==VERTICAL_1_PLUS_3_VIEWS)||(_pageType==HORIZONTAL_1_PLUS_4_VIEWS)||(_pageType==VERTICAL_1_PLUS_4_VIEWS) )
+            if ( (_pageType==SIX_VIEWS_old)||(_pageType==SIX_VIEWS)||(_pageType==EIGHT_VIEWS)||(_pageType==HORIZONTALLY_DIVIDED_3)||(_pageType==VERTICALLY_DIVIDED_3)||(_pageType==HORIZONTAL_1_PLUS_3_VIEWS)||(_pageType==VERTICAL_1_PLUS_3_VIEWS)||(_pageType==HORIZONTAL_1_PLUS_4_VIEWS)||(_pageType==VERTICAL_1_PLUS_4_VIEWS) )
             {
                 SSimulationThreadCommand cmd;
                 cmd.cmdId=SWAP_VIEWS_CMD;
-                cmd.intParams.push_back(App::ct->pageContainer->getActivePageIndex());
+                cmd.intParams.push_back(App::currentWorld->pageContainer->getActivePageIndex());
                 cmd.intParams.push_back(viewIndex);
                 cmd.intParams.push_back(0);
                 cmd.boolParams.push_back(false);

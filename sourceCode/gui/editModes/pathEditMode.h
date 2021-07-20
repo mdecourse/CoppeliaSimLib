@@ -1,19 +1,18 @@
-
 #pragma once
 
-#include "path.h"
-#include "objCont.h"
+#include "path_old.h"
+#include "sceneObjectContainer.h"
 #include "vMenubar.h"
 
-class CPathEditMode
+class CPathEditMode_old
 {
 public:
-    CPathEditMode(CPath* path,CObjCont* objCont);
-    virtual ~CPathEditMode();
+    CPathEditMode_old(CPath_old* path,CSceneObjectContainer* objCont);
+    virtual ~CPathEditMode_old();
 
     void endEditMode(bool cancelChanges);
-    CPathCont* getEditModePathContainer();
-    CPath* getEditModePath();
+    CPathCont_old* getEditModePathContainer_old();
+    CPath_old* getEditModePath_old();
 
     int getEditModeBufferSize();
     int getLastEditModeBufferValue();
@@ -26,12 +25,12 @@ public:
     void addItemToEditModeBuffer(int item);
     bool alreadyInEditModeBuffer(int item);
     int getBezierPathPointCount();
-    CSimplePathPoint* getSimplePathPoint(int editModeBufferIndex);
+    CSimplePathPoint_old* getSimplePathPoint(int editModeBufferIndex);
 
     void makeDummies();
 
-    void addMenu(VMenu* menu,C3DObject* viewableObject);
-    bool processCommand(int commandID,C3DObject* viewableObject);
+    void addMenu(VMenu* menu,CSceneObject* viewableObject);
+    bool processCommand(int commandID,CSceneObject* viewableObject);
 
 private:
     void _copySelection(std::vector<int>* selection);
@@ -42,9 +41,9 @@ private:
     void _keepXAxisAndAlignZAxis(std::vector<int>* selection);
     void _generatePath();
 
-    std::vector<CSimplePathPoint*> editBufferPathPointsCopy;
-    CPath* _path;
-    CPathCont* _editionPathCont;
-    CObjCont* _objCont;
+    std::vector<CSimplePathPoint_old*> editBufferPathPointsCopy;
+    CPath_old* _path;
+    CPathCont_old* _editionPathCont;
+    CSceneObjectContainer* _objCont;
     std::vector<int> editModeBuffer;
 };

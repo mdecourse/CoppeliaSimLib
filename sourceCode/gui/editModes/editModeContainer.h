@@ -1,10 +1,8 @@
-
 #pragma once
 
 #include "shapeEditMode.h"
 #include "multishapeEditMode.h"
 #include "pathEditMode.h"
-#include "uiEditMode.h"
 #include "pathPointManipulation.h"
 
 class CEditModeContainer
@@ -17,9 +15,9 @@ public:
     void endEditMode(bool cancelChanges);
     int getEditModeObjectID();
     CShape* getEditModeShape();
-    CPath* getEditModePath();
-    C3DObject* getEditModeObject();
-    CPathCont* getEditModePathContainer();
+    CPath_old* getEditModePath_old();
+    CSceneObject* getEditModeObject();
+    CPathCont_old* getEditModePathContainer_old();
     int getEditModeType();
     void swapShapeEditModeType(int theType);
 
@@ -34,11 +32,10 @@ public:
 
     CShapeEditMode* getShapeEditMode();
     CMultishapeEditMode* getMultishapeEditMode();
-    CPathEditMode* getPathEditMode();
-    CUiEditMode* getUiEditMode();
+    CPathEditMode_old* getPathEditMode();
 
-    void addMenu(VMenu* menu,C3DObject* viewableObject);
-    bool processCommand(int commandID,C3DObject* viewableObject);
+    void addMenu(VMenu* menu,CSceneObject* viewableObject);
+    bool processCommand(int commandID,CSceneObject* viewableObject);
     bool keyPress(int key);
 
 
@@ -47,18 +44,16 @@ public:
     void simulationAboutToStart();
     void simulationEnded();
 
-    CPathPointManipulation* pathPointManipulation;
+    CPathPointManipulation_old* pathPointManipulation;
 
 private:
     bool _processShapeEditModeCommand(int commandID);
     bool _processMultishapeEditModeCommand(int commandID);
-    bool _processPathEditModeCommand(int commandID,C3DObject* viewableObject);
-    bool _processUiEditModeCommand(int commandID);
+    bool _processPathEditModeCommand_old(int commandID,CSceneObject* viewableObject);
 
     CShapeEditMode* _shapeEditMode;
     CMultishapeEditMode* _multishapeEditMode;
-    CPathEditMode* _pathEditMode;
-    CUiEditMode* _uiEditMode;
+    CPathEditMode_old* _pathEditMode;
 
     int _editModeObject;
     bool _editMode_hierarchyWasEnabledBeforeEditMode;

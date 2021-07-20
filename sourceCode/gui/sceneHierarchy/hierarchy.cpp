@@ -1,6 +1,5 @@
 // This file requires some serious refactoring!!
 
-#include "funcDebug.h"
 #include "simInternal.h"
 #include "hierarchy.h"
 #include "oGL.h"
@@ -15,7 +14,7 @@
 #include "app.h"
 #include "vVarious.h"
 #include "vDateTime.h"
-#include "libLic.h"
+#include "simFlavor.h"
 
 const int SAFETY_BORDER_SIZE=20;
 const int CONST_VAL_40=40;
@@ -87,6 +86,7 @@ void CHierarchy::setRenderingSizeAndPosition(int xSize,int ySize,int xPos,int yP
     renderingPosition[1]=yPos-SAFETY_BORDER_SIZE*App::sc;
     refreshViewFlag=App::userSettings->hierarchyRefreshCnt; // Important, even if the size and position didn't change!
 }
+
 void CHierarchy::rebuildHierarchy()
 {
     for (size_t i=0;i<rootElements.size();i++)
@@ -95,23 +95,10 @@ void CHierarchy::rebuildHierarchy()
 
     if (App::getEditModeType()==NO_EDIT_MODE)
     {
-        /*
-        std::vector<std::string> sceneNames;
-        App::ct->getAllSceneNames(sceneNames);
-        for (int i=0;i<int(sceneNames.size());i++)
-        {
-            if (i!=App::ct->getCurrentInstanceIndex())
-            {
-                CHierarchyElement* el=new CHierarchyElement(-i-1);
-                el->setSceneName(sceneNames[i]);
-                rootElements.push_back(el);
-            }
-        }
-        */
-        CHierarchyElement* newEl=new CHierarchyElement(-App::ct->getCurrentInstanceIndex()-1);
+        CHierarchyElement* newEl=new CHierarchyElement(-App::worldContainer->getCurrentWorldIndex()-1);
         newEl->addYourChildren();
-        std::string sceneName=App::ct->mainSettings->getSceneName();
-        newEl->setSceneName(sceneName);
+        std::string sceneName=App::currentWorld->mainSettings->getSceneName();
+        newEl->setSceneName(sceneName.c_str());
         rootElements.push_back(newEl);
     }
     if (App::getEditModeType()&VERTEX_EDIT_MODE)
@@ -129,27 +116,16 @@ void CHierarchy::rebuildHierarchy()
         for (int i=0;i<App::mainWindow->editModeContainer->getShapeEditMode()->getEditionEdgesSize()/2;i++)
             rootElements.push_back(new CHierarchyElement(i));
     }
-    if (App::getEditModeType()&PATH_EDIT_MODE)
+    if (App::getEditModeType()&PATH_EDIT_MODE_OLD)
     {
-        for (int i=0;i<int(App::mainWindow->editModeContainer->getEditModePathContainer()->getSimplePathPointCount());i++)
+        for (int i=0;i<int(App::mainWindow->editModeContainer->getEditModePathContainer_old()->getSimplePathPointCount());i++)
             rootElements.push_back(new CHierarchyElement(i));
-    }
-    if (App::getEditModeType()&BUTTON_EDIT_MODE)
-    {
-        for (int i=0;i<int(App::ct->buttonBlockContainer->allBlocks.size());i++)
-        {
-            CButtonBlock* it=App::ct->buttonBlockContainer->allBlocks[i];
-            if ( ((it->getAttributes()&sim_ui_property_systemblock)==0) )
-                rootElements.push_back(new CHierarchyElement(it->getBlockID()));
-        }
     }
     if (App::getEditModeType()&MULTISHAPE_EDIT_MODE)
     {
         for (int i=0;i<App::mainWindow->editModeContainer->getMultishapeEditMode()->getMultishapeGeometricComponentsSize();i++)
             rootElements.push_back(new CHierarchyElement(i));
     }
-    for (size_t i=0;i<rootElements.size();i++)
-        rootElements[i]->computeNumberOfElements();
     rebuildHierarchyFlag=false;
     refreshViewFlag=App::userSettings->hierarchyRefreshCnt;
 }
@@ -162,7 +138,7 @@ void CHierarchy::looseFocus()
 
 void CHierarchy::keyPress(int key)
 { // YOU ARE ONLY ALLOWED TO MODIFY SIMPLE TYPES. NO OBJECT CREATION/DESTRUCTION HERE!!
-    if (App::ct->objCont==nullptr)
+    if (App::currentWorld->sceneObjects==nullptr)
         return;
     refreshViewFlag=App::userSettings->hierarchyRefreshCnt;
 
@@ -196,13 +172,13 @@ void CHierarchy::keyPress(int key)
 
         if (key==CTRL_SPACE_KEY)
         {
-            App::ct->simulation->keyPress(key);
+            App::currentWorld->simulation->keyPress(key);
             return;
         }
 
         if (key==CTRL_E_KEY)
         {
-            App::ct->keyPress(key);
+            App::worldContainer->keyPress(key);
             return;
         }
 
@@ -215,33 +191,17 @@ void CHierarchy::keyPress(int key)
     else
     { // Label edition mode
         int em=App::getEditModeType();
-        if ( (em==NO_EDIT_MODE)||(em==BUTTON_EDIT_MODE) )
+        if (em==NO_EDIT_MODE)
         {
-            C3DObject* it=App::ct->objCont->getObjectFromHandle(labelEditObjectID);
-            CButtonBlock* blk=App::ct->buttonBlockContainer->getBlockWithID(labelEditObjectID);
+            CSceneObject* it=App::currentWorld->sceneObjects->getObjectFromHandle(labelEditObjectID);
+            CButtonBlock* blk=App::currentWorld->buttonBlockContainer->getBlockWithID(labelEditObjectID);
             if ( (key==ENTER_KEY)||(key==TAB_KEY) )
             {
-                tt::removeIllegalCharacters(editionText,true);
-                if (editionText!="")
+                if ( (em==NO_EDIT_MODE)&&(it!=nullptr) )
                 {
-                    if ( (em==NO_EDIT_MODE)&&(it!=nullptr) )
-                    {
-                        if (App::ct->objCont->getObjectFromName(editionText.c_str())==nullptr)
-                        {
-                            if ( (SIM_LOWCASE_STRING_COMPARE("world",editionText.c_str())!=0)&&(SIM_LOWCASE_STRING_COMPARE("none",editionText.c_str())!=0) )
-                            {
-                                App::ct->objCont->renameObject(it->getObjectHandle(),editionText.c_str());
-                                POST_SCENE_CHANGED_ANNOUNCEMENT(""); // ************************** UNDO thingy **************************
-                            }
-                        }
-                        App::setFullDialogRefreshFlag();
-                    }
-                    if ( (em==BUTTON_EDIT_MODE)&&(blk!=nullptr) )
-                    {
-                        App::appendSimulationThreadCommand(RENAME_UI_OPENGLUIBLOCKGUITRIGGEREDCMD,blk->getBlockID(),-1,0.0,0.0,editionText.c_str());
-                        // App::appendSimulationThreadCommand(POST_SCENE_CHANGED_ANNOUNCEMENT_GUITRIGGEREDCMD);
-                        App::appendSimulationThreadCommand(FULLREFRESH_ALL_DIALOGS_GUITRIGGEREDCMD);
-                    }
+                    if (App::currentWorld->sceneObjects->setObjectAlias(it,editionText.c_str(),true))
+                        POST_SCENE_CHANGED_ANNOUNCEMENT(""); // ************************** UNDO thingy **************************
+                    App::setFullDialogRefreshFlag();
                 }
                 labelEditObjectID=-1;
             }
@@ -305,20 +265,11 @@ void CHierarchy::keyPress(int key)
 
 bool CHierarchy::render()
 { // return value true means the hierarchy was refreshed
-    FUNCTION_DEBUG;
+    TRACE_INTERNAL;
     if (viewPosition[0]<-20000) // From -2000 to -20000 on 3/4/2011 // somehow there is a bug I can't put the finger on right now (2009/12/16)
         viewPosition[0]=0;
     if (rebuildHierarchyFlag)
-    {
         rebuildHierarchy();
-        if (App::mainWindow->sceneHierarchyWidget->isVisible())
-            App::mainWindow->sceneHierarchyWidget->rebuild();
-    }
-    if (refreshViewFlag)
-    {
-    if (App::mainWindow->sceneHierarchyWidget->isVisible())
-        App::mainWindow->sceneHierarchyWidget->refresh();
-    }
 
     if (resetViewFlag)
     {
@@ -345,7 +296,7 @@ bool CHierarchy::render()
 
         if (_mouseDownDragObjectID!=-1)
         {
-            if (App::ct->objCont->getLastSelectionID()!=_mouseDownDragObjectID)
+            if (App::currentWorld->sceneObjects->getLastSelectionHandle()!=_mouseDownDragObjectID)
                 _mouseDownDragObjectID=-1; // we probably pressed esc
             if (_mouseDownDragObjectID!=-1)
             {
@@ -357,12 +308,12 @@ bool CHierarchy::render()
                 {
                     dropID=objectIDWhereTheMouseCurrentlyIs_minus9999ForNone;
                     if (dropID==-9999)
-                        dropID=-App::ct->getCurrentInstanceIndex()-1; // world
+                        dropID=-App::worldContainer->getCurrentWorldIndex()-1; // world
                     else
                     {
                         if (dropID<0)
                         {
-                            if (dropID!=-App::ct->getCurrentInstanceIndex()-1)
+                            if (dropID!=-App::worldContainer->getCurrentWorldIndex()-1)
                                 dropID=-9999;
                         }
                     }
@@ -448,13 +399,13 @@ bool CHierarchy::render()
         for (int i=0;i<int(rootElements.size());i++)
         {
             std::vector<int> vertLines;
-            rootElements[i]->renderElement_3DObject(this,labelEditObjectID,bright,true,renderingSize,
+            rootElements[i]->renderElement_sceneObject(this,labelEditObjectID,bright,true,renderingSize,
                 textPos,0,&vertLines,minRenderedPosition,maxRenderedPosition);
         }
         _drawLinesLinkingDummies(maxRenderedPosition);
     }
     std::vector<char> editModeSelectionStateList;
-    if ((editModeType&SHAPE_EDIT_MODE)||(editModeType&PATH_EDIT_MODE))
+    if ((editModeType&SHAPE_EDIT_MODE)||(editModeType&PATH_EDIT_MODE_OLD))
     {
         if (editModeType&VERTEX_EDIT_MODE)
             editModeSelectionStateList.resize(App::mainWindow->editModeContainer->getShapeEditMode()->getEditionVerticesSize()/3,0);
@@ -462,8 +413,8 @@ bool CHierarchy::render()
             editModeSelectionStateList.resize(App::mainWindow->editModeContainer->getShapeEditMode()->getEditionIndicesSize()/3,0);
         if (editModeType&EDGE_EDIT_MODE)
             editModeSelectionStateList.resize(App::mainWindow->editModeContainer->getShapeEditMode()->getEditionEdgesSize()/2,0);
-        if (editModeType&PATH_EDIT_MODE)
-            editModeSelectionStateList.resize(App::mainWindow->editModeContainer->getEditModePathContainer()->getSimplePathPointCount(),0);
+        if (editModeType&PATH_EDIT_MODE_OLD)
+            editModeSelectionStateList.resize(App::mainWindow->editModeContainer->getEditModePathContainer_old()->getSimplePathPointCount(),0);
         for (int i=0;i<App::mainWindow->editModeContainer->getEditModeBufferSize();i++)
         {
             int ind=App::mainWindow->editModeContainer->getEditModeBufferValue(i);
@@ -476,14 +427,6 @@ bool CHierarchy::render()
         {
             rootElements[i]->renderElement_editModeList(this,labelEditObjectID,bright,true,renderingSize,
                 textPos,0,minRenderedPosition,maxRenderedPosition,editModeSelectionStateList[i],editModeType);
-        }
-    }
-    if (editModeType&BUTTON_EDIT_MODE)
-    {
-        for (int i=0;i<int(rootElements.size());i++)
-        {
-            rootElements[i]->renderElement_editModeList(this,labelEditObjectID,bright,true,renderingSize,
-                textPos,0,minRenderedPosition,maxRenderedPosition,0,editModeType);
         }
     }
     if (editModeType&MULTISHAPE_EDIT_MODE)
@@ -521,22 +464,6 @@ bool CHierarchy::render()
     simulationIconPosition.clear();
     if (editModeType==NO_EDIT_MODE)
     {
-
-        std::vector<CHierarchyElement*> el;
-        std::vector<int> elNb;
-        for (int i=0;i<int(rootElements.size());i++)
-        { // This is needed to order the elements from most sub-elements to least sub-elements
-            int els=rootElements[i]->getNumberOfElements();
-            int j;
-            for (j=0;j<int(elNb.size());j++)
-            {
-                if (els>elNb[j])
-                    break;
-            }
-            elNb.insert(elNb.begin()+j,els);
-            el.insert(el.begin()+j,rootElements[i]);
-        }   
-
         int objFromHalf=-1;
         if (hierarchDragUnderway)
             objFromHalf=_mouseDownDragObjectID;
@@ -545,10 +472,10 @@ bool CHierarchy::render()
         if (_worldSelectID_down==_worldSelectID_moving)
             worldClickThing=_worldSelectID_down;
 
-        for (int i=0;i<int(el.size());i++)
+        for (size_t i=0;i<rootElements.size();i++)
         {
             std::vector<int> vertLines;
-            el[i]->renderElement_3DObject(this,labelEditObjectID,bright,false,renderingSize,
+            rootElements[i]->renderElement_sceneObject(this,labelEditObjectID,bright,false,renderingSize,
                 textPos,0,&vertLines,minRenderedPosition,maxRenderedPosition,false,objFromHalf,dropID,worldClickThing);
         }
         while (CHierarchyElement::renderDummyElement(bright,renderingSize,textPos));
@@ -560,9 +487,9 @@ bool CHierarchy::render()
             textPos[1]=dy+_mouseDownDragOffset[1];
 
             CHierarchyElement* it=nullptr;
-            for (int i=0;i<int(el.size());i++)
+            for (size_t i=0;i<rootElements.size();i++)
             {
-                it=el[i]->getElementLinkedWithObject(_mouseDownDragObjectID);
+                it=rootElements[i]->getElementLinkedWithObject(_mouseDownDragObjectID);
                 if (it!=nullptr)
                     break;
             }
@@ -572,27 +499,18 @@ bool CHierarchy::render()
                 int renderingSizeCopy[2]={renderingSize[0],renderingSize[1]};
                 int minRenderedPositionCopy[2]={minRenderedPosition[0],minRenderedPosition[1]};
                 int maxRenderedPositionCopy[2]={maxRenderedPosition[0],maxRenderedPosition[1]};
-                it->renderElement_3DObject(this,labelEditObjectID,bright,false,renderingSizeCopy,
+                it->renderElement_sceneObject(this,labelEditObjectID,bright,false,renderingSizeCopy,
                     textPos,0,&vertLines,minRenderedPositionCopy,maxRenderedPositionCopy,true);
             }
         }
 
     }
-    if ((editModeType&SHAPE_EDIT_MODE)||(editModeType&PATH_EDIT_MODE))
+    if ((editModeType&SHAPE_EDIT_MODE)||(editModeType&PATH_EDIT_MODE_OLD))
     {
         for (int i=0;i<int(rootElements.size());i++)
         {
             rootElements[i]->renderElement_editModeList(this,labelEditObjectID,bright,false,renderingSize,
                 textPos,0,minRenderedPosition,maxRenderedPosition,editModeSelectionStateList[i],editModeType);
-        }
-        while (CHierarchyElement::renderDummyElement(bright,renderingSize,textPos));
-    }
-    if (editModeType&BUTTON_EDIT_MODE)
-    {
-        for (int i=0;i<int(rootElements.size());i++)
-        {
-            rootElements[i]->renderElement_editModeList(this,labelEditObjectID,bright,false,renderingSize,
-                textPos,0,minRenderedPosition,maxRenderedPosition,0,editModeType);
         }
         while (CHierarchyElement::renderDummyElement(bright,renderingSize,textPos));
     }
@@ -831,7 +749,7 @@ bool CHierarchy::leftMouseDown(int x,int y,int selectionStatus)
     bool canSelect=true;
     if ((objID>=0)&&(selectionStatus!=CTRLSELECTION)&&(selectionStatus!=SHIFTSELECTION))
     { // Expansion/collapse
-        C3DObject* it=App::ct->objCont->getObjectFromHandle(objID);
+        CSceneObject* it=App::currentWorld->sceneObjects->getObjectFromHandle(objID);
         if (it!=nullptr)
         {
             SSimulationThreadCommand cmd;
@@ -849,18 +767,17 @@ bool CHierarchy::leftMouseDown(int x,int y,int selectionStatus)
             int objID=getActionObjectID(mouseDownRelativePosition[1],HIERARCHY_HALF_INTER_LINE_SPACE*App::sc);
             if (objID>=0)
             {
-                C3DObject* obj=App::ct->objCont->getObjectFromHandle(objID);
+                CSceneObject* obj=App::currentWorld->sceneObjects->getObjectFromHandle(objID);
                 if (obj!=nullptr) // just in case
                 {
                     if (selectionStatus==CTRLSELECTION)
                     {
-                        App::ct->objCont->xorAddObjectToSelection(objID); // Normal selection/deselection
+                        App::currentWorld->sceneObjects->xorAddObjectToSelection(objID); // Normal selection/deselection
                     }
                     else
                     {
-                        App::ct->objCont->deselectObjects();
-                        App::ct->objCont->addObjectToSelection(objID); // Normal selection
-#ifndef KEYWORD__NOT_DEFINED_FORMELY_XR
+                        App::currentWorld->sceneObjects->deselectObjects();
+                        App::currentWorld->sceneObjects->addObjectToSelection(objID); // Normal selection
                         int dxv[2];
                         if (getLineObjectID(mouseDownRelativePosition[1],dxv)==objID)
                         {
@@ -868,14 +785,13 @@ bool CHierarchy::leftMouseDown(int x,int y,int selectionStatus)
                             _mouseDownDragOffset[0]=dxv[0];
                             _mouseDownDragOffset[1]=dxv[1];
                         }
-#endif
                     }
                 }
             }
             else
             {
                 if (objID==-9999)
-                    App::ct->objCont->deselectObjects();
+                    App::currentWorld->sceneObjects->deselectObjects();
                 else
                 {
                     _worldSelectID_down=objID;
@@ -886,7 +802,7 @@ bool CHierarchy::leftMouseDown(int x,int y,int selectionStatus)
         if (selectionStatus==SHIFTSELECTION)
             shiftSelectionStarted=true;
     }
-    if ( ((App::getEditModeType()&SHAPE_EDIT_MODE)||(App::getEditModeType()&PATH_EDIT_MODE))&&canSelect )
+    if ( ((App::getEditModeType()&SHAPE_EDIT_MODE)||(App::getEditModeType()&PATH_EDIT_MODE_OLD))&&canSelect )
     { // SHAPE OR PATH EDIT MODE
         if ( (selectionStatus==CTRLSELECTION)||clickSelection )
         {
@@ -907,15 +823,6 @@ bool CHierarchy::leftMouseDown(int x,int y,int selectionStatus)
         if (selectionStatus==SHIFTSELECTION)
             shiftSelectionStarted=true;
     }
-    if ( (App::getEditModeType()&BUTTON_EDIT_MODE)&&canSelect )
-    { // BUTTON EDIT MODE
-        if ( (selectionStatus==CTRLSELECTION)||clickSelection )
-        {
-            int objID=getActionObjectID(mouseDownRelativePosition[1],HIERARCHY_HALF_INTER_LINE_SPACE*App::sc);
-            App::ct->buttonBlockContainer->setBlockInEdition(objID);
-            App::setLightDialogRefreshFlag();
-        }
-    }
     if ( (App::getEditModeType()&MULTISHAPE_EDIT_MODE)&&canSelect )
     { // MULTISHAPE EDIT MODE
         if ( (selectionStatus==CTRLSELECTION)||clickSelection )
@@ -935,16 +842,16 @@ void CHierarchy::leftMouseUp(int x,int y)
     bool hierarchDragUnderway=((abs(dx)>8)||(abs(dy)>8));
     if ((_mouseDownDragObjectID!=-1)&&hierarchDragUnderway)
     {
-        if (App::ct->objCont->getLastSelectionID()==_mouseDownDragObjectID)
+        if (App::currentWorld->sceneObjects->getLastSelectionHandle()==_mouseDownDragObjectID)
         {
 
             if (objectIDWhereTheMouseCurrentlyIs_minus9999ForNone==-9999)
-                objectIDWhereTheMouseCurrentlyIs_minus9999ForNone=-App::ct->getCurrentInstanceIndex()-1; // world
+                objectIDWhereTheMouseCurrentlyIs_minus9999ForNone=-App::worldContainer->getCurrentWorldIndex()-1; // world
             else
             {
                 if (objectIDWhereTheMouseCurrentlyIs_minus9999ForNone<0)
                 {
-                    if (objectIDWhereTheMouseCurrentlyIs_minus9999ForNone!=-App::ct->getCurrentInstanceIndex()-1)
+                    if (objectIDWhereTheMouseCurrentlyIs_minus9999ForNone!=-App::worldContainer->getCurrentWorldIndex()-1)
                         objectIDWhereTheMouseCurrentlyIs_minus9999ForNone=-9999;
                 }
             }
@@ -980,14 +887,14 @@ void CHierarchy::leftMouseUp(int x,int y)
         {
             for (int i=0;i<int(objToBeSelected.size());i++)
             {
-                C3DObject* obj=App::ct->objCont->getObjectFromHandle(objToBeSelected[i]);
+                CSceneObject* obj=App::currentWorld->sceneObjects->getObjectFromHandle(objToBeSelected[i]);
                 if (obj!=nullptr) // Just in case
                 {
-                    App::ct->objCont->addObjectToSelection(objToBeSelected[i]); // Normal selection
+                    App::currentWorld->sceneObjects->addObjectToSelection(objToBeSelected[i]); // Normal selection
                 }
             }
         }
-        if ((App::getEditModeType()&SHAPE_EDIT_MODE)||(App::getEditModeType()&PATH_EDIT_MODE))
+        if ((App::getEditModeType()&SHAPE_EDIT_MODE)||(App::getEditModeType()&PATH_EDIT_MODE_OLD))
         {
             for (int i=0;i<int(objToBeSelected.size());i++)
                 App::mainWindow->editModeContainer->addItemToEditModeBuffer(objToBeSelected[i],true);
@@ -1002,7 +909,7 @@ void CHierarchy::leftMouseUp(int x,int y)
     {
         int nii=(-_worldSelectID_down)-1;
         _worldSelectID_down=-9999;
-        App::ct->setInstanceIndexWithThumbnails(nii);
+        App::worldContainer->setInstanceIndexWithThumbnails(nii);
     }
 
 }
@@ -1055,14 +962,14 @@ void CHierarchy::rightMouseUp(int x,int y,int absX,int absY,QWidget* mainWindow)
             CAddOperations::addMenu(addMenu,nullptr,false);
             mainMenu.appendMenuAndDetach(addMenu,true,IDS_ADD_MENU_ITEM);
 
-            int selSize=App::ct->objCont->getSelSize();
+            size_t selSize=App::currentWorld->sceneObjects->getSelectionCount();
             VMenu* hierarchyColoringMenu=new VMenu();
             bool cols[4]={false,false,false,false};
             if (selSize>0)
             {
-                for (int i=0;i<selSize;i++)
+                for (size_t i=0;i<selSize;i++)
                 {
-                    C3DObject* anO=App::ct->objCont->getObjectFromHandle(App::ct->objCont->getSelID(i));
+                    CSceneObject* anO=App::currentWorld->sceneObjects->getObjectFromHandle(App::currentWorld->sceneObjects->getObjectHandleFromSelectionIndex(i));
                     int colInd=anO->getHierarchyColorIndex();
                     if (colInd==-1)
                         cols[0]=true;
@@ -1096,18 +1003,14 @@ void CHierarchy::rightMouseUp(int x,int y,int absX,int absY,QWidget* mainWindow)
 
             if (App::getEditModeType()&SHAPE_EDIT_MODE)
                 App::mainWindow->editModeContainer->addMenu(&mainMenu,nullptr);
-            if (App::getEditModeType()&PATH_EDIT_MODE)
-                App::mainWindow->editModeContainer->addMenu(&mainMenu,nullptr);
-            if (App::getEditModeType()&BUTTON_EDIT_MODE)
+            if (App::getEditModeType()&PATH_EDIT_MODE_OLD)
                 App::mainWindow->editModeContainer->addMenu(&mainMenu,nullptr);
 
             int command=mainMenu.trackPopupMenu();
 
             if (App::getEditModeType()&SHAPE_EDIT_MODE)
                 App::mainWindow->editModeContainer->processCommand(command,nullptr);
-            if (App::getEditModeType()&PATH_EDIT_MODE)
-                App::mainWindow->editModeContainer->processCommand(command,nullptr);
-            if (App::getEditModeType()&BUTTON_EDIT_MODE)
+            if (App::getEditModeType()&PATH_EDIT_MODE_OLD)
                 App::mainWindow->editModeContainer->processCommand(command,nullptr);
         }
     }
@@ -1183,20 +1086,19 @@ bool CHierarchy::leftMouseDblClick(int x,int y,int selectionStatus)
     shiftSelectionStarted=false;
     shiftingAllowed=false;
 
-#ifndef KEYWORD__NOT_DEFINED_FORMELY_XR
     // We check if we have to launch a script editor window:
     int scriptID=getScriptActionObjectID(mouseDownRelativePosition[0],mouseDownRelativePosition[1]);
     if (scriptID!=-1)
     {
-        CLuaScriptObject* it=App::ct->luaScriptContainer->getScriptFromID_noAddOnsNorSandbox(scriptID);
+        CScriptObject* it=App::currentWorld->embeddedScriptContainer->getScriptFromHandle(scriptID);
         if (it!=nullptr)
         {
             bool openScriptEditor=true;
             int auxData[4]={-1,-1,-1,-1};
             if (it->getScriptType()==sim_scripttype_childscript)
-                auxData[0]=it->getObjectIDThatScriptIsAttachedTo_child();
+                auxData[0]=it->getObjectHandleThatScriptIsAttachedTo_child();
             if (it->getScriptType()==sim_scripttype_customizationscript)
-                auxData[0]=it->getObjectIDThatScriptIsAttachedTo_customization();
+                auxData[0]=it->getObjectHandleThatScriptIsAttachedTo_customization();
             int retVals[4]={-1,-1,-1,-1};
             void* returnVal=CPluginContainer::sendEventCallbackMessageToAllPlugins(sim_message_eventcallback_scripticondblclick,auxData,nullptr,retVals);
             delete[] (char*)returnVal;
@@ -1206,7 +1108,7 @@ bool CHierarchy::leftMouseDblClick(int x,int y,int selectionStatus)
                 // Process the command via the simulation thread (delayed):
                 SSimulationThreadCommand cmd;
                 cmd.cmdId=OPEN_SCRIPT_EDITOR_CMD;
-                cmd.intParams.push_back(it->getScriptID());
+                cmd.intParams.push_back(it->getScriptHandle());
                 App::appendSimulationThreadCommand(cmd);
             }
         }
@@ -1225,11 +1127,9 @@ bool CHierarchy::leftMouseDblClick(int x,int y,int selectionStatus)
         }
         return(true);
     }
-#endif
     if (App::getEditModeType()==NO_EDIT_MODE)
     {
         int objID=-1;
-#ifndef KEYWORD__NOT_DEFINED_FORMELY_XR
         // Do we need to open an object property dialog?
         objID=getActionObjectID_icon(mouseDownRelativePosition[0],mouseDownRelativePosition[1]);
         if (objID!=-9999) // minus numbers are for the world(s)
@@ -1238,8 +1138,8 @@ bool CHierarchy::leftMouseDblClick(int x,int y,int selectionStatus)
             {
                 if (objID>=0)
                 { // Regular object
-                    App::ct->objCont->deselectObjects();
-                    App::ct->objCont->addObjectToSelection(objID);
+                    App::currentWorld->sceneObjects->deselectObjects();
+                    App::currentWorld->sceneObjects->addObjectToSelection(objID);
                     App::setFullDialogRefreshFlag();
                     App::mainWindow->dlgCont->processCommand(OPEN_OBJECT_DLG_OBJECT_SPECIFIC_PART_CMD);
                 }
@@ -1255,7 +1155,7 @@ bool CHierarchy::leftMouseDblClick(int x,int y,int selectionStatus)
         objID=getActionModelID_icon(mouseDownRelativePosition[0],mouseDownRelativePosition[1]);
         if (objID>=0)
         { // yes!
-            C3DObject* it=App::ct->objCont->getObjectFromHandle(objID);
+            CSceneObject* it=App::currentWorld->sceneObjects->getObjectFromHandle(objID);
             if (it!=nullptr)
             {
                 // Process the command via the simulation thread (delayed):
@@ -1271,20 +1171,20 @@ bool CHierarchy::leftMouseDblClick(int x,int y,int selectionStatus)
         objID=getSimulationActionObjectID(mouseDownRelativePosition[0],mouseDownRelativePosition[1]);
         if (objID!=-1)
         { // yes!
-            C3DObject* it=App::ct->objCont->getObjectFromHandle(objID);
+            CSceneObject* it=App::currentWorld->sceneObjects->getObjectFromHandle(objID);
             if (it!=nullptr)
             {
                 std::string txt;
                 if (it->getDynamicSimulationIconCode()==sim_dynamicsimicon_objectisnotdynamicallyenabled)
                 {
                     txt=IDS_OBJECT;
-                    txt+=" '"+it->getObjectName()+"' ";
+                    txt+=" '"+it->getObjectAlias_printPath()+"' ";
                     txt+=IDS_IS_NOT_DYNAMICALLY_ENABLED_WARNING;
                 }
                 if (it->getDynamicSimulationIconCode()==sim_dynamicsimicon_objectisdynamicallysimulated)
                 {
                     txt=IDS_OBJECT;
-                    txt+=" '"+it->getObjectName()+"' ";
+                    txt+=" '"+it->getObjectAlias_printPath()+"' ";
                     txt+=std::string(IDS_IS_DYNAMICALLY_SIMULATED)+"\n";
                     if (it->getObjectType()==sim_object_shape_type)
                     {
@@ -1332,49 +1232,25 @@ bool CHierarchy::leftMouseDblClick(int x,int y,int selectionStatus)
                     }
                 }
                 if (txt!="")
-                    App::uiThread->messageBox_information(App::mainWindow,strTranslate("Dynamic property"),txt,VMESSAGEBOX_OKELI);
+                    App::uiThread->messageBox_information(App::mainWindow,"Dynamic property",txt.c_str(),VMESSAGEBOX_OKELI,VMESSAGEBOX_REPLY_OK);
             }
             return(true);
         }
-#endif
         // Do we need to do some label editing?
         objID=getTextActionObjectID(mouseDownRelativePosition[0],mouseDownRelativePosition[1]);
         if (objID==-9999)
             objID=-1;
         labelEditObjectID=objID;
-        C3DObject* it=App::ct->objCont->getObjectFromHandle(objID);
+        CSceneObject* it=App::currentWorld->sceneObjects->getObjectFromHandle(objID);
         if (it!=nullptr)
         {
-            editionText=it->getObjectName();
+            editionText=it->getObjectAlias();
             editionTextEditPos=(int)editionText.length();
         }
         return(true);
     }
 
-    if ( CLibLic::getBoolVal(6)&&(App::getEditModeType()&BUTTON_EDIT_MODE) )
-    {
-        // Did we double-click the icon?
-        int objID=getActionObjectID_icon(mouseDownRelativePosition[0],mouseDownRelativePosition[1]);
-        if (objID!=-9999)
-        { // yes!
-            App::ct->buttonBlockContainer->setBlockInEdition(objID);
-            App::setFullDialogRefreshFlag();
-            App::mainWindow->dlgCont->processCommand(OPEN_BUTTON_DLG_CMD);
-            return(true);
-        }
-        objID=getTextActionObjectID(mouseDownRelativePosition[0],mouseDownRelativePosition[1]);
-        if (objID==-9999)
-            objID=-1;
-        labelEditObjectID=objID;
-        CButtonBlock* it=App::ct->buttonBlockContainer->getBlockWithID(objID);
-        if (it!=nullptr)
-        {
-            editionText=it->getBlockName();
-            editionTextEditPos=(int)editionText.length();
-        }
-        return(true);
-    }
-    if ( CLibLic::getBoolVal(6)&&(App::getEditModeType()&(VERTEX_EDIT_MODE|PATH_EDIT_MODE)) )
+    if ( CSimFlavor::getBoolVal(6)&&(App::getEditModeType()&(VERTEX_EDIT_MODE|PATH_EDIT_MODE_OLD)) )
     {
         // Did we double-click the icon?
         int objID=getActionObjectID_icon(mouseDownRelativePosition[0],mouseDownRelativePosition[1]);
@@ -1575,7 +1451,7 @@ void CHierarchy::setEditionLabel(std::string txt)
 
 void CHierarchy::drawEditionLabel(int textPosX,int textPosY)
 {
-    int buttonWidth=20+ogl::getTextLengthInPixels(editionText);
+    int buttonWidth=20+ogl::getTextLengthInPixels(editionText.c_str());
     VPoint p(textPosX-2+buttonWidth/2,textPosY+HIERARCHY_TEXT_CENTER_OFFSET*App::sc);
     VPoint s(buttonWidth,HIERARCHY_INTER_LINE_SPACE*App::sc);
     float txtCol[3]={0.0f,0.0f,0.0f};
@@ -1587,7 +1463,7 @@ void CHierarchy::drawEditionLabel(int textPosX,int textPosY)
 
 void CHierarchy::addMenu(VMenu* menu)
 { 
-    bool selection=App::ct->objCont->getSelSize()>0;
+    bool selection=App::currentWorld->sceneObjects->getSelectionCount()>0;
     menu->appendMenuItem(true,false,EXPAND_HIERARCHY_CMD,IDS_EXPAND_ALL_MENU_ITEM);
     menu->appendMenuItem(true,false,COLLAPSE_HIERARCHY_CMD,IDS_COLLAPSE_ALL_MENU_ITEM);
     menu->appendMenuItem(selection,false,EXPAND_SELECTED_HIERARCHY_CMD,IDS_EXPAND_SELECTED_TREE_MENU_ITEM);
@@ -1600,17 +1476,17 @@ bool CHierarchy::processCommand(int commandID)
     {
         if (!VThread::isCurrentThreadTheUiThread())
         { // we are NOT in the UI thread. We execute the command now:
-            for (int i=0;i<int(App::ct->objCont->objectList.size());i++)
+            for (size_t i=0;i<App::currentWorld->sceneObjects->getObjectCount();i++)
             {
-                C3DObject* it=App::ct->objCont->getObjectFromHandle(App::ct->objCont->objectList[i]);
+                CSceneObject* it=App::currentWorld->sceneObjects->getObjectFromIndex(i);
                 it->setLocalObjectProperty(it->getLocalObjectProperty()|sim_objectproperty_collapsed);
                 if (commandID==EXPAND_HIERARCHY_CMD)
                     it->setLocalObjectProperty(it->getLocalObjectProperty()-sim_objectproperty_collapsed);
             }
             if (commandID==EXPAND_HIERARCHY_CMD)
-                App::addStatusbarMessage(IDSNS_HIERARCHY_EXPANDED);
+                App::logMsg(sim_verbosity_msgs,IDSNS_HIERARCHY_EXPANDED);
             else
-                App::addStatusbarMessage(IDSNS_HIERARCHY_COLLAPSED);
+                App::logMsg(sim_verbosity_msgs,IDSNS_HIERARCHY_COLLAPSED);
             POST_SCENE_CHANGED_ANNOUNCEMENT(""); // ************************** UNDO thingy **************************
         }
         else
@@ -1625,10 +1501,10 @@ bool CHierarchy::processCommand(int commandID)
     {
         if (!VThread::isCurrentThreadTheUiThread())
         { // we are NOT in the UI thread. We execute the command now:
-            for (int i=0;i<int(App::ct->objCont->getSelSize());i++)
+            for (size_t i=0;i<App::currentWorld->sceneObjects->getSelectionCount();i++)
             {
-                C3DObject* it=App::ct->objCont->getObjectFromHandle(App::ct->objCont->getSelID(i));
-                std::vector<C3DObject*> toExplore;
+                CSceneObject* it=App::currentWorld->sceneObjects->getObjectFromHandle(App::currentWorld->sceneObjects->getObjectHandleFromSelectionIndex(i));
+                std::vector<CSceneObject*> toExplore;
                 toExplore.push_back(it);
                 while (toExplore.size()!=0)
                 {
@@ -1637,14 +1513,14 @@ bool CHierarchy::processCommand(int commandID)
                     if (commandID==EXPAND_SELECTED_HIERARCHY_CMD)
                         it->setLocalObjectProperty(it->getLocalObjectProperty()-sim_objectproperty_collapsed);
                     toExplore.erase(toExplore.begin());
-                    for (int j=0;j<int(it->childList.size());j++)
-                        toExplore.push_back(it->childList[j]);
+                    for (size_t j=0;j<it->getChildCount();j++)
+                        toExplore.push_back(it->getChildFromIndex(j));
                 }
             }
             if (commandID==EXPAND_HIERARCHY_CMD)
-                App::addStatusbarMessage(IDSNS_HIERARCHY_TREES_EXPANDED);
+                App::logMsg(sim_verbosity_msgs,IDSNS_HIERARCHY_TREES_EXPANDED);
             else
-                App::addStatusbarMessage(IDSNS_HIERARCHY_TREES_COLLAPSED);
+                App::logMsg(sim_verbosity_msgs,IDSNS_HIERARCHY_TREES_COLLAPSED);
             POST_SCENE_CHANGED_ANNOUNCEMENT(""); // ************************** UNDO thingy **************************
         }
         else
@@ -1659,9 +1535,9 @@ bool CHierarchy::processCommand(int commandID)
     {
         if (!VThread::isCurrentThreadTheUiThread())
         { // we are NOT in the UI thread. We execute the command now:
-            for (int i=0;i<int(App::ct->objCont->getSelSize());i++)
+            for (size_t i=0;i<App::currentWorld->sceneObjects->getSelectionCount();i++)
             {
-                C3DObject* it=App::ct->objCont->getObjectFromHandle(App::ct->objCont->getSelID(i));
+                CSceneObject* it=App::currentWorld->sceneObjects->getObjectFromHandle(App::currentWorld->sceneObjects->getObjectHandleFromSelectionIndex(i));
                 it->setHierarchyColorIndex(commandID-HIERARCHY_COLORING_NONE_CMD-1);
             }
             POST_SCENE_CHANGED_ANNOUNCEMENT(""); // ************************** UNDO thingy **************************
@@ -1681,19 +1557,19 @@ bool CHierarchy::processCommand(int commandID)
 void CHierarchy::_drawLinesLinkingDummies(int maxRenderedPos[2])
 {
     std::vector<int> positions; // contains only objects that have a dummy linking to another, as child (or the dummy itself)
-    for (int i=0;i<int(App::ct->objCont->dummyList.size());i++)
+    for (size_t i=0;i<App::currentWorld->sceneObjects->getDummyCount();i++)
     {
-        CDummy* dummy=App::ct->objCont->getDummy(App::ct->objCont->dummyList[i]);
-        if (dummy->getLinkedDummyID()!=-1)
+        CDummy* dummy=App::currentWorld->sceneObjects->getDummyFromIndex(i);
+        if (dummy->getLinkedDummyHandle()!=-1)
         {
             int dummyID=dummy->getObjectHandle();
-            int linkedDummyID=dummy->getLinkedDummyID();
-            C3DObject* obj=dummy;
+            int linkedDummyID=dummy->getLinkedDummyHandle();
+            CSceneObject* obj=dummy;
             bool found=false;
             while ( (!found)&&(obj!=nullptr) )
             {
                 int idToSearch=obj->getObjectHandle();
-                for (int j=0;j<int(lineLastPosition.size()/3);j++)
+                for (size_t j=0;j<lineLastPosition.size()/3;j++)
                 {
                     if (idToSearch==lineLastPosition[3*j+2])
                     { // we found a pos
@@ -1705,7 +1581,7 @@ void CHierarchy::_drawLinesLinkingDummies(int maxRenderedPos[2])
                         int wv=0;
                         if (dummyID==idToSearch)
                             wv|=1; // the dummy is visible (otherwise it is not visible (built on a collapsed item))
-                        if (App::ct->objCont->isObjectSelected(dummyID)||App::ct->objCont->isObjectSelected(linkedDummyID))
+                        if (App::currentWorld->sceneObjects->isObjectSelected(dummyID)||App::currentWorld->sceneObjects->isObjectSelected(linkedDummyID))
                             wv|=2; // one of the dummies is selected
                         positions.push_back(wv);
                         positions.push_back(dummy->getLinkType());
@@ -1714,7 +1590,7 @@ void CHierarchy::_drawLinesLinkingDummies(int maxRenderedPos[2])
                     }
                 }
                 if (!found)
-                    obj=obj->getParentObject();
+                    obj=obj->getParent();
             }
         }
     }

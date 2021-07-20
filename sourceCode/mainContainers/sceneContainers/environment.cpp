@@ -10,6 +10,7 @@
 #include "environmentRendering.h"
 #include "base64.h"
 #include <boost/algorithm/string.hpp>
+#include "pluginContainer.h"
 
 int CEnvironment::_nextSceneUniqueID=0;
 bool CEnvironment::_shapeTexturesTemporarilyDisabled=false;
@@ -25,7 +26,7 @@ CEnvironment::CEnvironment()
 }
 
 CEnvironment::~CEnvironment()
-{
+{ // beware, the current world could be nullptr
 }
 
 void CEnvironment::generateNewUniquePersistentIdString()
@@ -124,8 +125,8 @@ void CEnvironment::setUpDefaultValues()
 
     wirelessEmissionVolumeColor.setColorsAllBlack();
     wirelessEmissionVolumeColor.setColor(1.0f,1.0f,0.0f,sim_colorcomponent_emission);
-    wirelessEmissionVolumeColor.translucid=true;
-    wirelessEmissionVolumeColor.transparencyFactor=0.2f;
+    wirelessEmissionVolumeColor.setTranslucid(true);
+    wirelessEmissionVolumeColor.setTransparencyFactor(0.2f);
     wirelessReceptionVolumeColor.setColorsAllBlack();
     wirelessReceptionVolumeColor.setColor(1.0f,1.0f,0.0f,sim_colorcomponent_emission);
 
@@ -139,12 +140,6 @@ void CEnvironment::setUpDefaultValues()
     _calculationMaxTriangleSize=0.3f; // from 0.8 to 0.3 on 2010/07/07
     _calculationMinRelTriangleSize=0.02f;
     _saveExistingCalculationStructures=false;
-    _showPartRepository=false;
-    _showPalletRepository=false;
-    _jobFuncEnabled=false;
-    _currentJob="default";
-    _jobs.clear();
-    _jobs.push_back(_currentJob);
 }
 
 bool CEnvironment::areNonAmbientLightsActive() const
@@ -244,25 +239,11 @@ void CEnvironment::setSceneLocked()
 {
     _sceneIsLocked=true;
     _requestFinalSave=false;
-//  App::ct->objCont->resetDialogRefreshFlags();
 }
 
 bool CEnvironment::getSceneLocked() const
 {
     return(_sceneIsLocked);
-}
-
-void CEnvironment::simulationAboutToStart()
-{
-
-}
-
-void CEnvironment::simulationEnded()
-{
-//  if (_initialValuesInitialized&&App::ct->simulation->getResetSceneAtSimulationEnd())
-//  {
-//  }
-
 }
 
 void CEnvironment::setVisualizeWirelessEmitters(bool v)
@@ -339,7 +320,7 @@ int CEnvironment::getFogType() const
     return(fogType);
 }
 
-void CEnvironment::setAcknowledgement(const std::string& a)
+void CEnvironment::setAcknowledgement(const char* a)
 {
     _acknowledgement=a;
     if (_acknowledgement.length()>3000)
@@ -433,13 +414,6 @@ void CEnvironment::serialize(CSer& ar)
             wirelessReceptionVolumeColor.serialize(ar,1);
             if (ar.setWritingMode())
                 wirelessReceptionVolumeColor.serialize(ar,1);
-
-            ar.storeDataName("Job");
-            ar << _currentJob;
-            ar << int(_jobs.size());
-            for (size_t i=0;i<_jobs.size();i++)
-                ar << _jobs[i];
-            ar.flush();
 
             ar.storeDataName("Ups");
             ar << _sceneUniquePersistentIdString;
@@ -598,21 +572,6 @@ void CEnvironment::serialize(CSer& ar)
                         ar >> byteQuantity; // never use that info, unless loading unknown data!!!! (undo/redo stores dummy info in there)
                         wirelessReceptionVolumeColor.serialize(ar,1);
                     }
-                    if (theName.compare("Job")==0)
-                    {
-                        noHit=false;
-                        ar >> byteQuantity; // never use that info, unless loading unknown data!!!! (undo/redo stores dummy info in there)
-                        ar >> _currentJob;
-                        int cnt;
-                        ar >> cnt;
-                        _jobs.clear();
-                        for (int i=0;i<cnt;i++)
-                        {
-                            std::string job;
-                            ar >> job;
-                            _jobs.push_back(job);
-                        }
-                    }
                     if (theName.compare("Ups")==0)
                     {
                         noHit=false;
@@ -710,14 +669,6 @@ void CEnvironment::serialize(CSer& ar)
             {
                 std::string str(base64_encode((unsigned char*)_sceneUniquePersistentIdString.c_str(),_sceneUniquePersistentIdString.size()));
                 ar.xmlAddNode_string("sceneUniquePersistentIdString_base64Coded",str.c_str());
-            }
-
-            if (exhaustiveXml)
-            {
-                ar.xmlPushNewNode("jobs");
-                ar.xmlAddNode_string("current",_currentJob.c_str());
-                ar.xmlAddNode_strings("allJobs",_jobs);
-                ar.xmlPopNode();
             }
         }
         else
@@ -827,19 +778,8 @@ void CEnvironment::serialize(CSer& ar)
 
             if ( exhaustiveXml&&ar.xmlGetNode_string("sceneUniquePersistentIdString_base64Coded",_sceneUniquePersistentIdString))
                 _sceneUniquePersistentIdString=base64_decode(_sceneUniquePersistentIdString);
-
-            if ( exhaustiveXml&&ar.xmlPushChildNode("jobs") )
-            {
-                ar.xmlGetNode_string("current",_currentJob);
-                ar.xmlGetNode_strings("allJobs",_jobs);
-                ar.xmlPopNode();
-            }
         }
     }
-}
-
-void CEnvironment::renderYour3DStuff(CViewableBase* renderingObject,int displayAttrib)
-{
 }
 
 void CEnvironment::setBackgroundColor(int viewSize[2])
@@ -881,168 +821,3 @@ void CEnvironment::reactivateFogThatWasTemporarilyDisabled()
         enableFog(true);
 }
 
-std::string CEnvironment::getCurrentJob() const
-{
-    return(_currentJob);
-}
-
-bool CEnvironment::setCurrentJob(const char* jobName)
-{
-    for (size_t i=0;i<_jobs.size();i++)
-    {
-        if (_jobs[i].compare(jobName)==0)
-        {
-            _currentJob=jobName;
-            return(true);
-        }
-    }
-    return(false);
-}
-
-int CEnvironment::getJobCount()
-{
-    return(int(_jobs.size()));
-}
-
-int CEnvironment::getJobIndex(const std::string& name)
-{
-    for (int i=0;i<int(_jobs.size());i++)
-    {
-        if (_jobs[i].compare(name)==0)
-            return(i);
-    }
-    return(-1);
-}
-
-std::string CEnvironment::getJobAtIndex(int index)
-{
-    if ( (index>=0)&&(index<int(_jobs.size())) )
-        return(_jobs[index]);
-    return("");
-}
-
-bool CEnvironment::createNewJob(std::string newName)
-{
-    if (getJobIndex(newName)==-1)
-    {
-        _currentJob=newName;
-        _jobs.push_back(_currentJob);
-        return(true);
-    }
-    return(false);
-}
-
-bool CEnvironment::deleteCurrentJob()
-{
-    if (_jobs.size()>1)
-    {
-        int ind=getJobIndex(_currentJob);
-        if (ind>=0)
-        {
-            _jobs.erase(_jobs.begin()+ind);
-            if (int(_jobs.size())<=ind)
-                ind--;
-            _currentJob=_jobs[ind];
-            return(true);
-        }
-    }
-    return(false);
-}
-
-bool CEnvironment::renameCurrentJob(std::string newName)
-{
-    tt::removeIllegalCharacters(newName,false);
-    if (getJobIndex(newName)==-1)
-    {
-        int ind=getJobIndex(_currentJob);
-        _jobs[ind]=newName;
-        _currentJob=newName;
-        return(true);
-    }
-    return(false);
-}
-
-bool CEnvironment::switchJob(int index)
-{
-    if ( (index>=0)&&(index<int(_jobs.size())) )
-    {
-        if (_jobs[index].compare(_currentJob)!=0)
-        {
-            _currentJob=_jobs[index];
-            return(true);
-        }
-    }
-    return(false);
-}
-
-bool CEnvironment::getJobFunctionalityEnabled()
-{
-    return(_jobFuncEnabled);    
-}
-
-void CEnvironment::setJobFunctionalityEnabled(bool en)
-{
-    _jobFuncEnabled=en;
-}
-
-void CEnvironment::setShowPartRepository(bool en)
-{
-    _showPartRepository=en;
-}
-
-bool CEnvironment::getShowPartRepository()
-{
-    return(_showPartRepository);
-}
-
-void CEnvironment::setShowPalletRepository(bool en)
-{
-    _showPalletRepository=en;
-}
-
-bool CEnvironment::getShowPalletRepository()
-{
-    return(_showPalletRepository);
-}
-
-#ifdef SIM_WITH_GUI
-void CEnvironment::addLayoutMenu(VMenu* menu)
-{ // GUI THREAD only
-    bool simStopped=App::ct->simulation->isSimulationStopped();
-    bool noEditMode=App::getEditModeType()==NO_EDIT_MODE;
-    menu->appendMenuItem(noEditMode,false,XR_COMMAND_1_SCCMD+5,"General properties");
-    menu->appendMenuItem(simStopped&&noEditMode,false,XR_COMMAND_1_SCCMD+0,"Actions");
-
-    menu->appendMenuItem(noEditMode,_showPartRepository,XR_COMMAND_1_SCCMD+3,"Part repository",true);
-    menu->appendMenuItem(noEditMode,_showPalletRepository,XR_COMMAND_1_SCCMD+4,"Pallet repository",true);
-    // XR_COMMAND_1_SCCMD+11 is for the verify layout toolbar button
-}
-
-void CEnvironment::addJobsMenu(VMenu* menu)
-{ // GUI THREAD only
-    bool enabled=App::ct->simulation->isSimulationStopped()&&(App::getEditModeType()==NO_EDIT_MODE)&&_jobFuncEnabled;
-    menu->appendMenuItem((_jobs.size()<99)&&enabled,false,XR_COMMAND_1_SCCMD+297,"Create new job");
-    menu->appendMenuItem((_jobs.size()>1)&&enabled,false,XR_COMMAND_1_SCCMD+298,"Delete current job");
-    menu->appendMenuItem(enabled,false,XR_COMMAND_1_SCCMD+299,"Rename current job");
-    menu->appendMenuSeparator();
-    for (size_t i=0;i<_jobs.size();i++)
-    {
-        std::string tmp("Job '");
-        tmp+=_jobs[i];
-        tmp+="'";
-        menu->appendMenuItem(enabled,_currentJob.compare(_jobs[i])==0,XR_COMMAND_1_SCCMD+300+int(i),tmp.c_str(),true);
-    }
-}
-
-bool CEnvironment::processGuiCommand(int commandID)
-{ // GUI THREAD only. Return value is true if the command belonged to object edition menu and was executed
-    if ( (commandID>=XR_COMMAND_1_SCCMD)&&(commandID<XR_COMMANDS_END_SCCMD) )
-    {
-        SSimulationThreadCommand cmd;
-        cmd.cmdId=commandID;
-        App::appendSimulationThreadCommand(cmd);
-        return(true);
-    }
-    return(false);
-}
-#endif

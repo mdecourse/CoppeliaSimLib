@@ -1,4 +1,3 @@
-
 #include "jointRendering.h"
 
 #ifdef SIM_WITH_OPENGL
@@ -25,22 +24,22 @@ void displayJoint(CJoint* joint,CViewableBase* renderingObject,int displayAttrib
         _enableAuxClippingPlanes(joint->getObjectHandle());
         if (displayAttrib&sim_displayattribute_dynamiccontentonly)
         {
-            if (joint->getDynamicObjectFlag_forVisualization_forDisplay(guiIsRendering)==4)
+            if (joint->getDynamicObjectFlag_forVisualization()==4)
                 ogl::setMaterialColor(0.0f,0.3f,1.0f,0.5f,0.5f,0.5f,0.0f,0.0f,0.0f);
-            if (joint->getDynamicObjectFlag_forVisualization_forDisplay(guiIsRendering)==8)
+            if (joint->getDynamicObjectFlag_forVisualization()==8)
                 ogl::setMaterialColor(1.0f,0.0f,0.0f,0.5f,0.5f,0.5f,0.0f,0.0f,0.0f);
-            if (joint->getDynamicObjectFlag_forVisualization_forDisplay(guiIsRendering)==16)
+            if (joint->getDynamicObjectFlag_forVisualization()==16)
                 ogl::setMaterialColor(0.9f,0.9f,0.0f,0.5f,0.5f,0.5f,0.0f,0.0f,0.0f);
         }
         else
-            joint->getColor(false)->makeCurrentColor((displayAttrib&sim_displayattribute_useauxcomponent)!=0);
+            joint->getJointColor1()->makeCurrentColor((displayAttrib&sim_displayattribute_useauxcomponent)!=0);
 
         _displayJoint(joint,displayAttrib,true,sizeParam);
 
         if (displayAttrib&sim_displayattribute_dynamiccontentonly)
             ogl::setMaterialColor(0.1f,0.1f,0.1f,0.5f,0.5f,0.5f,0.0f,0.0f,0.0f);
         else
-            joint->getColor(true)->makeCurrentColor((displayAttrib&sim_displayattribute_useauxcomponent)!=0);
+            joint->getJointColor2()->makeCurrentColor((displayAttrib&sim_displayattribute_useauxcomponent)!=0);
         _displayJoint(joint,displayAttrib,false,sizeParam);
         _disableAuxClippingPlanes();
     }
@@ -51,7 +50,7 @@ void displayJoint(CJoint* joint,CViewableBase* renderingObject,int displayAttrib
 
 void _displayJoint(CJoint* joint,int displayAttrib,bool partOne,float sizeParam)
 {
-    if ((App::getEditModeType()&SHAPE_OR_PATH_EDIT_MODE)==0)
+    if ((App::getEditModeType()&SHAPE_OR_PATH_EDIT_MODE_OLD)==0)
     {
         if (joint->getLocalObjectProperty()&sim_objectproperty_selectmodelbaseinstead)
             glLoadName(joint->getModelSelectionHandle());
@@ -77,7 +76,7 @@ void _displayJoint(CJoint* joint,int displayAttrib,bool partOne,float sizeParam)
         }
         else
         {
-            if (joint->getDynamicSecondPartIsValid()&&(!App::ct->simulation->isSimulationStopped()))
+            if (joint->getDynamicSecondPartIsValid()&&(!App::currentWorld->simulation->isSimulationStopped()))
             { // for dynamic mode
                 C7Vector tr(joint->getDynamicSecondPartLocalTransform());
                 glTranslatef(tr.X(0),tr.X(1),tr.X(2));
@@ -101,7 +100,7 @@ void _displayJoint(CJoint* joint,int displayAttrib,bool partOne,float sizeParam)
             ogl::drawCylinder(joint->getDiameter(),joint->getLength(),8,0,true);
         else
         {
-            if (joint->getDynamicSecondPartIsValid()&&(!App::ct->simulation->isSimulationStopped()))
+            if (joint->getDynamicSecondPartIsValid()&&(!App::currentWorld->simulation->isSimulationStopped()))
             { // for dynamic mode
                 C7Vector tr(joint->getDynamicSecondPartLocalTransform());
                 glTranslatef(tr.X(0),tr.X(1),tr.X(2));
@@ -125,7 +124,7 @@ void _displayJoint(CJoint* joint,int displayAttrib,bool partOne,float sizeParam)
             ogl::drawBox(joint->getDiameter(),joint->getDiameter(),joint->getLength(),true,nullptr);
         else
         {
-            if (joint->getDynamicSecondPartIsValid()&&(!App::ct->simulation->isSimulationStopped()))
+            if (joint->getDynamicSecondPartIsValid()&&(!App::currentWorld->simulation->isSimulationStopped()))
             { // for dynamic mode
                 C7Vector tr(joint->getDynamicSecondPartLocalTransform());
                 glTranslatef(tr.X(0),tr.X(1),tr.X(2));

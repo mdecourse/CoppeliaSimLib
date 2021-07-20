@@ -20,8 +20,8 @@ public:
         filetype_csim_bin_scene_file,       // .ttt
         filetype_csim_bin_model_file,       // .ttm
         filetype_csim_bin_thumbnails_file,  // .ttmt
-        filetype_xr_bin_scene_file,         // .brs
-        filetype_xr_bin_model_file,         // .brm
+        reserved_was_brs,
+        reserved_was_brm,
         filetype_csim_bin_scene_buff,       // ---
         filetype_csim_bin_model_buff,       // ---
         filetype_csim_bin_ui_file,          // .ttb
@@ -90,7 +90,8 @@ public:
     unsigned short getCoppeliaSimVersionThatWroteThisFile();
     int getLicenseTypeThatWroteThisFile();
     int getSerializationVersionThatWroteThisFile();
-    
+    static int getSerializationVersionThatWroteLastFile();
+
     void storeDataName(const char* name);
     std::string readDataName();
     int readBytesButKeepPointerUnchanged(unsigned char* buffer,int desiredCount);
@@ -124,6 +125,7 @@ public:
     void xmlAddNode_meshFile(const char* name,const char* localFilenameSuffix,const float* vertices,int vl,const int* indices,int il,const float* normals,int nl,const unsigned char* edges,int el);
     void xmlAddNode_string(const char* name,const char* str);
     void xmlAddNode_strings(const char* name,const std::vector<std::string>& vals);
+    void xmlAddNode_cdata(const char* name,const char* str);
     void xmlAddNode_enum(const char* name,int val,int v1,const char* str1,int v2,const char* str2,int v3=-1,const char* str3=nullptr,int v4=-1,const char* str4=nullptr,int v5=-1,const char* str5=nullptr,int v6=-1,const char* str6=nullptr,int v7=-1,const char* str7=nullptr,int v8=-1,const char* str8=nullptr);
     void xmlAddNode_enum(const char* name,int val,const std::vector<int>& vals,const std::vector<std::string>& strings);
     void xmlAddNode_int(const char* name,int val);
@@ -142,6 +144,7 @@ public:
     void xmlAddNode_floats(const char* name,const std::vector<float>& vals);
     void xmlAddNode_double(const char* name,double val);
 
+    void xmlGetAllChildNodeNames(std::vector<std::string>& allNames);
     bool xmlPushChildNode(const char* name,bool required=true);
     bool xmlPushSiblingNode(const char* name,bool required=true);
 
@@ -158,6 +161,7 @@ public:
     bool xmlGetNode_meshFile(const char* name,std::vector<float>& vertices,std::vector<int>& indices,std::vector<float>& normals,std::vector<unsigned char>& edges,bool required=true);
     bool xmlGetNode_string(const char* name,std::string& val,bool required=true);
     bool xmlGetNode_strings(const char* name,std::vector<std::string>& vals,bool required=true);
+    bool xmlGetNode_cdata(const char* name,std::string& val,bool required=true);
     bool xmlGetNode_enum(const char* name,int& val,bool required,const char* str1,int v1,const char* str2,int v2,const char* str3=nullptr,int v3=-1,const char* str4=nullptr,int v4=-1,const char* str5=nullptr,int v5=-1,const char* str6=nullptr,int v6=-1,const char* str7=nullptr,int v7=-1,const char* str8=nullptr,int v8=-1);
     bool xmlGetNode_enum(const char* name,int& val,bool required,const std::vector<int>& vals,const std::vector<std::string>& strings);
     bool xmlGetNode_int(const char* name,int& val,bool required=true);
@@ -189,6 +193,7 @@ private:
     void _writeXmlFooter();
     int _readXmlHeader(int& serializationVersion,unsigned short& coppeliaSimVersionThatWroteThis,char& revNumber);
     std::string _getNodeText(const xmlNode* node) const;
+    std::string _getNodeCdataText(const xmlNode* node) const;
     VArchive* theArchive;
     VFile* theFile;
     std::vector<char>* _bufferArchive;
@@ -214,4 +219,5 @@ private:
     unsigned short _coppeliaSimVersionThatWroteThis;
     int _licenseTypeThatWroteThis;
     int _serializationVersionThatWroteThisFile;
+    static int _serializationVersionThatWroteLastFile;
 };

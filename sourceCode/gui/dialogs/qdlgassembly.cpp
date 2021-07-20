@@ -55,10 +55,10 @@ void CQDlgAssembly::on_qqParentMatchValue_editingFinished()
 
 void CQDlgAssembly::on_qqSetLocalMatrix_clicked()
 {
-    unsigned short res=App::uiThread->messageBox_question(App::mainWindow,strTranslate(IDSN_ASSEMBLING_METHOD),strTranslate(IDSN_ASSEMBLING_METHOD_QUESTION),VMESSAGEBOX_YES_NO);
+    unsigned short res=App::uiThread->messageBox_question(App::mainWindow,IDSN_ASSEMBLING_METHOD,IDSN_ASSEMBLING_METHOD_QUESTION,VMESSAGEBOX_YES_NO,VMESSAGEBOX_REPLY_YES);
     if (res==VMESSAGEBOX_REPLY_YES)
     {
-        C7Vector transform(obj->getLocalTransformationPart1());
+        C7Vector transform(obj->getLocalTransformation());
         obj->setAssemblingLocalTransformation(transform);
         refresh();
     }

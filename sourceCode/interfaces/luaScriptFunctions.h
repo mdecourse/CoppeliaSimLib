@@ -1,17 +1,11 @@
 #pragma once
 
-#include <map>
 #include "luaWrapper.h"
-#include "vMutex.h"
-#ifndef WIN_SIM
-#include <pthread.h>
-#endif
+#include <vector>
 
-class CLuaScriptObject;
-class CInterfaceStack;
-class CLuaCustomFunction;
+class CScriptCustomFunction;
 
-enum {lua_arg_empty,lua_arg_nil,lua_arg_number,lua_arg_bool,lua_arg_string,lua_arg_function,lua_arg_userdata,lua_arg_table};
+enum {lua_arg_empty,lua_arg_nil,lua_arg_number,lua_arg_integer,lua_arg_bool,lua_arg_string,lua_arg_function,lua_arg_userdata,lua_arg_table};
 
 struct SLuaCommands
 {
@@ -28,35 +22,7 @@ struct SLuaVariables
     bool autoComplete;
 };
 
-
-luaWrap_lua_State* initializeNewLuaState(const char* scriptSuffixNumberString,int debugLevel);
-std::string getAdditionalLuaSearchPath();
-void registerTableFunction(luaWrap_lua_State* L,char const* const tableName,char const* const functionName,luaWrap_lua_CFunction functionCallback);
-void registerNewLuaFunctions(luaWrap_lua_State* L);
-void prepareNewLuaVariables_onlyRequire(luaWrap_lua_State* L);
-void prepareNewLuaVariables_noRequire(luaWrap_lua_State* L);
-void setNewLuaVariable(luaWrap_lua_State* L,const char* name,int identifier);
-
-void pushCorrectTypeOntoLuaStack(luaWrap_lua_State* L,const std::string& txt);
-int getCorrectType(const std::string& txt);
-
-bool readCustomFunctionDataFromStack(luaWrap_lua_State* L,int ind,int dataType,
-                                     std::vector<char>& inBoolVector,
-                                     std::vector<int>& inIntVector,
-                                     std::vector<float>& inFloatVector,
-                                     std::vector<double>& inDoubleVector,
-                                     std::vector<std::string>& inStringVector,
-                                     std::vector<std::string>& inCharVector,
-                                    std::vector<int>& inInfoVector);
-void writeCustomFunctionDataOntoStack(luaWrap_lua_State* L,int dataType,int dataSize,
-                                      unsigned char* boolData,int& boolDataPos,
-                                      int* intData,int& intDataPos,
-                                      float* floatData,int& floatDataPos,
-                                      double* doubleData,int& doubleDataPos,
-                                      char* stringData,int& stringDataPos,
-                                      char* charData,int& charDataPos);
-
-
+void _registerTableFunction(luaWrap_lua_State* L,char const* const tableName,char const* const functionName,luaWrap_lua_CFunction functionCallback);
 
 void getFloatsFromTable(luaWrap_lua_State* L,int tablePos,int floatCount,float* arrayField);
 void getDoublesFromTable(luaWrap_lua_State* L,int tablePos,int doubleCount,double* arrayField);
@@ -71,31 +37,15 @@ void pushUIntTableOntoStack(luaWrap_lua_State* L,int intCount,const unsigned int
 void pushUCharTableOntoStack(luaWrap_lua_State* L,int intCount,const unsigned char* arrayField);
 void pushStringTableOntoStack(luaWrap_lua_State* L,const std::vector<std::string>& stringTable);
 void pushLStringTableOntoStack(luaWrap_lua_State* L,const std::vector<std::string>& stringTable);
-void insertFloatsIntoTableAlreadyOnStack(luaWrap_lua_State* L,int tablePos,int floatCount,const float* arrayField);
-
 
 int luaToInt(luaWrap_lua_State* L,int pos);
 float luaToFloat(luaWrap_lua_State* L,int pos);
 double luaToDouble(luaWrap_lua_State* L,int pos);
 bool luaToBool(luaWrap_lua_State* L,int pos);
 
-bool isDashFree(const std::string& functionName,const std::string& name);
-bool suffixAdjustStringIfNeeded(const std::string& functionName,bool outputError,luaWrap_lua_State* L,std::string& name);
-int getCurrentScriptID(luaWrap_lua_State* L);
-
-void getScriptTree_mainOr(luaWrap_lua_State* L,bool selfIncluded,std::vector<int>& scriptHandles);
-void getScriptChain(luaWrap_lua_State* L,bool selfIncluded,bool mainIncluded,std::vector<int>& scriptHandles);
-
-void luaApiCallWarning(const char* functionName,const char* message);
-bool _hasErrors(std::string& funcErrorString);
-
-void memorizeLocation(luaWrap_lua_State* L);
-int getLocationIndex(VTHREAD_ID_TYPE threadID);
-void forgetLocation();
-std::string getLocationString();
-
-
-// Input argument checking:
+void _reportWarningsIfNeeded(luaWrap_lua_State* L,const char* functionName,const char* warningString,bool cSideErrorOrWarningReporting);
+void _raiseErrorIfNeeded(luaWrap_lua_State* L,const char* functionName,const char* errorString,bool cSideErrorReporting);
+bool doesEntityExist(luaWrap_lua_State* L,std::string* errStr,int identifier);
 bool checkInputArguments(luaWrap_lua_State* L,std::string* errStr,
                          int type1=lua_arg_empty,int type1Cnt_zeroIfNotTable=-2,
                          int type2=lua_arg_empty,int type2Cnt_zeroIfNotTable=-2,
@@ -112,25 +62,31 @@ int checkOneGeneralInputArgument(luaWrap_lua_State* L,int index,
                            int type,int cnt_orZeroIfNotTable,bool optional,bool nilInsteadOfTypeAndCountAllowed,std::string* errStr);
 bool checkOneInputArgument(luaWrap_lua_State* L,int index,int type,std::string* errStr);
 
+int _genericFunctionHandler(luaWrap_lua_State* L,CScriptCustomFunction* func,std::string& raiseErrorWithMsg);
 
-void luaHookFunction(luaWrap_lua_State* L,luaWrap_lua_Debug* ar);
-void moduleCommonPart(luaWrap_lua_State* L,int action,std::string* errorString);
-
-
-int handleChildScriptsRoutine_OLD(int callType,CLuaScriptObject* it,CInterfaceStack& inputArguments);
-int launchThreadedChildScriptsRoutine_OLD(CLuaScriptObject* it);
-
-void appendAllSimFunctionNames_spaceSeparated(std::string& keywords,int scriptType,bool scriptIsThreaded);
-void appendAllSimVariableNames_spaceSeparated(std::string& keywords);
-void pushAllSimFunctionNamesThatStartSame_autoCompletionList(const std::string& txt,std::vector<std::string>& v,std::map<std::string,bool>& m,int scriptType,bool scriptIsThreaded);
-void pushAllSimVariableNamesThatStartSame_autoCompletionList(const std::string& txt,std::vector<std::string>& v,std::map<std::string,bool>& m);
-std::string getSimFunctionCalltip(const char* txt,int scriptType,bool scriptIsThreaded,bool forceDoNotSupportOldApi);
-int isFuncOrConstDeprecated(const char* txt);
-
-
-int _genericFunctionHandler_new(luaWrap_lua_State* L,CLuaCustomFunction* func,std::string& raiseErrorWithMsg);
-int _genericFunctionHandler_old(luaWrap_lua_State* L,CLuaCustomFunction* func);
-
+// Old:
+// **********************************************
+void moduleCommonPart_old(luaWrap_lua_State* L,int action,std::string* errorString);
+int getCorrectType_old(const std::string& buff);
+void pushCorrectTypeOntoLuaStack_old(luaWrap_lua_State* L,const std::string& buff);
+void getScriptChain_old(luaWrap_lua_State* L,bool selfIncluded,bool mainIncluded,std::vector<int>& scriptHandles);
+int _genericFunctionHandler_old(luaWrap_lua_State* L,CScriptCustomFunction* func);
+bool readCustomFunctionDataFromStack_old(luaWrap_lua_State* L,int ind,int dataType,
+                                     std::vector<char>& inBoolVector,
+                                     std::vector<int>& inIntVector,
+                                     std::vector<float>& inFloatVector,
+                                     std::vector<double>& inDoubleVector,
+                                     std::vector<std::string>& inStringVector,
+                                     std::vector<std::string>& inCharVector,
+                                    std::vector<int>& inInfoVector);
+void writeCustomFunctionDataOntoStack_old(luaWrap_lua_State* L,int dataType,int dataSize,
+                                      unsigned char* boolData,int& boolDataPos,
+                                      int* intData,int& intDataPos,
+                                      float* floatData,int& floatDataPos,
+                                      double* doubleData,int& doubleDataPos,
+                                      char* stringData,int& stringDataPos,
+                                      char* charData,int& charDataPos);
+// **********************************************
 
 const extern SLuaCommands simLuaCommands[];
 const extern SLuaCommands simLuaCommandsOldApi[];
@@ -139,47 +95,17 @@ const extern SLuaVariables simLuaVariables[];
 const extern SLuaVariables simLuaVariablesOldApi[];
 
 extern int _simHandleChildScripts(luaWrap_lua_State* L);
-extern int _simLaunchThreadedChildScripts(luaWrap_lua_State* L);
 extern int _simHandleSensingChildScripts(luaWrap_lua_State* L);
-extern int _simGetScriptName(luaWrap_lua_State* L);
-extern int _simGetObjectAssociatedWithScript(luaWrap_lua_State* L);
-extern int _simGetScriptAssociatedWithObject(luaWrap_lua_State* L);
-extern int _simGetCustomizationScriptAssociatedWithObject(luaWrap_lua_State* L);
 extern int _simGenericFunctionHandler(luaWrap_lua_State* L);
-extern int _simGetScriptExecutionCount(luaWrap_lua_State* L);
-extern int _simIsScriptExecutionThreaded(luaWrap_lua_State* L);
-extern int _simIsScriptRunningInThread(luaWrap_lua_State* L);
-extern int _simOpenModule(luaWrap_lua_State* L);
-extern int _simCloseModule(luaWrap_lua_State* L);
-extern int _simHandleModule(luaWrap_lua_State* L);
-extern int _simBoolOr16(luaWrap_lua_State* L);
-extern int _simBoolAnd16(luaWrap_lua_State* L);
-extern int _simBoolXor16(luaWrap_lua_State* L);
-extern int _simBoolOr32(luaWrap_lua_State* L);
-extern int _simBoolAnd32(luaWrap_lua_State* L);
-extern int _simBoolXor32(luaWrap_lua_State* L);
 extern int _simHandleDynamics(luaWrap_lua_State* L);
-extern int _simHandleIkGroup(luaWrap_lua_State* L);
-extern int _simCheckIkGroup(luaWrap_lua_State* L);
-extern int _simHandleCollision(luaWrap_lua_State* L);
-extern int _simReadCollision(luaWrap_lua_State* L);
-extern int _simHandleDistance(luaWrap_lua_State* L);
-extern int _simReadDistance(luaWrap_lua_State* L);
 extern int _simHandleProximitySensor(luaWrap_lua_State* L);
 extern int _simReadProximitySensor(luaWrap_lua_State* L);
-extern int _simHandleMill(luaWrap_lua_State* L);
-extern int _simResetCollision(luaWrap_lua_State* L);
-extern int _simResetDistance(luaWrap_lua_State* L);
 extern int _simResetProximitySensor(luaWrap_lua_State* L);
-extern int _simResetMill(luaWrap_lua_State* L);
 extern int _simCheckProximitySensor(luaWrap_lua_State* L);
 extern int _simCheckProximitySensorEx(luaWrap_lua_State* L);
 extern int _simCheckProximitySensorEx2(luaWrap_lua_State* L);
-extern int _simGetObjectHandle(luaWrap_lua_State* L);
+extern int _sim_getObjectHandle(luaWrap_lua_State* L);
 extern int _simGetScriptHandle(luaWrap_lua_State* L);
-extern int _simGetCollectionHandle(luaWrap_lua_State* L);
-extern int _simRemoveCollection(luaWrap_lua_State* L);
-extern int _simEmptyCollection(luaWrap_lua_State* L);
 extern int _simGetObjectPosition(luaWrap_lua_State* L);
 extern int _simGetObjectOrientation(luaWrap_lua_State* L);
 extern int _simSetObjectPosition(luaWrap_lua_State* L);
@@ -188,17 +114,11 @@ extern int _simGetJointPosition(luaWrap_lua_State* L);
 extern int _simSetJointPosition(luaWrap_lua_State* L);
 extern int _simSetJointTargetPosition(luaWrap_lua_State* L);
 extern int _simGetJointTargetPosition(luaWrap_lua_State* L);
-extern int _simSetJointForce(luaWrap_lua_State* L);
-extern int _simGetPathPosition(luaWrap_lua_State* L);
-extern int _simSetPathPosition(luaWrap_lua_State* L);
-extern int _simGetPathLength(luaWrap_lua_State* L);
+extern int _simSetJointMaxForce(luaWrap_lua_State* L);
 extern int _simSetJointTargetVelocity(luaWrap_lua_State* L);
 extern int _simGetJointTargetVelocity(luaWrap_lua_State* L);
-extern int _simSetPathTargetNominalVelocity(luaWrap_lua_State* L);
-extern int _simGetObjectName(luaWrap_lua_State* L);
-extern int _simGetCollectionName(luaWrap_lua_State* L);
-extern int _simSetObjectName(luaWrap_lua_State* L);
-extern int _simSetCollectionName(luaWrap_lua_State* L);
+extern int _simGetObjectAlias(luaWrap_lua_State* L);
+extern int _simSetObjectAlias(luaWrap_lua_State* L);
 extern int _simRemoveObject(luaWrap_lua_State* L);
 extern int _simRemoveModel(luaWrap_lua_State* L);
 extern int _simGetSimulationTime(luaWrap_lua_State* L);
@@ -208,11 +128,6 @@ extern int _simGetSystemTimeInMs(luaWrap_lua_State* L);
 extern int _simCheckCollision(luaWrap_lua_State* L);
 extern int _simCheckCollisionEx(luaWrap_lua_State* L);
 extern int _simCheckDistance(luaWrap_lua_State* L);
-extern int _simGetObjectConfiguration(luaWrap_lua_State* L);
-extern int _simSetObjectConfiguration(luaWrap_lua_State* L);
-extern int _simGetConfigurationTree(luaWrap_lua_State* L);
-extern int _simSetConfigurationTree(luaWrap_lua_State* L);
-extern int _simHandleMechanism(luaWrap_lua_State* L);
 extern int _simGetSimulationTimeStep(luaWrap_lua_State* L);
 extern int _simGetSimulatorMessage(luaWrap_lua_State* L);
 extern int _simAddScript(luaWrap_lua_State* L);
@@ -222,24 +137,25 @@ extern int _simResetTracing(luaWrap_lua_State* L);
 extern int _simHandleTracing(luaWrap_lua_State* L);
 extern int _simResetGraph(luaWrap_lua_State* L);
 extern int _simHandleGraph(luaWrap_lua_State* L);
-extern int _simAddStatusbarMessage(luaWrap_lua_State* L);
-extern int _simGetLastError(luaWrap_lua_State* L);
-extern int _simGetObjects(luaWrap_lua_State* L);
+extern int _simAddGraphStream(luaWrap_lua_State* L);
+extern int _simDestroyGraphCurve(luaWrap_lua_State* L);
+extern int _simSetGraphStreamTransformation(luaWrap_lua_State* L);
+extern int _simDuplicateGraphCurveToStatic(luaWrap_lua_State* L);
+extern int _simAddGraphCurve(luaWrap_lua_State* L);
+extern int _simSetGraphStreamValue(luaWrap_lua_State* L);
 extern int _simRefreshDialogs(luaWrap_lua_State* L);
 extern int _simGetModuleName(luaWrap_lua_State* L);
-extern int _simGetIkGroupHandle(luaWrap_lua_State* L);
-extern int _simGetCollisionHandle(luaWrap_lua_State* L);
 extern int _simRemoveScript(luaWrap_lua_State* L);
-extern int _simGetDistanceHandle(luaWrap_lua_State* L);
 extern int _simStopSimulation(luaWrap_lua_State* L);
 extern int _simPauseSimulation(luaWrap_lua_State* L);
 extern int _simStartSimulation(luaWrap_lua_State* L);
 extern int _simGetObjectMatrix(luaWrap_lua_State* L);
 extern int _simSetObjectMatrix(luaWrap_lua_State* L);
+extern int _simGetObjectPose(luaWrap_lua_State* L);
+extern int _simSetObjectPose(luaWrap_lua_State* L);
 extern int _simGetJointMatrix(luaWrap_lua_State* L);
 extern int _simSetSphericalJointMatrix(luaWrap_lua_State* L);
 extern int _simBuildIdentityMatrix(luaWrap_lua_State* L);
-extern int _simCopyMatrix(luaWrap_lua_State* L);
 extern int _simBuildMatrix(luaWrap_lua_State* L);
 extern int _simGetEulerAnglesFromMatrix(luaWrap_lua_State* L);
 extern int _simInvertMatrix(luaWrap_lua_State* L);
@@ -251,16 +167,18 @@ extern int _simSetObjectParent(luaWrap_lua_State* L);
 extern int _simGetObjectChild(luaWrap_lua_State* L);
 extern int _simGetObjectType(luaWrap_lua_State* L);
 extern int _simGetJointType(luaWrap_lua_State* L);
-extern int _simSetBoolParameter(luaWrap_lua_State* L);
-extern int _simGetBoolParameter(luaWrap_lua_State* L);
-extern int _simSetInt32Parameter(luaWrap_lua_State* L);
-extern int _simGetInt32Parameter(luaWrap_lua_State* L);
-extern int _simSetFloatParameter(luaWrap_lua_State* L);
-extern int _simGetFloatParameter(luaWrap_lua_State* L);
-extern int _simSetStringParameter(luaWrap_lua_State* L);
-extern int _simGetStringParameter(luaWrap_lua_State* L);
-extern int _simSetArrayParameter(luaWrap_lua_State* L);
-extern int _simGetArrayParameter(luaWrap_lua_State* L);
+extern int _simSetBoolParam(luaWrap_lua_State* L);
+extern int _simGetBoolParam(luaWrap_lua_State* L);
+extern int _simSetInt32Param(luaWrap_lua_State* L);
+extern int _simGetInt32Param(luaWrap_lua_State* L);
+extern int _simSetFloatParam(luaWrap_lua_State* L);
+extern int _simGetFloatParam(luaWrap_lua_State* L);
+extern int _simSetStringParam(luaWrap_lua_State* L);
+extern int _simGetStringParam(luaWrap_lua_State* L);
+extern int _simSetArrayParam(luaWrap_lua_State* L);
+extern int _simGetArrayParam(luaWrap_lua_State* L);
+extern int _simSetStringNamedParam(luaWrap_lua_State* L);
+extern int _simGetStringNamedParam(luaWrap_lua_State* L);
 extern int _simGetJointInterval(luaWrap_lua_State* L);
 extern int _simSetJointInterval(luaWrap_lua_State* L);
 extern int _simLoadScene(luaWrap_lua_State* L);
@@ -276,11 +194,6 @@ extern int _simGetObjectLastSelection(luaWrap_lua_State* L);
 extern int _simGetObjectSelection(luaWrap_lua_State* L);
 extern int _simGetRealTimeSimulation(luaWrap_lua_State* L);
 extern int _simLockInterface(luaWrap_lua_State* L);
-extern int _simGetMechanismHandle(luaWrap_lua_State* L);
-extern int _simGetPathPlanningHandle(luaWrap_lua_State* L);
-extern int _simSearchPath(luaWrap_lua_State* L);
-extern int _simInitializePathSearch(luaWrap_lua_State* L);
-extern int _simPerformPathSearchStep(luaWrap_lua_State* L);
 extern int _simSetNavigationMode(luaWrap_lua_State* L);
 extern int _simGetNavigationMode(luaWrap_lua_State* L);
 extern int _simSetPage(luaWrap_lua_State* L);
@@ -292,31 +205,17 @@ extern int _simDeleteSelectedObjects(luaWrap_lua_State* L);
 extern int _simScaleSelectedObjects(luaWrap_lua_State* L);
 extern int _simScaleObjects(luaWrap_lua_State* L);
 extern int _simGetObjectUniqueIdentifier(luaWrap_lua_State* L);
-extern int _simGetNameSuffix(luaWrap_lua_State* L);
-extern int _simSetNameSuffix(luaWrap_lua_State* L);
 extern int _simSetThreadAutomaticSwitch(luaWrap_lua_State* L);
 extern int _simGetThreadAutomaticSwitch(luaWrap_lua_State* L);
 extern int _simSetThreadSwitchTiming(luaWrap_lua_State* L);
-extern int _simSetThreadResumeLocation(luaWrap_lua_State* L);
-extern int _simResumeThreads(luaWrap_lua_State* L);
-extern int _simSwitchThread(luaWrap_lua_State* L);
-extern int _simCreateIkGroup(luaWrap_lua_State* L);
-extern int _simRemoveIkGroup(luaWrap_lua_State* L);
-extern int _simCreateIkElement(luaWrap_lua_State* L);
-extern int _simCreateMotionPlanning(luaWrap_lua_State* L);
-extern int _simRemoveMotionPlanning(luaWrap_lua_State* L);
-extern int _simCreateCollection(luaWrap_lua_State* L);
-extern int _simAddObjectToCollection(luaWrap_lua_State* L);
+extern int _simGetThreadSwitchAllowed(luaWrap_lua_State* L);
+extern int _simSetThreadSwitchAllowed(luaWrap_lua_State* L);
 extern int _simSaveImage(luaWrap_lua_State* L);
 extern int _simLoadImage(luaWrap_lua_State* L);
 extern int _simGetScaledImage(luaWrap_lua_State* L);
 extern int _simTransformImage(luaWrap_lua_State* L);
 extern int _simGetQHull(luaWrap_lua_State* L);
 extern int _simGetDecimatedMesh(luaWrap_lua_State* L);
-extern int _simExportIk(luaWrap_lua_State* L);
-extern int _simComputeJacobian(luaWrap_lua_State* L);
-extern int _simSendData(luaWrap_lua_State* L);
-extern int _simReceiveData(luaWrap_lua_State* L);
 extern int _simPackTable(luaWrap_lua_State* L);
 extern int _simUnpackTable(luaWrap_lua_State* L);
 extern int _simPackInt32Table(luaWrap_lua_State* L);
@@ -335,13 +234,13 @@ extern int _simTransformBuffer(luaWrap_lua_State* L);
 extern int _simCombineRgbImages(luaWrap_lua_State* L);
 extern int _simGetVelocity(luaWrap_lua_State* L);
 extern int _simGetObjectVelocity(luaWrap_lua_State* L);
+extern int _simGetJointVelocity(luaWrap_lua_State* L);
 extern int _simAddForceAndTorque(luaWrap_lua_State* L);
 extern int _simAddForce(luaWrap_lua_State* L);
 extern int _simSetExplicitHandling(luaWrap_lua_State* L);
 extern int _simGetExplicitHandling(luaWrap_lua_State* L);
 extern int _simGetLinkDummy(luaWrap_lua_State* L);
 extern int _simSetLinkDummy(luaWrap_lua_State* L);
-extern int _simSetGraphUserData(luaWrap_lua_State* L);
 extern int _simAddDrawingObject(luaWrap_lua_State* L);
 extern int _simRemoveDrawingObject(luaWrap_lua_State* L);
 extern int _simAddDrawingObjectItem(luaWrap_lua_State* L);
@@ -353,16 +252,10 @@ extern int _simSerialClose(luaWrap_lua_State* L);
 extern int _simSerialSend(luaWrap_lua_State* L);
 extern int _simSerialRead(luaWrap_lua_State* L);
 extern int _simSerialCheck(luaWrap_lua_State* L);
-extern int _simSerialPortOpen(luaWrap_lua_State* L);
-extern int _simSerialPortClose(luaWrap_lua_State* L);
-extern int _simSerialPortSend(luaWrap_lua_State* L);
-extern int _simSerialPortRead(luaWrap_lua_State* L);
 extern int _simGetObjectSizeFactor(luaWrap_lua_State* L);
-extern int _simResetMilling(luaWrap_lua_State* L);
-extern int _simApplyMilling(luaWrap_lua_State* L);
-extern int _simSetIntegerSignal(luaWrap_lua_State* L);
-extern int _simGetIntegerSignal(luaWrap_lua_State* L);
-extern int _simClearIntegerSignal(luaWrap_lua_State* L);
+extern int _simSetInt32Signal(luaWrap_lua_State* L);
+extern int _simGetInt32Signal(luaWrap_lua_State* L);
+extern int _simClearInt32Signal(luaWrap_lua_State* L);
 extern int _simSetFloatSignal(luaWrap_lua_State* L);
 extern int _simGetFloatSignal(luaWrap_lua_State* L);
 extern int _simClearFloatSignal(luaWrap_lua_State* L);
@@ -373,7 +266,6 @@ extern int _simSetStringSignal(luaWrap_lua_State* L);
 extern int _simGetStringSignal(luaWrap_lua_State* L);
 extern int _simClearStringSignal(luaWrap_lua_State* L);
 extern int _simGetSignalName(luaWrap_lua_State* L);
-extern int _simWaitForSignal(luaWrap_lua_State* L);
 extern int _simPersistentDataWrite(luaWrap_lua_State* L);
 extern int _simPersistentDataRead(luaWrap_lua_State* L);
 extern int _simSetObjectProperty(luaWrap_lua_State* L);
@@ -382,16 +274,6 @@ extern int _simSetObjectSpecialProperty(luaWrap_lua_State* L);
 extern int _simGetObjectSpecialProperty(luaWrap_lua_State* L);
 extern int _simSetModelProperty(luaWrap_lua_State* L);
 extern int _simGetModelProperty(luaWrap_lua_State* L);
-extern int _simMoveToPosition(luaWrap_lua_State* L);
-extern int _simMoveToObject(luaWrap_lua_State* L);
-extern int _simFollowPath(luaWrap_lua_State* L);
-extern int _simMoveToJointPositions(luaWrap_lua_State* L);
-extern int _simWait(luaWrap_lua_State* L);
-extern int _simDelegateChildScriptExecution(luaWrap_lua_State* L);
-extern int _simGetDataOnPath(luaWrap_lua_State* L);
-extern int _simGetPositionOnPath(luaWrap_lua_State* L);
-extern int _simGetOrientationOnPath(luaWrap_lua_State* L);
-extern int _simGetClosestPositionOnPath(luaWrap_lua_State* L);
 extern int _simReadForceSensor(luaWrap_lua_State* L);
 extern int _simBreakForceSensor(luaWrap_lua_State* L);
 extern int _simGetShapeVertex(luaWrap_lua_State* L);
@@ -404,12 +286,6 @@ extern int _simResetDynamicObject(luaWrap_lua_State* L);
 extern int _simSetJointMode(luaWrap_lua_State* L);
 extern int _simGetJointMode(luaWrap_lua_State* L);
 extern int _simGetContactInfo(luaWrap_lua_State* L);
-extern int _simSetThreadIsFree(luaWrap_lua_State* L);
-extern int _simTubeOpen(luaWrap_lua_State* L);
-extern int _simTubeClose(luaWrap_lua_State* L);
-extern int _simTubeWrite(luaWrap_lua_State* L);
-extern int _simTubeRead(luaWrap_lua_State* L);
-extern int _simTubeStatus(luaWrap_lua_State* L);
 extern int _simAuxiliaryConsoleOpen(luaWrap_lua_State* L);
 extern int _simAuxiliaryConsoleClose(luaWrap_lua_State* L);
 extern int _simAuxiliaryConsolePrint(luaWrap_lua_State* L);
@@ -421,15 +297,9 @@ extern int _simCreateMeshShape(luaWrap_lua_State* L);
 extern int _simGetShapeMesh(luaWrap_lua_State* L);
 extern int _simCreatePureShape(luaWrap_lua_State* L);
 extern int _simCreateHeightfieldShape(luaWrap_lua_State* L);
-extern int _simAddBanner(luaWrap_lua_State* L);
-extern int _simRemoveBanner(luaWrap_lua_State* L);
 extern int _simCreateJoint(luaWrap_lua_State* L);
 extern int _simCreateDummy(luaWrap_lua_State* L);
 extern int _simCreateProximitySensor(luaWrap_lua_State* L);
-extern int _simCreatePath(luaWrap_lua_State* L);
-extern int _simInsertPathCtrlPoints(luaWrap_lua_State* L);
-extern int _simCutPathCtrlPoints(luaWrap_lua_State* L);
-extern int _simGetIkGroupMatrix(luaWrap_lua_State* L);
 extern int _simCreateForceSensor(luaWrap_lua_State* L);
 extern int _simCreateVisionSensor(luaWrap_lua_State* L);
 extern int _simFloatingViewAdd(luaWrap_lua_State* L);
@@ -437,20 +307,19 @@ extern int _simFloatingViewRemove(luaWrap_lua_State* L);
 extern int _simAdjustView(luaWrap_lua_State* L);
 extern int _simCameraFitToView(luaWrap_lua_State* L);
 extern int _simAnnounceSceneContentChange(luaWrap_lua_State* L);
-extern int _simGetObjectInt32Parameter(luaWrap_lua_State* L);
-extern int _simSetObjectInt32Parameter(luaWrap_lua_State* L);
-extern int _simGetObjectFloatParameter(luaWrap_lua_State* L);
-extern int _simSetObjectFloatParameter(luaWrap_lua_State* L);
-extern int _simGetObjectStringParameter(luaWrap_lua_State* L);
-extern int _simSetObjectStringParameter(luaWrap_lua_State* L);
+extern int _simGetObjectInt32Param(luaWrap_lua_State* L);
+extern int _simSetObjectInt32Param(luaWrap_lua_State* L);
+extern int _simGetObjectFloatParam(luaWrap_lua_State* L);
+extern int _simSetObjectFloatParam(luaWrap_lua_State* L);
+extern int _simGetObjectStringParam(luaWrap_lua_State* L);
+extern int _simSetObjectStringParam(luaWrap_lua_State* L);
 extern int _simGetRotationAxis(luaWrap_lua_State* L);
 extern int _simRotateAroundAxis(luaWrap_lua_State* L);
 extern int _simLaunchExecutable(luaWrap_lua_State* L);
 extern int _simGetJointForce(luaWrap_lua_State* L);
+extern int _simGetJointMaxForce(luaWrap_lua_State* L);
 extern int _simJointGetForce(luaWrap_lua_State* L);
-extern int _simSetIkGroupProperties(luaWrap_lua_State* L);
-extern int _simSetIkElementProperties(luaWrap_lua_State* L);
-extern int _simIsHandleValid(luaWrap_lua_State* L);
+extern int _simIsHandle(luaWrap_lua_State* L);
 extern int _simHandleVisionSensor(luaWrap_lua_State* L);
 extern int _simReadVisionSensor(luaWrap_lua_State* L);
 extern int _simResetVisionSensor(luaWrap_lua_State* L);
@@ -466,24 +335,13 @@ extern int _simRMLPos(luaWrap_lua_State* L);
 extern int _simRMLVel(luaWrap_lua_State* L);
 extern int _simRMLStep(luaWrap_lua_State* L);
 extern int _simRMLRemove(luaWrap_lua_State* L);
-extern int _simRMLMoveToPosition(luaWrap_lua_State* L);
-extern int _simRMLMoveToJointPositions(luaWrap_lua_State* L);
 extern int _simGetObjectQuaternion(luaWrap_lua_State* L);
 extern int _simSetObjectQuaternion(luaWrap_lua_State* L);
-extern int _simSetShapeMassAndInertia(luaWrap_lua_State* L);
-extern int _simGetShapeMassAndInertia(luaWrap_lua_State* L);
 extern int _simGroupShapes(luaWrap_lua_State* L);
 extern int _simUngroupShape(luaWrap_lua_State* L);
 extern int _simConvexDecompose(luaWrap_lua_State* L);
-extern int _simGetMotionPlanningHandle(luaWrap_lua_State* L);
-extern int _simFindMpPath(luaWrap_lua_State* L);
-extern int _simSimplifyMpPath(luaWrap_lua_State* L);
 extern int _simFindIkPath(luaWrap_lua_State* L);
-extern int _simGetMpConfigTransition(luaWrap_lua_State* L);
-extern int _simAddGhost(luaWrap_lua_State* L);
-extern int _simModifyGhost(luaWrap_lua_State* L);
 extern int _simQuitSimulator(luaWrap_lua_State* L);
-extern int _simGetThreadId(luaWrap_lua_State* L);
 extern int _simSetShapeMaterial(luaWrap_lua_State* L);
 extern int _simGetTextureId(luaWrap_lua_State* L);
 extern int _simReadTexture(luaWrap_lua_State* L);
@@ -492,15 +350,15 @@ extern int _simCreateTexture(luaWrap_lua_State* L);
 extern int _simWriteCustomDataBlock(luaWrap_lua_State* L);
 extern int _simReadCustomDataBlock(luaWrap_lua_State* L);
 extern int _simReadCustomDataBlockTags(luaWrap_lua_State* L);
-extern int _simAddPointCloud(luaWrap_lua_State* L);
-extern int _simModifyPointCloud(luaWrap_lua_State* L);
 extern int _simGetShapeGeomInfo(luaWrap_lua_State* L);
 extern int _simGetObjectsInTree(luaWrap_lua_State* L);
-extern int _simSetObjectSizeValues(luaWrap_lua_State* L);
-extern int _simGetObjectSizeValues(luaWrap_lua_State* L);
+extern int _simGetObjects(luaWrap_lua_State* L);
 extern int _simScaleObject(luaWrap_lua_State* L);
 extern int _simSetShapeTexture(luaWrap_lua_State* L);
 extern int _simGetShapeTextureId(luaWrap_lua_State* L);
+extern int _simCreateCollectionEx(luaWrap_lua_State* L);
+extern int _simDestroyCollection(luaWrap_lua_State* L);
+extern int _simAddItemToCollection(luaWrap_lua_State* L);
 extern int _simGetCollectionObjects(luaWrap_lua_State* L);
 extern int _simHandleCustomizationScripts(luaWrap_lua_State* L);
 extern int _simHandleAddOnScripts(luaWrap_lua_State* L);
@@ -515,17 +373,14 @@ extern int _simMsgBox(luaWrap_lua_State* L);
 extern int _simLoadModule(luaWrap_lua_State* L);
 extern int _simUnloadModule(luaWrap_lua_State* L);
 extern int _simCallScriptFunction(luaWrap_lua_State* L);
-extern int _simGetConfigForTipPose(luaWrap_lua_State* L);
-extern int _simGenerateIkPath(luaWrap_lua_State* L);
 extern int _simGetExtensionString(luaWrap_lua_State* L);
 extern int _simComputeMassAndInertia(luaWrap_lua_State* L);
-extern int _simSetScriptVariable(luaWrap_lua_State* L);
-extern int _simGetEngineFloatParameter(luaWrap_lua_State* L);
-extern int _simGetEngineInt32Parameter(luaWrap_lua_State* L);
-extern int _simGetEngineBoolParameter(luaWrap_lua_State* L);
-extern int _simSetEngineFloatParameter(luaWrap_lua_State* L);
-extern int _simSetEngineInt32Parameter(luaWrap_lua_State* L);
-extern int _simSetEngineBoolParameter(luaWrap_lua_State* L);
+extern int _simGetEngineFloatParam(luaWrap_lua_State* L);
+extern int _simGetEngineInt32Param(luaWrap_lua_State* L);
+extern int _simGetEngineBoolParam(luaWrap_lua_State* L);
+extern int _simSetEngineFloatParam(luaWrap_lua_State* L);
+extern int _simSetEngineInt32Param(luaWrap_lua_State* L);
+extern int _simSetEngineBoolParam(luaWrap_lua_State* L);
 extern int _simCreateOctree(luaWrap_lua_State* L);
 extern int _simCreatePointCloud(luaWrap_lua_State* L);
 extern int _simSetPointCloudOptions(luaWrap_lua_State* L);
@@ -554,6 +409,7 @@ extern int _simExecuteScriptString(luaWrap_lua_State* L);
 extern int _simGetApiFunc(luaWrap_lua_State* L);
 extern int _simGetApiInfo(luaWrap_lua_State* L);
 extern int _simGetModuleInfo(luaWrap_lua_State* L);
+extern int _simSetModuleInfo(luaWrap_lua_State* L);
 extern int _simRegisterScriptFunction(luaWrap_lua_State* L);
 extern int _simRegisterScriptVariable(luaWrap_lua_State* L);
 extern int _simIsDeprecated(luaWrap_lua_State* L);
@@ -565,13 +421,25 @@ extern int _simTextEditorClose(luaWrap_lua_State* L);
 extern int _simTextEditorShow(luaWrap_lua_State* L);
 extern int _simTextEditorGetInfo(luaWrap_lua_State* L);
 extern int _simSetJointDependency(luaWrap_lua_State* L);
+extern int _simGetJointDependency(luaWrap_lua_State* L);
 extern int _simGetStackTraceback(luaWrap_lua_State* L);
-extern int _simSetStringNamedParam(luaWrap_lua_State* L);
-extern int _simGetStringNamedParam(luaWrap_lua_State* L);
-extern int _simGetUserParameter(luaWrap_lua_State* L);
-extern int _simSetUserParameter(luaWrap_lua_State* L);
+extern int _simAddLog(luaWrap_lua_State* L);
+extern int _simGetShapeMass(luaWrap_lua_State* L);
+extern int _simSetShapeMass(luaWrap_lua_State* L);
+extern int _simGetShapeInertia(luaWrap_lua_State* L);
+extern int _simSetShapeInertia(luaWrap_lua_State* L);
+extern int _simIsDynamicallyEnabled(luaWrap_lua_State* L);
+extern int _simGenerateShapeFromPath(luaWrap_lua_State* L);
+extern int _simGetClosestPosOnPath(luaWrap_lua_State* L);
+extern int _simInitScript(luaWrap_lua_State* L);
 
 // DEPRECATED
+extern int _simAddStatusbarMessage(luaWrap_lua_State* L);
+extern int _simGetNameSuffix(luaWrap_lua_State* L);
+extern int _simSetNameSuffix(luaWrap_lua_State* L);
+extern int _simResetMill(luaWrap_lua_State* L);
+extern int _simHandleMill(luaWrap_lua_State* L);
+extern int _simResetMilling(luaWrap_lua_State* L);
 extern int _simOpenTextEditor(luaWrap_lua_State* L);
 extern int _simCloseTextEditor(luaWrap_lua_State* L);
 extern int _simGetMaterialId(luaWrap_lua_State* L);
@@ -617,11 +485,109 @@ extern int _simSaveUI(luaWrap_lua_State* L);
 extern int _simRemoveUI(luaWrap_lua_State* L);
 extern int _simSetUIButtonColor(luaWrap_lua_State* L);
 extern int _simHandleChildScript(luaWrap_lua_State* L);
-extern int _simHandleChildScripts_legacy(luaWrap_lua_State* L);
-extern int _simHandleChildScripts2_legacy(luaWrap_lua_State* L,std::string &functionName, std::string& errorString);
-extern int _simLaunchThreadedChildScripts_legacy(luaWrap_lua_State* L);
-extern int _simResumeThreads_legacy(luaWrap_lua_State* L);
 extern int _simSetVisionSensorFilter(luaWrap_lua_State* L);
 extern int _simGetVisionSensorFilter(luaWrap_lua_State* L);
 extern int _simGetScriptSimulationParameter(luaWrap_lua_State* L);
 extern int _simSetScriptSimulationParameter(luaWrap_lua_State* L);
+extern int _simHandleMechanism(luaWrap_lua_State* L);
+extern int _simSetPathTargetNominalVelocity(luaWrap_lua_State* L);
+extern int _simGetPathPlanningHandle(luaWrap_lua_State* L);
+extern int _simSearchPath(luaWrap_lua_State* L);
+extern int _simInitializePathSearch(luaWrap_lua_State* L);
+extern int _simPerformPathSearchStep(luaWrap_lua_State* L);
+extern int _simSetShapeMassAndInertia(luaWrap_lua_State* L);
+extern int _simGetShapeMassAndInertia(luaWrap_lua_State* L);
+extern int _sim_moveToPos_1(luaWrap_lua_State* L);
+extern int _sim_moveToPos_2(luaWrap_lua_State* L);
+extern int _sim_moveToJointPos_1(luaWrap_lua_State* L);
+extern int _sim_moveToJointPos_2(luaWrap_lua_State* L);
+extern int _sim_moveToObj_1(luaWrap_lua_State* L);
+extern int _sim_moveToObj_2(luaWrap_lua_State* L);
+extern int _sim_followPath_1(luaWrap_lua_State* L);
+extern int _sim_followPath_2(luaWrap_lua_State* L);
+extern int _sim_del(luaWrap_lua_State* L);
+extern int _simCheckIkGroup(luaWrap_lua_State* L);
+extern int _simCreateIkGroup(luaWrap_lua_State* L);
+extern int _simRemoveIkGroup(luaWrap_lua_State* L);
+extern int _simCreateIkElement(luaWrap_lua_State* L);
+extern int _simExportIk(luaWrap_lua_State* L);
+extern int _simComputeJacobian(luaWrap_lua_State* L);
+extern int _simGetConfigForTipPose(luaWrap_lua_State* L);
+extern int _simGenerateIkPath(luaWrap_lua_State* L);
+extern int _simGetIkGroupHandle(luaWrap_lua_State* L);
+extern int _simGetIkGroupMatrix(luaWrap_lua_State* L);
+extern int _simHandleIkGroup(luaWrap_lua_State* L);
+extern int _simSetIkGroupProperties(luaWrap_lua_State* L);
+extern int _simSetIkElementProperties(luaWrap_lua_State* L);
+extern int _simSetThreadIsFree(luaWrap_lua_State* L);
+extern int _simTubeOpen(luaWrap_lua_State* L);
+extern int _simTubeClose(luaWrap_lua_State* L);
+extern int _simTubeWrite(luaWrap_lua_State* L);
+extern int _simTubeRead(luaWrap_lua_State* L);
+extern int _simTubeStatus(luaWrap_lua_State* L);
+extern int _simSendData(luaWrap_lua_State* L);
+extern int _simReceiveData(luaWrap_lua_State* L);
+extern int _simGetPathPosition(luaWrap_lua_State* L);
+extern int _simSetPathPosition(luaWrap_lua_State* L);
+extern int _simGetPathLength(luaWrap_lua_State* L);
+extern int _simDelegateChildScriptExecution(luaWrap_lua_State* L);
+extern int _simGetDataOnPath(luaWrap_lua_State* L);
+extern int _simGetPositionOnPath(luaWrap_lua_State* L);
+extern int _simGetOrientationOnPath(luaWrap_lua_State* L);
+extern int _simGetClosestPositionOnPath(luaWrap_lua_State* L);
+extern int _sim_CreatePath(luaWrap_lua_State* L);
+extern int _simInsertPathCtrlPoints(luaWrap_lua_State* L);
+extern int _simCutPathCtrlPoints(luaWrap_lua_State* L);
+extern int _simGetScriptExecutionCount(luaWrap_lua_State* L);
+extern int _simIsScriptExecutionThreaded(luaWrap_lua_State* L);
+extern int _simIsScriptRunningInThread(luaWrap_lua_State* L);
+extern int _simSetThreadResumeLocation(luaWrap_lua_State* L);
+extern int _simResumeThreads(luaWrap_lua_State* L);
+extern int _simLaunchThreadedChildScripts(luaWrap_lua_State* L);
+extern int _simGetThreadId(luaWrap_lua_State* L);
+extern int _simGetUserParameter(luaWrap_lua_State* L);
+extern int _simSetUserParameter(luaWrap_lua_State* L);
+extern int _simGetCollectionName(luaWrap_lua_State* L);
+extern int _simSetCollectionName(luaWrap_lua_State* L);
+extern int _simGetCollectionHandle(luaWrap_lua_State* L);
+extern int _simRemoveCollection(luaWrap_lua_State* L);
+extern int _simEmptyCollection(luaWrap_lua_State* L);
+extern int _sim_CreateCollection(luaWrap_lua_State* L);
+extern int _simAddObjectToCollection(luaWrap_lua_State* L);
+extern int _simHandleCollision(luaWrap_lua_State* L);
+extern int _simReadCollision(luaWrap_lua_State* L);
+extern int _simHandleDistance(luaWrap_lua_State* L);
+extern int _simReadDistance(luaWrap_lua_State* L);
+extern int _simGetCollisionHandle(luaWrap_lua_State* L);
+extern int _simGetDistanceHandle(luaWrap_lua_State* L);
+extern int _simResetCollision(luaWrap_lua_State* L);
+extern int _simResetDistance(luaWrap_lua_State* L);
+extern int _simAddBanner(luaWrap_lua_State* L);
+extern int _simRemoveBanner(luaWrap_lua_State* L);
+extern int _simAddGhost(luaWrap_lua_State* L);
+extern int _simModifyGhost(luaWrap_lua_State* L);
+extern int _simSetGraphUserData(luaWrap_lua_State* L);
+extern int _simAddPointCloud(luaWrap_lua_State* L);
+extern int _simModifyPointCloud(luaWrap_lua_State* L);
+extern int _simCopyMatrix(luaWrap_lua_State* L);
+extern int _simGetObjectInt32Parameter(luaWrap_lua_State* L);
+extern int _simGetObjectFloatParameter(luaWrap_lua_State* L);
+extern int _simIsHandleValid(luaWrap_lua_State* L);
+extern int _simGetObjectName(luaWrap_lua_State* L);
+extern int _simSetObjectName(luaWrap_lua_State* L);
+extern int _simGetScriptName(luaWrap_lua_State* L);
+extern int _simSetScriptVariable(luaWrap_lua_State* L);
+extern int _simGetObjectAssociatedWithScript(luaWrap_lua_State* L);
+extern int _simGetScriptAssociatedWithObject(luaWrap_lua_State* L);
+extern int _simGetCustomizationScriptAssociatedWithObject(luaWrap_lua_State* L);
+extern int _simGetObjectConfiguration(luaWrap_lua_State* L);
+extern int _simSetObjectConfiguration(luaWrap_lua_State* L);
+extern int _simGetConfigurationTree(luaWrap_lua_State* L);
+extern int _simSetConfigurationTree(luaWrap_lua_State* L);
+extern int _simSetObjectSizeValues(luaWrap_lua_State* L);
+extern int _simGetObjectSizeValues(luaWrap_lua_State* L);
+extern int _simOpenModule(luaWrap_lua_State* L);
+extern int _simCloseModule(luaWrap_lua_State* L);
+extern int _simHandleModule(luaWrap_lua_State* L);
+extern int _simGetLastError(luaWrap_lua_State* L);
+extern int _simSwitchThread(luaWrap_lua_State* L);

@@ -12,9 +12,9 @@ public:
     CSoftButton(std::string theLabel,int w,int h,int theLength,int theHeight);
     virtual ~CSoftButton();
 
-    void announce3DObjectWillBeErased(int objID);
-    void performTextureObjectLoadingMapping(std::vector<int>* map);
-    void perform3DObjectLoadingMapping(std::vector<int>* map);
+    void announceSceneObjectWillBeErased(int objID);
+    void performTextureObjectLoadingMapping(const std::vector<int>* map);
+    void performSceneObjectLoadingMapping(const std::vector<int>* map);
     void setTextureDependencies(int buttonBlockID);
 
     float backgroundColor[3];
@@ -32,7 +32,7 @@ public:
     float getSliderPos();
     void setVertical(bool isVertical);
     bool getVertical();
-    void initializeInitialValues(bool simulationIsRunning);
+    void initializeInitialValues(bool simulationAlreadyRunning);
     void simulationEnded();
 
     int getButtonType();

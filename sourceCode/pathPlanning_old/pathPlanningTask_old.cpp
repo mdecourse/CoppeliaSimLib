@@ -5,10 +5,10 @@
 #include "pathPlanningTask_old.h"
 #include "pathPlanningInterface.h"
 #include "tt.h"
-#include "objCont.h"
+#include "sceneObjectContainer.h"
 #include "global.h"
 #include "tt.h"
-#include "registerediks.h"
+#include "ikGroupContainer.h"
 #include "app.h"
 #include "simStrings.h"
 #include "vDateTime.h"
@@ -28,8 +28,8 @@ CPathPlanningTask::CPathPlanningTask(int theID,int thePathPlanningType)
 
 CPathPlanningTask::~CPathPlanningTask()
 {
-    App::ct->drawingCont->removeObject(_searchTree1Handle);
-    App::ct->drawingCont->removeObject(_searchTree2Handle);
+    App::currentWorld->drawingCont->removeObject(_searchTree1Handle);
+    App::currentWorld->drawingCont->removeObject(_searchTree2Handle);
     CPathPlanningInterface::destroyPathPlanningObject(_steppedSearchTemp_theTask);
 }
 
@@ -84,22 +84,18 @@ CPathPlanningTask* CPathPlanningTask::getOriginalTask()
     return(_originalTask_useWhenCopied);
 }
 
-void CPathPlanningTask::initializeInitialValues(bool simulationIsRunning)
+void CPathPlanningTask::initializeInitialValues(bool simulationAlreadyRunning)
 { // is called at simulation start, but also after object(s) have been copied into a scene!
-    //_initialValuesInitialized=simulationIsRunning;
-    //if (simulationIsRunning)
-    //{
-    //}
 }
 
 void CPathPlanningTask::simulationAboutToStart()
 {
-    initializeInitialValues(true);
+    initializeInitialValues(false);
 }
 
 void CPathPlanningTask::simulationEnded()
 { // Remember, this is not guaranteed to be run! (the object can be copied during simulation, and pasted after it ended). For thoses situations there is the initializeInitialValues routine!
-    //if (_initialValuesInitialized&&App::ct->simulation->getResetSceneAtSimulationEnd())
+    //if (_initialValuesInitialized&&App::currentWorld->simulation->getResetSceneAtSimulationEnd())
     //{
     //}
     //_initialValuesInitialized=false;
@@ -131,8 +127,8 @@ void CPathPlanningTask::setShowSearchTrees(bool s)
     _showSearchTrees=s;
     if (!_showSearchTrees)
     {
-        App::ct->drawingCont->removeObject(_searchTree1Handle);
-        App::ct->drawingCont->removeObject(_searchTree2Handle);
+        App::currentWorld->drawingCont->removeObject(_searchTree1Handle);
+        App::currentWorld->drawingCont->removeObject(_searchTree2Handle);
         _searchTree1Handle=-1;
         _searchTree2Handle=-1;
     }
@@ -153,8 +149,8 @@ void CPathPlanningTask::getAndDisconnectSearchTrees(int& tree1Handle,int& tree2H
 
 void CPathPlanningTask::connectExternalSearchTrees(int tree1Handle,int tree2Handle)
 {
-    App::ct->drawingCont->removeObject(_searchTree1Handle);
-    App::ct->drawingCont->removeObject(_searchTree2Handle);
+    App::currentWorld->drawingCont->removeObject(_searchTree1Handle);
+    App::currentWorld->drawingCont->removeObject(_searchTree2Handle);
     _searchTree1Handle=tree1Handle;
     _searchTree2Handle=tree2Handle;
 }
@@ -234,10 +230,10 @@ void CPathPlanningTask::setCollisionDetection(bool c)
     if (c)
     {
         // We need to check if _robotEntity or _obstacleEntity is a dummy:
-        CDummy* it=App::ct->objCont->getDummy(_robotEntityID);
+        CDummy* it=App::currentWorld->sceneObjects->getDummyFromHandle(_robotEntityID);
         if (it!=nullptr)
             _robotEntityID=-1;
-        it=App::ct->objCont->getDummy(_obstacleEntityID);
+        it=App::currentWorld->sceneObjects->getDummyFromHandle(_obstacleEntityID);
         if (it!=nullptr)
             _obstacleEntityID=-1;
     }
@@ -540,22 +536,22 @@ void CPathPlanningTask::serialize(CSer& ar)
     }
 }
 
-void CPathPlanningTask::performObjectLoadingMapping(std::vector<int>* map)
+void CPathPlanningTask::performObjectLoadingMapping(const std::vector<int>* map)
 {
-    _startDummyID=App::ct->objCont->getLoadingMapping(map,_startDummyID);
-    _goalDummyID=App::ct->objCont->getLoadingMapping(map,_goalDummyID);
-    _pathID=App::ct->objCont->getLoadingMapping(map,_pathID);
+    _startDummyID=CWorld::getLoadingMapping(map,_startDummyID);
+    _goalDummyID=CWorld::getLoadingMapping(map,_goalDummyID);
+    _pathID=CWorld::getLoadingMapping(map,_pathID);
     if (_robotEntityID<SIM_IDSTART_COLLECTION)
-        _robotEntityID=App::ct->objCont->getLoadingMapping(map,_robotEntityID);
+        _robotEntityID=CWorld::getLoadingMapping(map,_robotEntityID);
     if (_obstacleEntityID<SIM_IDSTART_COLLECTION)
-        _obstacleEntityID=App::ct->objCont->getLoadingMapping(map,_obstacleEntityID);
+        _obstacleEntityID=CWorld::getLoadingMapping(map,_obstacleEntityID);
 }
-void CPathPlanningTask::performCollectionLoadingMapping(std::vector<int>* map)
+void CPathPlanningTask::performCollectionLoadingMapping(const std::vector<int>* map)
 {
     if (_robotEntityID>=SIM_IDSTART_COLLECTION)
-        _robotEntityID=App::ct->objCont->getLoadingMapping(map,_robotEntityID);
+        _robotEntityID=CWorld::getLoadingMapping(map,_robotEntityID);
     if (_obstacleEntityID>=SIM_IDSTART_COLLECTION)
-        _obstacleEntityID=App::ct->objCont->getLoadingMapping(map,_obstacleEntityID);
+        _obstacleEntityID=CWorld::getLoadingMapping(map,_obstacleEntityID);
 }
 bool CPathPlanningTask::announceObjectWillBeErased(int objID,bool copyBuffer)
 { // Return value true means that this object should be destroyed
@@ -673,13 +669,13 @@ float CPathPlanningTask::getMaxTime()
 }
 bool CPathPlanningTask::isTaskValid()
 {
-    if (App::ct->objCont->getPath(_pathID)==nullptr)
+    if (App::currentWorld->sceneObjects->getPathFromHandle(_pathID)==nullptr)
         return(false); // No path!
     if (pathPlanningType==sim_pathplanning_holonomic)
     { // Holonomic path planning
-        if (App::ct->objCont->getDummy(_startDummyID)==nullptr)
+        if (App::currentWorld->sceneObjects->getDummyFromHandle(_startDummyID)==nullptr)
             return(false);
-        if (App::ct->objCont->getDummy(_goalDummyID)==nullptr)
+        if (App::currentWorld->sceneObjects->getDummyFromHandle(_goalDummyID)==nullptr)
             return(false);
         if (_startDummyID==_goalDummyID)
             return(false);
@@ -687,9 +683,9 @@ bool CPathPlanningTask::isTaskValid()
     }
     if (pathPlanningType==sim_pathplanning_nonholonomic)
     { // Holonomic path planning
-        if (App::ct->objCont->getDummy(_startDummyID)==nullptr)
+        if (App::currentWorld->sceneObjects->getDummyFromHandle(_startDummyID)==nullptr)
             return(false);
-        if (App::ct->objCont->getDummy(_goalDummyID)==nullptr)
+        if (App::currentWorld->sceneObjects->getDummyFromHandle(_goalDummyID)==nullptr)
             return(false);
         if (_startDummyID==_goalDummyID)
             return(false);
@@ -718,7 +714,7 @@ bool CPathPlanningTask::initiateSteppedSearch(bool showProgressDlg,float maxTime
 {
     if (!isTaskValid())
         return(false);
-    CPath* thePath=App::ct->objCont->getPath(_pathID);
+    CPath_old* thePath=App::currentWorld->sceneObjects->getPathFromHandle(_pathID);
     if (thePath==nullptr)
         return(false);
     _steppedSearchTemp_initTimeInMs=VDateTime::getTimeInMs();
@@ -763,7 +759,7 @@ int CPathPlanningTask::performSteppedSearch()
     int retVal=-1;
     if (!isTaskValid())
         return(retVal);
-    CPath* thePath=App::ct->objCont->getPath(_pathID);
+    CPath_old* thePath=App::currentWorld->sceneObjects->getPathFromHandle(_pathID);
     if (thePath==nullptr)
         return(retVal);
     if (pathPlanningType==sim_pathplanning_nonholonomic)
@@ -781,7 +777,7 @@ int CPathPlanningTask::performSteppedSearch()
                 { // we found a path!
                     if (_steppedSearchTemp_showProgressDlg)
                     {
-                        // App::uiThread->setProgressBarText(strTranslate(IDS_PATH_WAS_FOUND_),strTranslate(IDS_NOW_PERFORMING_POST_PROCESSING___),nullptr);
+                        // App::uiThread->setProgressBarText(IDS_PATH_WAS_FOUND_,IDS_NOW_PERFORMING_POST_PROCESSING___,nullptr);
                     }
                     _steppedSearchTemp_foundPathStatus=2; // we found a full path!
                     retVal=-2; // search not completely finished (we still have to smooth the path)
@@ -790,10 +786,10 @@ int CPathPlanningTask::performSteppedSearch()
                 { // we didn't yet find a path
                     if (_steppedSearchTemp_showProgressDlg)
                     { /*
-                        std::string txt(strTranslate(IDS_TIME_SPENT_SEARCHING_));
+                        std::string txt(IDS_TIME_SPENT_SEARCHING_);
                         txt+=" ";
                         txt+=tt::FNb(0,float(VDateTime::getTimeDiffInMs(_steppedSearchTemp_initTimeInMs))/1000.0f,1,false);
-                        std::string txt2=strTranslate(IDS_NB_OF_COLL_FREE_NODES_FOUND_);
+                        std::string txt2=IDS_NB_OF_COLL_FREE_NODES_FOUND_;
                         txt2+=" ";
                         txt2+=tt::FNb(0,CPathPlanningInterface::getPathNodeCount(p,true)+CPathPlanningInterface::getPathNodeCount(p,false),false);
                         App::uiThread->setProgressBarText(txt.c_str(),txt2.c_str(),nullptr); */
@@ -809,7 +805,7 @@ int CPathPlanningTask::performSteppedSearch()
                     {
                         if (_steppedSearchTemp_showProgressDlg)
                         {
-                            // App::uiThread->setProgressBarText(strTranslate(IDS_PARTIAL_PATH_WAS_FOUND_),strTranslate(IDS_NOW_PERFORMING_POST_PROCESSING___),nullptr);
+                            // App::uiThread->setProgressBarText(IDS_PARTIAL_PATH_WAS_FOUND_,IDS_NOW_PERFORMING_POST_PROCESSING___,nullptr);
                         }
                         _steppedSearchTemp_foundPathStatus=1; // we found a partial path!
                         retVal=-2; // search not completely finished (we still have to smooth the path)
@@ -826,7 +822,7 @@ int CPathPlanningTask::performSteppedSearch()
                 retVal=0; // we didn't find anything (the smoothing actually failed)
             if (res==1)
             {
-                CPath* it=App::ct->objCont->getPath(_pathID);
+                CPath_old* it=App::currentWorld->sceneObjects->getPathFromHandle(_pathID);
                 int nodeCount;
                 float* pathData=CPathPlanningInterface::getFoundPath(p,&nodeCount);
                 if ((it!=nullptr)&&(pathData!=nullptr))
@@ -836,14 +832,14 @@ int CPathPlanningTask::performSteppedSearch()
                     int at=sim_pathproperty_automatic_orientation|sim_pathproperty_closed_path;
                     it->pathContainer->setAttributes((it->pathContainer->getAttributes()|at)-at);
                     it->pathContainer->setSquareSize(stepSize*0.25f);
-                    C7Vector pathInv(it->getCumulativeTransformation().getInverse());
+                    C7Vector pathInv(it->getFullCumulativeTransformation().getInverse());
                     for (int i=0;i<nodeCount;i++)
                     {
                         C7Vector conf;
                         conf.X.setInternalData(pathData+0+7*i);
                         conf.Q.setInternalData(pathData+3+7*i);
                         conf=pathInv*conf;
-                        CSimplePathPoint* nspp=new CSimplePathPoint();
+                        CSimplePathPoint_old* nspp=new CSimplePathPoint_old();
                         nspp->setTransformation(conf,it->pathContainer->getAttributes());
                         it->pathContainer->addSimplePathPoint(nspp);
                     }
@@ -870,7 +866,7 @@ int CPathPlanningTask::performSteppedSearch()
                 { // We found a path!
                     if (_steppedSearchTemp_showProgressDlg)
                     {
-                        // App::uiThread->setProgressBarText(strTranslate(IDS_PATH_WAS_FOUND_),strTranslate(IDS_NOW_PERFORMING_POST_PROCESSING___),nullptr);
+                        // App::uiThread->setProgressBarText(IDS_PATH_WAS_FOUND_,IDS_NOW_PERFORMING_POST_PROCESSING___,nullptr);
                     }
                     _steppedSearchTemp_foundPathStatus=2; // we found a full path!
                     retVal=-2; // search not completely finished (we still have to smooth the path)
@@ -879,10 +875,10 @@ int CPathPlanningTask::performSteppedSearch()
                 { // we didn't yet find a path
                     if (_steppedSearchTemp_showProgressDlg)
                     {/*
-                        std::string txt(strTranslate(IDS_TIME_SPENT_SEARCHING_));
+                        std::string txt(IDS_TIME_SPENT_SEARCHING_);
                         txt+=" ";
                         txt+=tt::FNb(0,float(VDateTime::getTimeDiffInMs(_steppedSearchTemp_initTimeInMs))/1000.0f,1,false);
-                        std::string txt2=strTranslate(IDS_NB_OF_COLL_FREE_NODES_FOUND_);
+                        std::string txt2=IDS_NB_OF_COLL_FREE_NODES_FOUND_;
                         txt2+=" ";
                         txt2+=tt::FNb(0,CPathPlanningInterface::getPathNodeCount(p,true)+CPathPlanningInterface::getPathNodeCount(p,false),false);
                         App::uiThread->setProgressBarText(txt.c_str(),txt2.c_str(),nullptr); */
@@ -898,7 +894,7 @@ int CPathPlanningTask::performSteppedSearch()
                     {
                         if (_steppedSearchTemp_showProgressDlg)
                         {
-                            // App::uiThread->setProgressBarText(strTranslate(IDS_PARTIAL_PATH_WAS_FOUND_),strTranslate(IDS_NOW_PERFORMING_POST_PROCESSING___),nullptr);
+                            // App::uiThread->setProgressBarText(IDS_PARTIAL_PATH_WAS_FOUND_,IDS_NOW_PERFORMING_POST_PROCESSING___,nullptr);
                         }
                         _steppedSearchTemp_foundPathStatus=1; // we found a partial path!
                         retVal=-2; // search not completely finished (we still have to smooth the path)
@@ -915,7 +911,7 @@ int CPathPlanningTask::performSteppedSearch()
                 retVal=0; // we didn't find anything (the smoothing actually failed)
             if (res==1)
             {
-                CPath* it=App::ct->objCont->getPath(_pathID);
+                CPath_old* it=App::currentWorld->sceneObjects->getPathFromHandle(_pathID);
                 int nodeCount;
                 float* pathData=CPathPlanningInterface::getFoundPath(p,&nodeCount);
                 if ((it!=nullptr)&&(pathData!=nullptr))
@@ -925,14 +921,14 @@ int CPathPlanningTask::performSteppedSearch()
                     int at=sim_pathproperty_automatic_orientation|sim_pathproperty_closed_path;
                     it->pathContainer->setAttributes((it->pathContainer->getAttributes()|at)-at);
                     it->pathContainer->setSquareSize(stepSize*0.25f);
-                    C7Vector pathInv(it->getCumulativeTransformation().getInverse());
+                    C7Vector pathInv(it->getFullCumulativeTransformation().getInverse());
                     for (int i=0;i<nodeCount;i++)
                     {
                         C7Vector conf;
                         conf.X.setInternalData(pathData+0+7*i);
                         conf.Q.setInternalData(pathData+3+7*i);
                         conf=pathInv*conf;
-                        CSimplePathPoint* nspp=new CSimplePathPoint();
+                        CSimplePathPoint_old* nspp=new CSimplePathPoint_old();
                         nspp->setTransformation(conf,it->pathContainer->getAttributes());
                         it->pathContainer->addSimplePathPoint(nspp);
                     }
@@ -949,27 +945,27 @@ int CPathPlanningTask::performSteppedSearch()
     { // This is the last time in this routine. Display the trees and clean-up!
         if ((retVal>0)&&_showSearchTrees)
         {
-            App::ct->drawingCont->removeObject(_searchTree1Handle);
-            App::ct->drawingCont->removeObject(_searchTree2Handle);
+            App::currentWorld->drawingCont->removeObject(_searchTree1Handle);
+            App::currentWorld->drawingCont->removeObject(_searchTree2Handle);
             int fromStartC;
             float* fromStart=CPathPlanningInterface::getSearchTree(_steppedSearchTemp_theTask,&fromStartC,true);
             int fromGoalC;
             float* fromGoal=CPathPlanningInterface::getSearchTree(_steppedSearchTemp_theTask,&fromGoalC,false);
             if (fromStart!=nullptr)
             {
-                CDrawingObject* it=new CDrawingObject(sim_drawing_lines,1.0f,0.0f,-1,1000000,false);
+                CDrawingObject* it=new CDrawingObject(sim_drawing_lines,1.0f,0.0f,-1,1000000,-1);
                 it->color.setColor(1.0f,0.0f,0.0f,sim_colorcomponent_ambient_diffuse);
                 for (int i=0;i<fromStartC;i++)
                     it->addItem(fromStart+6*i);
-                _searchTree1Handle=App::ct->drawingCont->addObject(it);
+                _searchTree1Handle=App::currentWorld->drawingCont->addObject(it);
             }
             if (fromGoal!=nullptr)
             {
-                CDrawingObject* it=new CDrawingObject(sim_drawing_lines,1.0f,0.0f,-1,1000000,false);
+                CDrawingObject* it=new CDrawingObject(sim_drawing_lines,1.0f,0.0f,-1,1000000,-1);
                 it->color.setColor(0.0f,0.0f,1.0f,sim_colorcomponent_ambient_diffuse);
                 for (int i=0;i<fromGoalC;i++)
                     it->addItem(fromGoal+6*i);
-                _searchTree2Handle=App::ct->drawingCont->addObject(it);
+                _searchTree2Handle=App::currentWorld->drawingCont->addObject(it);
             }
             CPathPlanningInterface::releaseBuffer(fromGoal);
             CPathPlanningInterface::releaseBuffer(fromStart);
@@ -982,12 +978,12 @@ int CPathPlanningTask::performSteppedSearch()
 
 void CPathPlanningTask::renderYour3DStuff()
 {
-    if ((_startDummyID==-1)||(!_visualizeSearchArea)||(!App::ct->simulation->isSimulationStopped()))
+    if ((_startDummyID==-1)||(!_visualizeSearchArea)||(!App::currentWorld->simulation->isSimulationStopped()))
         return;
-    C3DObject* it=App::ct->objCont->getObjectFromHandle(_startDummyID);
+    CSceneObject* it=App::currentWorld->sceneObjects->getObjectFromHandle(_startDummyID);
     if (it!=nullptr)
     {
-        C4X4Matrix m(it->getCumulativeTransformationPart1().getMatrix());
+        C4X4Matrix m(it->getCumulativeTransformation().getMatrix());
         C3Vector corners[8];
         for (int i=0;i<2;i++)
         {

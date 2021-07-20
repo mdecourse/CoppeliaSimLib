@@ -3,7 +3,7 @@
 #define QDLGPATHS_H
 
 #include "dlgEx.h"
-#include "path.h"
+#include "path_old.h"
 
 namespace Ui {
     class CQDlgPaths;
@@ -23,8 +23,8 @@ public:
 
     bool inMainRefreshRoutine;
 
-    CPathCont* getPathCont();
-    CPath* getPath();
+    CPathCont_old* getPathCont();
+    CPath_old* getPath();
 
 private slots:
     void on_qqShowOrientation_clicked();
@@ -42,6 +42,10 @@ private slots:
     void on_qqDistanceCombo_currentIndexChanged(int index);
 
     void on_qqShowShapingDialog_clicked();
+
+    void on_qqCopyToClipboard_clicked();
+
+    void on_qqCreateEquivalentObject_clicked();
 
 private:
     Ui::CQDlgPaths *ui;

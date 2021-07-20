@@ -89,35 +89,58 @@ void CPropBrowserEngineGeneral::show(QWidget* parentWindow)
 
 
     QStringList configurationEnum;
-    configurationEnum << "Very accurate" << "Accurate (default)" << "Fast" << "Very fast" << "Customized";
+    configurationEnum << CDynamicsContainer::getDynamicsSettingsModeStr(dynset_veryprecise).c_str();
+    configurationEnum << CDynamicsContainer::getDynamicsSettingsModeStr(dynset_precise).c_str();
+    configurationEnum << CDynamicsContainer::getDynamicsSettingsModeStr(dynset_balanced).c_str();
+    configurationEnum << CDynamicsContainer::getDynamicsSettingsModeStr(dynset_fast).c_str();
+    configurationEnum << CDynamicsContainer::getDynamicsSettingsModeStr(dynset_veryfast).c_str();
+    configurationEnum << CDynamicsContainer::getDynamicsSettingsModeStr(dynset_custom).c_str();
     p_configuration = variantManager->addProperty(QtVariantPropertyManager::enumTypeId(),"");
     p_configuration->setAttribute("enumNames", configurationEnum);
     QtBrowserItem* anItem=addProperty(p_configuration);
-    setBackgroundColor(anItem,QTPROPERTYBROWSER_COLOR_GREY);
+
+    if (App::userSettings->darkMode)
+        setBackgroundColor(anItem,QTPROPERTYBROWSER_COLOR_GREY_D);
+    else
+        setBackgroundColor(anItem,QTPROPERTYBROWSER_COLOR_GREY);
 
 
     QtProperty *bulletGroup = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),"Bullet properties");
     bulletGroup->theBrightness=140;
     bulletGroupItem=addProperty(bulletGroup);
-    setBackgroundColor(bulletGroupItem,QTPROPERTYBROWSER_COLOR_RED);
+    if (App::userSettings->darkMode)
+        setBackgroundColor(bulletGroupItem,QTPROPERTYBROWSER_COLOR_DGREY_D);
+    if (App::userSettings->darkMode)
+        setBackgroundColor(bulletGroupItem,QTPROPERTYBROWSER_COLOR_RED_D);
+    else
+        setBackgroundColor(bulletGroupItem,QTPROPERTYBROWSER_COLOR_RED);
     setExpanded(bulletGroupItem,_bulletPropertiesExpanded);
 
     QtProperty *odeGroup = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),"ODE properties");
     odeGroup->theBrightness=140;
     odeGroupItem=addProperty(odeGroup);
-    setBackgroundColor(odeGroupItem,QTPROPERTYBROWSER_COLOR_GREEN);
+    if (App::userSettings->darkMode)
+        setBackgroundColor(odeGroupItem,QTPROPERTYBROWSER_COLOR_GREEN_D);
+    else
+        setBackgroundColor(odeGroupItem,QTPROPERTYBROWSER_COLOR_GREEN);
     setExpanded(odeGroupItem,_odePropertiesExpanded);
 
     QtProperty *vortexGroup = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),"Vortex properties");
     vortexGroup->theBrightness=140;
     vortexGroupItem=addProperty(vortexGroup);
-    setBackgroundColor(vortexGroupItem,QTPROPERTYBROWSER_COLOR_BLUE);
+    if (App::userSettings->darkMode)
+        setBackgroundColor(vortexGroupItem,QTPROPERTYBROWSER_COLOR_BLUE_D);
+    else
+        setBackgroundColor(vortexGroupItem,QTPROPERTYBROWSER_COLOR_BLUE);
     setExpanded(vortexGroupItem,_vortexPropertiesExpanded);
 
     QtProperty *newtonGroup = variantManager->addProperty(QtVariantPropertyManager::groupTypeId(),"Newton properties");
     newtonGroup->theBrightness=140;
     newtonGroupItem=addProperty(newtonGroup);
-    setBackgroundColor(newtonGroupItem,QTPROPERTYBROWSER_COLOR_PURPLE);
+    if (App::userSettings->darkMode)
+        setBackgroundColor(newtonGroupItem,QTPROPERTYBROWSER_COLOR_PURPLE_D);
+    else
+        setBackgroundColor(newtonGroupItem,QTPROPERTYBROWSER_COLOR_PURPLE);
     setExpanded(newtonGroupItem,_newtonPropertiesExpanded);
 
     // Bullet:
@@ -221,10 +244,10 @@ void CPropBrowserEngineGeneral::enableNotifications(bool enable)
 
 void CPropBrowserEngineGeneral::refresh()
 {
-    int confIndex=App::ct->dynamicsContainer->getUseDynamicDefaultCalculationParameters();
+    int confIndex=App::currentWorld->dynamicsContainer->getDynamicsSettingsMode();
 
     // Configuration drop box:
-    p_configuration->setPropertyName("Configuration");
+    p_configuration->setPropertyName("Configuration mode");
     p_configuration->setValue(confIndex);
 
     // Bullet property names:
@@ -236,18 +259,18 @@ void CPropBrowserEngineGeneral::refresh()
     p_bulletCollMarginScaling->setPropertyName("Collision margin scaling");
 
     // Bullet parameters:
-    p_bulletTimeStep->setValue(tt::floatToEInfString(App::ct->dynamicsContainer->getEngineFloatParam(sim_bullet_global_stepsize,nullptr),false).c_str());
-    p_bulletTimeStep->setEnabled(confIndex==4);
-    p_bulletConstraintSolvType->setValue(App::ct->dynamicsContainer->getEngineIntParam(sim_bullet_global_constraintsolvertype,nullptr));
-    p_bulletConstraintSolvType->setEnabled(confIndex==4);
-    p_bulletConstraintSolvIterat->setValue(tt::intToString(App::ct->dynamicsContainer->getEngineIntParam(sim_bullet_global_constraintsolvingiterations,nullptr)).c_str());
-    p_bulletConstraintSolvIterat->setEnabled(confIndex==4);
-    p_bulletInternalScaling->setValue(tt::floatToEInfString(App::ct->dynamicsContainer->getEngineFloatParam(sim_bullet_global_internalscalingfactor,nullptr),false).c_str());
-    p_bulletInternalScaling->setEnabled(confIndex==4);
-    p_bulletInternalFullScaling->setValue(App::ct->dynamicsContainer->getEngineBoolParam(sim_bullet_global_fullinternalscaling,nullptr));
-    p_bulletInternalFullScaling->setEnabled(confIndex==4);
-    p_bulletCollMarginScaling->setValue(tt::floatToEInfString(App::ct->dynamicsContainer->getEngineFloatParam(sim_bullet_global_collisionmarginfactor,nullptr),false).c_str());
-    p_bulletCollMarginScaling->setEnabled(confIndex==4);
+    p_bulletTimeStep->setValue(tt::floatToEInfString(App::currentWorld->dynamicsContainer->getEngineFloatParam(sim_bullet_global_stepsize,nullptr),false).c_str());
+    p_bulletTimeStep->setEnabled(confIndex==dynset_custom);
+    p_bulletConstraintSolvType->setValue(App::currentWorld->dynamicsContainer->getEngineIntParam(sim_bullet_global_constraintsolvertype,nullptr));
+    p_bulletConstraintSolvType->setEnabled(confIndex==dynset_custom);
+    p_bulletConstraintSolvIterat->setValue(std::to_string(App::currentWorld->dynamicsContainer->getEngineIntParam(sim_bullet_global_constraintsolvingiterations,nullptr)).c_str());
+    p_bulletConstraintSolvIterat->setEnabled(confIndex==dynset_custom);
+    p_bulletInternalScaling->setValue(tt::floatToEInfString(App::currentWorld->dynamicsContainer->getEngineFloatParam(sim_bullet_global_internalscalingfactor,nullptr),false).c_str());
+    p_bulletInternalScaling->setEnabled(confIndex==dynset_custom);
+    p_bulletInternalFullScaling->setValue(App::currentWorld->dynamicsContainer->getEngineBoolParam(sim_bullet_global_fullinternalscaling,nullptr));
+    p_bulletInternalFullScaling->setEnabled(confIndex==dynset_custom);
+    p_bulletCollMarginScaling->setValue(tt::floatToEInfString(App::currentWorld->dynamicsContainer->getEngineFloatParam(sim_bullet_global_collisionmarginfactor,nullptr),false).c_str());
+    p_bulletCollMarginScaling->setEnabled(confIndex==dynset_custom);
 
 
     // ODE property names:
@@ -260,20 +283,20 @@ void CPropBrowserEngineGeneral::refresh()
     p_odeGlobalCfm->setPropertyName("Global CFM");
 
     // ODE parameters:
-    p_odeTimeStep->setValue(tt::floatToEInfString(App::ct->dynamicsContainer->getEngineFloatParam(sim_ode_global_stepsize,nullptr),false).c_str());
-    p_odeTimeStep->setEnabled(confIndex==4);
-    p_odeQuickStep->setValue(App::ct->dynamicsContainer->getEngineBoolParam(sim_ode_global_quickstep,nullptr));
-    p_odeQuickStep->setEnabled(confIndex==4);
-    p_odeIterations->setValue(tt::intToString(App::ct->dynamicsContainer->getEngineIntParam(sim_ode_global_constraintsolvingiterations,nullptr)).c_str());
-    p_odeIterations->setEnabled((confIndex==4)&&App::ct->dynamicsContainer->getEngineBoolParam(sim_ode_global_quickstep,nullptr));
-    p_odeInternalScaling->setValue(tt::floatToEInfString(App::ct->dynamicsContainer->getEngineFloatParam(sim_ode_global_internalscalingfactor,nullptr),false).c_str());
-    p_odeInternalScaling->setEnabled(confIndex==4);
-    p_odeInternalFullScaling->setValue(App::ct->dynamicsContainer->getEngineBoolParam(sim_ode_global_fullinternalscaling,nullptr));
-    p_odeInternalFullScaling->setEnabled(confIndex==4);
-    p_odeGlobalErp->setValue(tt::floatToEInfString(App::ct->dynamicsContainer->getEngineFloatParam(sim_ode_global_erp,nullptr),false).c_str());
-    p_odeGlobalErp->setEnabled(confIndex==4);
-    p_odeGlobalCfm->setValue(tt::floatToEInfString(App::ct->dynamicsContainer->getEngineFloatParam(sim_ode_global_cfm,nullptr),false).c_str());
-    p_odeGlobalCfm->setEnabled(confIndex==4);
+    p_odeTimeStep->setValue(tt::floatToEInfString(App::currentWorld->dynamicsContainer->getEngineFloatParam(sim_ode_global_stepsize,nullptr),false).c_str());
+    p_odeTimeStep->setEnabled(confIndex==dynset_custom);
+    p_odeQuickStep->setValue(App::currentWorld->dynamicsContainer->getEngineBoolParam(sim_ode_global_quickstep,nullptr));
+    p_odeQuickStep->setEnabled(confIndex==dynset_custom);
+    p_odeIterations->setValue(std::to_string(App::currentWorld->dynamicsContainer->getEngineIntParam(sim_ode_global_constraintsolvingiterations,nullptr)).c_str());
+    p_odeIterations->setEnabled((confIndex==dynset_custom)&&App::currentWorld->dynamicsContainer->getEngineBoolParam(sim_ode_global_quickstep,nullptr));
+    p_odeInternalScaling->setValue(tt::floatToEInfString(App::currentWorld->dynamicsContainer->getEngineFloatParam(sim_ode_global_internalscalingfactor,nullptr),false).c_str());
+    p_odeInternalScaling->setEnabled(confIndex==dynset_custom);
+    p_odeInternalFullScaling->setValue(App::currentWorld->dynamicsContainer->getEngineBoolParam(sim_ode_global_fullinternalscaling,nullptr));
+    p_odeInternalFullScaling->setEnabled(confIndex==dynset_custom);
+    p_odeGlobalErp->setValue(tt::floatToEInfString(App::currentWorld->dynamicsContainer->getEngineFloatParam(sim_ode_global_erp,nullptr),false).c_str());
+    p_odeGlobalErp->setEnabled(confIndex==dynset_custom);
+    p_odeGlobalCfm->setValue(tt::floatToEInfString(App::currentWorld->dynamicsContainer->getEngineFloatParam(sim_ode_global_cfm,nullptr),false).c_str());
+    p_odeGlobalCfm->setEnabled(confIndex==dynset_custom);
 
 
     // Vortex property names:
@@ -293,38 +316,38 @@ void CPropBrowserEngineGeneral::refresh()
 
     // Vortex parameters:
 
-    float stepSize=App::ct->dynamicsContainer->getEngineFloatParam(sim_vortex_global_stepsize,nullptr);
-    float contactTolerance=App::ct->dynamicsContainer->getEngineFloatParam(sim_vortex_global_contacttolerance,nullptr);
-    float constraint_linear_compliance=tt::floatToUserFloat(App::ct->dynamicsContainer->getEngineFloatParam(sim_vortex_global_constraintlinearcompliance,nullptr),1.0f,true);
-    float constraint_linear_damping=tt::floatToUserFloat(App::ct->dynamicsContainer->getEngineFloatParam(sim_vortex_global_constraintlineardamping,nullptr),1.0f,true);
-    float constraint_linear_kineticLoss=tt::floatToUserFloat(App::ct->dynamicsContainer->getEngineFloatParam(sim_vortex_global_constraintlinearkineticloss,nullptr),1.0f,true);
-    float constraint_angular_compliance=tt::floatToUserFloat(App::ct->dynamicsContainer->getEngineFloatParam(sim_vortex_global_constraintangularcompliance,nullptr),1.0f,true);
-    float constraint_angular_damping=tt::floatToUserFloat(App::ct->dynamicsContainer->getEngineFloatParam(sim_vortex_global_constraintangulardamping,nullptr),1.0f,true);
-    float constraint_angular_kineticLoss=tt::floatToUserFloat(App::ct->dynamicsContainer->getEngineFloatParam(sim_vortex_global_constraintangularkineticloss,nullptr),1.0f,true);
-    bool autoSleep=App::ct->dynamicsContainer->getEngineBoolParam(sim_vortex_global_autosleep,nullptr);
-    bool multiThreading=App::ct->dynamicsContainer->getEngineBoolParam(sim_vortex_global_multithreading,nullptr);
+    float stepSize=App::currentWorld->dynamicsContainer->getEngineFloatParam(sim_vortex_global_stepsize,nullptr);
+    float contactTolerance=App::currentWorld->dynamicsContainer->getEngineFloatParam(sim_vortex_global_contacttolerance,nullptr);
+    float constraint_linear_compliance=tt::floatToUserFloat(App::currentWorld->dynamicsContainer->getEngineFloatParam(sim_vortex_global_constraintlinearcompliance,nullptr),1.0f,true);
+    float constraint_linear_damping=tt::floatToUserFloat(App::currentWorld->dynamicsContainer->getEngineFloatParam(sim_vortex_global_constraintlineardamping,nullptr),1.0f,true);
+    float constraint_linear_kineticLoss=tt::floatToUserFloat(App::currentWorld->dynamicsContainer->getEngineFloatParam(sim_vortex_global_constraintlinearkineticloss,nullptr),1.0f,true);
+    float constraint_angular_compliance=tt::floatToUserFloat(App::currentWorld->dynamicsContainer->getEngineFloatParam(sim_vortex_global_constraintangularcompliance,nullptr),1.0f,true);
+    float constraint_angular_damping=tt::floatToUserFloat(App::currentWorld->dynamicsContainer->getEngineFloatParam(sim_vortex_global_constraintangulardamping,nullptr),1.0f,true);
+    float constraint_angular_kineticLoss=tt::floatToUserFloat(App::currentWorld->dynamicsContainer->getEngineFloatParam(sim_vortex_global_constraintangularkineticloss,nullptr),1.0f,true);
+    bool autoSleep=App::currentWorld->dynamicsContainer->getEngineBoolParam(sim_vortex_global_autosleep,nullptr);
+    bool multiThreading=App::currentWorld->dynamicsContainer->getEngineBoolParam(sim_vortex_global_multithreading,nullptr);
 
     p_vortexTimeStep->setValue(tt::floatToEInfString(stepSize,false).c_str());
-    p_vortexTimeStep->setEnabled(confIndex==4);
+    p_vortexTimeStep->setEnabled(confIndex==dynset_custom);
     p_vortexContactTolerance->setValue(tt::floatToEInfString(contactTolerance,false).c_str());
-    p_vortexContactTolerance->setEnabled(confIndex==4);
+    p_vortexContactTolerance->setEnabled(confIndex==dynset_custom);
     p_vortexAutoSleep->setValue(autoSleep);
-    p_vortexAutoSleep->setEnabled(confIndex==4);
+    p_vortexAutoSleep->setEnabled(confIndex==dynset_custom);
     p_vortexMultithreading->setValue(multiThreading);
-    p_vortexMultithreading->setEnabled(confIndex==4);
+    p_vortexMultithreading->setEnabled(confIndex==dynset_custom);
 
     p_vortexConstraintLinearCompliance->setValue(tt::floatToEInfString(constraint_linear_compliance,false).c_str());
-    p_vortexConstraintLinearCompliance->setEnabled(confIndex==4);
+    p_vortexConstraintLinearCompliance->setEnabled(confIndex==dynset_custom);
     p_vortexConstraintLinearDamping->setValue(tt::floatToEInfString(constraint_linear_damping,false).c_str());
-    p_vortexConstraintLinearDamping->setEnabled(confIndex==4);
+    p_vortexConstraintLinearDamping->setEnabled(confIndex==dynset_custom);
     p_vortexConstraintLinearKinLoss->setValue(tt::floatToEInfString(constraint_linear_kineticLoss,false).c_str());
-    p_vortexConstraintLinearKinLoss->setEnabled(confIndex==4);
+    p_vortexConstraintLinearKinLoss->setEnabled(confIndex==dynset_custom);
     p_vortexConstraintAngularCompliance->setValue(tt::floatToEInfString(constraint_angular_compliance,false).c_str());
-    p_vortexConstraintAngularCompliance->setEnabled(confIndex==4);
+    p_vortexConstraintAngularCompliance->setEnabled(confIndex==dynset_custom);
     p_vortexConstraintAngularDamping->setValue(tt::floatToEInfString(constraint_angular_damping,false).c_str());
-    p_vortexConstraintAngularDamping->setEnabled(confIndex==4);
+    p_vortexConstraintAngularDamping->setEnabled(confIndex==dynset_custom);
     p_vortexConstraintAngularKinLoss->setValue(tt::floatToEInfString(constraint_angular_kineticLoss,false).c_str());
-    p_vortexConstraintAngularKinLoss->setEnabled(confIndex==4);
+    p_vortexConstraintAngularKinLoss->setEnabled(confIndex==dynset_custom);
 
 
     // Newton property names:
@@ -336,25 +359,25 @@ void CPropBrowserEngineGeneral::refresh()
     p_newtonContactMergeTolerance->setPropertyName(gv::formatUnitStr("Contact merge tolerance","m").c_str());
 
     // Newton parameters:
-    float newtonStepSize=App::ct->dynamicsContainer->getEngineFloatParam(sim_newton_global_stepsize,nullptr);
-    float newtonContactMergeTolerance=App::ct->dynamicsContainer->getEngineFloatParam(sim_newton_global_contactmergetolerance,nullptr);
-    int newtonIterations=App::ct->dynamicsContainer->getEngineIntParam(sim_newton_global_constraintsolvingiterations,nullptr);
-    bool newtonMultithreading=App::ct->dynamicsContainer->getEngineBoolParam(sim_newton_global_multithreading,nullptr);
-    bool newtonExactSolver=App::ct->dynamicsContainer->getEngineBoolParam(sim_newton_global_exactsolver,nullptr);
-    bool newtonHighJointAccuracy=App::ct->dynamicsContainer->getEngineBoolParam(sim_newton_global_highjointaccuracy,nullptr);
+    float newtonStepSize=App::currentWorld->dynamicsContainer->getEngineFloatParam(sim_newton_global_stepsize,nullptr);
+    float newtonContactMergeTolerance=App::currentWorld->dynamicsContainer->getEngineFloatParam(sim_newton_global_contactmergetolerance,nullptr);
+    int newtonIterations=App::currentWorld->dynamicsContainer->getEngineIntParam(sim_newton_global_constraintsolvingiterations,nullptr);
+    bool newtonMultithreading=App::currentWorld->dynamicsContainer->getEngineBoolParam(sim_newton_global_multithreading,nullptr);
+    bool newtonExactSolver=App::currentWorld->dynamicsContainer->getEngineBoolParam(sim_newton_global_exactsolver,nullptr);
+    bool newtonHighJointAccuracy=App::currentWorld->dynamicsContainer->getEngineBoolParam(sim_newton_global_highjointaccuracy,nullptr);
 
     p_newtonTimeStep->setValue(tt::floatToEInfString(newtonStepSize,false).c_str());
-    p_newtonTimeStep->setEnabled(confIndex==4);
+    p_newtonTimeStep->setEnabled(confIndex==dynset_custom);
     p_newtonSolvingIterations->setValue(tt::getIString(false,newtonIterations).c_str());
-    p_newtonSolvingIterations->setEnabled(confIndex==4);
+    p_newtonSolvingIterations->setEnabled(confIndex==dynset_custom);
     p_newtonMultithreading->setValue(newtonMultithreading);
-    p_newtonMultithreading->setEnabled(confIndex==4);
+    p_newtonMultithreading->setEnabled(confIndex==dynset_custom);
     p_newtonExactSolver->setValue(newtonExactSolver);
-    p_newtonExactSolver->setEnabled(confIndex==4);
+    p_newtonExactSolver->setEnabled(confIndex==dynset_custom);
     p_newtonHighJointAccuracy->setValue(newtonHighJointAccuracy);
-    p_newtonHighJointAccuracy->setEnabled(confIndex==4);
+    p_newtonHighJointAccuracy->setEnabled(confIndex==dynset_custom);
     p_newtonContactMergeTolerance->setValue(tt::floatToEInfString(newtonContactMergeTolerance,false).c_str());
-    p_newtonContactMergeTolerance->setEnabled(confIndex==4);
+    p_newtonContactMergeTolerance->setEnabled(confIndex==dynset_custom);
 }
 
 QtBrowserItem* CPropBrowserEngineGeneral::getSubPropertyBrowserItem(const QtBrowserItem* parentBrowserItem,const QtProperty* childProperty)
@@ -389,32 +412,32 @@ void CPropBrowserEngineGeneral::handlePropertyChanges(QtProperty *_prop)
 
     // Config drop box:
     if (_prop==p_configuration)
-        App::ct->dynamicsContainer->setUseDynamicDefaultCalculationParameters(((QtVariantProperty*)_prop)->value().toInt());
+        App::currentWorld->dynamicsContainer->setDynamicsSettingsMode(((QtVariantProperty*)_prop)->value().toInt());
 
     // Bullet
     if (_prop==p_bulletTimeStep)
     {
         if (tt::stringToFloat(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),f,false,false))
-            App::ct->dynamicsContainer->setEngineFloatParam(sim_bullet_global_stepsize,f,true);
+            App::currentWorld->dynamicsContainer->setEngineFloatParam(sim_bullet_global_stepsize,f,true);
     }
     if (_prop==p_bulletConstraintSolvType)
-        App::ct->dynamicsContainer->setEngineIntParam(sim_bullet_global_constraintsolvertype,((QtVariantProperty*)_prop)->value().toInt(),false);
+        App::currentWorld->dynamicsContainer->setEngineIntParam(sim_bullet_global_constraintsolvertype,((QtVariantProperty*)_prop)->value().toInt(),false);
     if (_prop==p_bulletConstraintSolvIterat)
     {
         if (tt::stringToInt(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),a))
-            App::ct->dynamicsContainer->setEngineIntParam(sim_bullet_global_constraintsolvingiterations,a,true);
+            App::currentWorld->dynamicsContainer->setEngineIntParam(sim_bullet_global_constraintsolvingiterations,a,true);
     }
     if (_prop==p_bulletInternalScaling)
     {
         if (tt::stringToFloat(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),f,false,false))
-            App::ct->dynamicsContainer->setEngineFloatParam(sim_bullet_global_internalscalingfactor,f,true);
+            App::currentWorld->dynamicsContainer->setEngineFloatParam(sim_bullet_global_internalscalingfactor,f,true);
     }
     if (_prop==p_bulletInternalFullScaling)
-        App::ct->dynamicsContainer->setEngineBoolParam(sim_bullet_global_fullinternalscaling,((QtVariantProperty*)_prop)->value().toBool(),true);
+        App::currentWorld->dynamicsContainer->setEngineBoolParam(sim_bullet_global_fullinternalscaling,((QtVariantProperty*)_prop)->value().toBool(),true);
     if (_prop==p_bulletCollMarginScaling)
     {
         if (tt::stringToFloat(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),f,false,false))
-            App::ct->dynamicsContainer->setEngineFloatParam(sim_bullet_global_collisionmarginfactor,f,true);
+            App::currentWorld->dynamicsContainer->setEngineFloatParam(sim_bullet_global_collisionmarginfactor,f,true);
     }
 
 
@@ -422,36 +445,36 @@ void CPropBrowserEngineGeneral::handlePropertyChanges(QtProperty *_prop)
     if (_prop==p_odeTimeStep)
     {
         if (tt::stringToFloat(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),f,false,false))
-            App::ct->dynamicsContainer->setEngineFloatParam(sim_ode_global_stepsize,f,true);
+            App::currentWorld->dynamicsContainer->setEngineFloatParam(sim_ode_global_stepsize,f,true);
     }
     if (_prop==p_odeQuickStep)
     {
         bool b=((QtVariantProperty*)_prop)->value().toBool();
-        App::ct->dynamicsContainer->setEngineBoolParam(sim_ode_global_quickstep,b,true);
+        App::currentWorld->dynamicsContainer->setEngineBoolParam(sim_ode_global_quickstep,b,true);
         if (!b)
-            App::uiThread->messageBox_warning(this,strTranslate(IDS_ODE),strTranslate(IDS_WARNING_ODE_NOT_USING_QUICKSTEP),VMESSAGEBOX_OKELI);
+            App::uiThread->messageBox_warning(this,IDS_ODE,IDS_WARNING_ODE_NOT_USING_QUICKSTEP,VMESSAGEBOX_OKELI,VMESSAGEBOX_REPLY_OK);
     }
     if (_prop==p_odeIterations)
     {
         if (tt::stringToInt(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),a))
-            App::ct->dynamicsContainer->setEngineIntParam(sim_ode_global_constraintsolvingiterations,a,true);
+            App::currentWorld->dynamicsContainer->setEngineIntParam(sim_ode_global_constraintsolvingiterations,a,true);
     }
     if (_prop==p_odeInternalScaling)
     {
         if (tt::stringToFloat(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),f,false,false))
-            App::ct->dynamicsContainer->setEngineFloatParam(sim_ode_global_internalscalingfactor,f,true);
+            App::currentWorld->dynamicsContainer->setEngineFloatParam(sim_ode_global_internalscalingfactor,f,true);
     }
     if (_prop==p_odeInternalFullScaling)
-        App::ct->dynamicsContainer->setEngineBoolParam(sim_ode_global_fullinternalscaling,((QtVariantProperty*)_prop)->value().toBool(),true);
+        App::currentWorld->dynamicsContainer->setEngineBoolParam(sim_ode_global_fullinternalscaling,((QtVariantProperty*)_prop)->value().toBool(),true);
     if (_prop==p_odeGlobalErp)
     {
         if (tt::stringToFloat(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),f,false,false))
-            App::ct->dynamicsContainer->setEngineFloatParam(sim_ode_global_erp,f,true);
+            App::currentWorld->dynamicsContainer->setEngineFloatParam(sim_ode_global_erp,f,true);
     }
     if (_prop==p_odeGlobalCfm)
     {
         if (tt::stringToFloat(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),f,false,false))
-            App::ct->dynamicsContainer->setEngineFloatParam(sim_ode_global_cfm,f,true);
+            App::currentWorld->dynamicsContainer->setEngineFloatParam(sim_ode_global_cfm,f,true);
     }
 
 
@@ -459,69 +482,69 @@ void CPropBrowserEngineGeneral::handlePropertyChanges(QtProperty *_prop)
     if (_prop==p_vortexTimeStep)
     {
         if (tt::stringToFloat(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),f,false,false))
-            App::ct->dynamicsContainer->setEngineFloatParam(sim_vortex_global_stepsize,tt::userFloatToFloat(f,1.0f,false),true);
+            App::currentWorld->dynamicsContainer->setEngineFloatParam(sim_vortex_global_stepsize,tt::userFloatToFloat(f,1.0f,false),true);
     }
     if (_prop==p_vortexContactTolerance)
     {
         if (tt::stringToFloat(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),f,false,false))
-            App::ct->dynamicsContainer->setEngineFloatParam(sim_vortex_global_contacttolerance,tt::userFloatToFloat(f,1.0f,false),true);
+            App::currentWorld->dynamicsContainer->setEngineFloatParam(sim_vortex_global_contacttolerance,tt::userFloatToFloat(f,1.0f,false),true);
     }
     if (_prop==p_vortexAutoSleep)
-        App::ct->dynamicsContainer->setEngineBoolParam(sim_vortex_global_autosleep,((QtVariantProperty*)_prop)->value().toBool(),true);
+        App::currentWorld->dynamicsContainer->setEngineBoolParam(sim_vortex_global_autosleep,((QtVariantProperty*)_prop)->value().toBool(),true);
     if (_prop==p_vortexMultithreading)
-        App::ct->dynamicsContainer->setEngineBoolParam(sim_vortex_global_multithreading,((QtVariantProperty*)_prop)->value().toBool(),true);
+        App::currentWorld->dynamicsContainer->setEngineBoolParam(sim_vortex_global_multithreading,((QtVariantProperty*)_prop)->value().toBool(),true);
     if (_prop==p_vortexConstraintLinearCompliance)
     {
         if (tt::stringToFloat(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),f,false,false))
-            App::ct->dynamicsContainer->setEngineFloatParam(sim_vortex_global_constraintlinearcompliance,tt::userFloatToFloat(f,1.0f,true),true);
+            App::currentWorld->dynamicsContainer->setEngineFloatParam(sim_vortex_global_constraintlinearcompliance,tt::userFloatToFloat(f,1.0f,true),true);
     }
     if (_prop==p_vortexConstraintLinearDamping)
     {
         if (tt::stringToFloat(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),f,false,false))
-            App::ct->dynamicsContainer->setEngineFloatParam(sim_vortex_global_constraintlineardamping,tt::userFloatToFloat(f,1.0f,true),true);
+            App::currentWorld->dynamicsContainer->setEngineFloatParam(sim_vortex_global_constraintlineardamping,tt::userFloatToFloat(f,1.0f,true),true);
     }
     if (_prop==p_vortexConstraintLinearKinLoss)
     {
         if (tt::stringToFloat(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),f,false,false))
-            App::ct->dynamicsContainer->setEngineFloatParam(sim_vortex_global_constraintlinearkineticloss,tt::userFloatToFloat(f,1.0f,true),true);
+            App::currentWorld->dynamicsContainer->setEngineFloatParam(sim_vortex_global_constraintlinearkineticloss,tt::userFloatToFloat(f,1.0f,true),true);
     }
     if (_prop==p_vortexConstraintAngularCompliance)
     {
         if (tt::stringToFloat(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),f,false,false))
-            App::ct->dynamicsContainer->setEngineFloatParam(sim_vortex_global_constraintangularcompliance,tt::userFloatToFloat(f,1.0f,true),true);
+            App::currentWorld->dynamicsContainer->setEngineFloatParam(sim_vortex_global_constraintangularcompliance,tt::userFloatToFloat(f,1.0f,true),true);
     }
     if (_prop==p_vortexConstraintAngularDamping)
     {
         if (tt::stringToFloat(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),f,false,false))
-            App::ct->dynamicsContainer->setEngineFloatParam(sim_vortex_global_constraintangulardamping,tt::userFloatToFloat(f,1.0f,true),true);
+            App::currentWorld->dynamicsContainer->setEngineFloatParam(sim_vortex_global_constraintangulardamping,tt::userFloatToFloat(f,1.0f,true),true);
     }
     if (_prop==p_vortexConstraintAngularKinLoss)
     {
         if (tt::stringToFloat(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),f,false,false))
-            App::ct->dynamicsContainer->setEngineFloatParam(sim_vortex_global_constraintangularkineticloss,tt::userFloatToFloat(f,1.0f,true),true);
+            App::currentWorld->dynamicsContainer->setEngineFloatParam(sim_vortex_global_constraintangularkineticloss,tt::userFloatToFloat(f,1.0f,true),true);
     }
 
     // Newton parameters:
     if (_prop==p_newtonTimeStep)
     {
         if (tt::stringToFloat(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),f,false,false))
-            App::ct->dynamicsContainer->setEngineFloatParam(sim_newton_global_stepsize,f,true);
+            App::currentWorld->dynamicsContainer->setEngineFloatParam(sim_newton_global_stepsize,f,true);
     }
     if (_prop==p_newtonSolvingIterations)
     {
         if (tt::stringToInt(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),a))
-            App::ct->dynamicsContainer->setEngineIntParam(sim_newton_global_constraintsolvingiterations,a,true);
+            App::currentWorld->dynamicsContainer->setEngineIntParam(sim_newton_global_constraintsolvingiterations,a,true);
     }
     if (_prop==p_newtonMultithreading)
-        App::ct->dynamicsContainer->setEngineBoolParam(sim_newton_global_multithreading,((QtVariantProperty*)_prop)->value().toBool(),true);
+        App::currentWorld->dynamicsContainer->setEngineBoolParam(sim_newton_global_multithreading,((QtVariantProperty*)_prop)->value().toBool(),true);
     if (_prop==p_newtonExactSolver)
-        App::ct->dynamicsContainer->setEngineBoolParam(sim_newton_global_exactsolver,((QtVariantProperty*)_prop)->value().toBool(),true);
+        App::currentWorld->dynamicsContainer->setEngineBoolParam(sim_newton_global_exactsolver,((QtVariantProperty*)_prop)->value().toBool(),true);
     if (_prop==p_newtonHighJointAccuracy)
-        App::ct->dynamicsContainer->setEngineBoolParam(sim_newton_global_highjointaccuracy,((QtVariantProperty*)_prop)->value().toBool(),true);
+        App::currentWorld->dynamicsContainer->setEngineBoolParam(sim_newton_global_highjointaccuracy,((QtVariantProperty*)_prop)->value().toBool(),true);
     if (_prop==p_newtonContactMergeTolerance)
     {
         if (tt::stringToFloat(((QtVariantProperty*)_prop)->value().toString().toStdString().c_str(),f,false,false))
-            App::ct->dynamicsContainer->setEngineFloatParam(sim_newton_global_contactmergetolerance,f,true);
+            App::currentWorld->dynamicsContainer->setEngineFloatParam(sim_newton_global_contactmergetolerance,f,true);
     }
 
     refresh();
